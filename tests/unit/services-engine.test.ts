@@ -75,3 +75,26 @@ test('MODEL B + engine: a gift keeps being editable/publishable against its pinn
   const gone = createTemplateLookup(createRegistry([]));
   assert.equal(code(await S.saveDraft(h.env, alice, g.giftId, { expectedVersion: 2, content: sampleContent(chapterOfUs, 'en') }, gone)), 'template_unavailable');
 });
+
+test('private draft read is owner-only and still returns read-only content after entitlement expires', async () => {
+  const h = makeEnv(T0); await buy(h, 'basic');
+  const content = sampleContent(chapterOfUs, 'id');
+  const created = await S.createGift(h.env, alice, { templateId: 'chapter-of-us', content }, lookupTemplate);
+  assert.ok(created.ok);
+
+  const readable = await S.getGiftDraft(h.env, alice, created.giftId);
+  assert.ok(readable.ok);
+  assert.equal(readable.editable, true);
+  assert.deepEqual(readable.draft.content, content);
+  assert.equal(readable.draft.version, 1);
+
+  h.advance(4 * 86_400_000);
+  const expired = await S.getGiftDraft(h.env, alice, created.giftId);
+  assert.ok(expired.ok);
+  assert.equal(expired.editable, false);
+  assert.equal(expired.reason, 'subscription_expired');
+  assert.deepEqual(expired.draft.content, content);
+
+  const stranger = await S.getGiftDraft(h.env, { uid: 'mallory', admin: false }, created.giftId);
+  assert.ok(!stranger.ok && stranger.code === 'not_owner');
+});

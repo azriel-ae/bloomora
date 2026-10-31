@@ -93,7 +93,29 @@
     "scenes": "Adegan",
     "sceneHelp": "Atur momen yang disetujui dalam hadiahmu.",
     "addScene": "+ Tambah adegan",
-    "localNote": "Pratinjau autosave aktif secara lokal. Penyimpanan Firestore akan aktif setelah Firebase dikonfigurasi."
+    "localNote": "Penyimpanan draf ditangani server; mode pengembangan lokal bersifat sementara dan direset saat server dimulai ulang.",
+    "createDraft": "Simpan sebagai draf",
+    "startEditing": "Mulai mengedit",
+    "statusSaved": "Semua perubahan tersimpan",
+    "statusUnsaved": "Perubahan belum tersimpan",
+    "statusSaving": "Menyimpan…",
+    "statusFailed": "Belum tersimpan",
+    "statusConflict": "Ada versi lain yang tersimpan",
+    "loadingDraft": "Memuat draf privatmu…",
+    "chooseTemplate": "Pilih template",
+    "chooseTemplateHelp": "Draf lama ini belum memiliki template. Pilih satu untuk melanjutkan edit.",
+    "includeSection": "Sertakan bagian",
+    "requiredSection": "Wajib",
+    "addItem": "Tambah item",
+    "removeItem": "Hapus",
+    "media": "Foto dan audio",
+    "notAvailable": "Belum tersedia",
+    "mediaDisabled": "Unggah foto dan audio belum tersedia. Tidak ada media yang akan diunggah atau disimpan.",
+    "previewNote": "Pratinjau memakai teks contoh saat drafmu masih kosong. Teks contoh tidak pernah disimpan ke hadiah.",
+    "devNotice": "Sandbox pengembangan lokal: draf hanya hidup di proses server ini, direset saat dimulai ulang, dan tidak terhubung ke Firebase. Jangan masukkan data pribadi nyata.",
+    "retry": "Coba simpan lagi",
+    "reloadServer": "Muat ulang draf server (perubahan lokalmu akan diganti)",
+    "renew": "Lihat paket"
   },
   "payment": {
     "scan": "Silakan pindai kode QRIS untuk melakukan pembayaran.",
@@ -106,7 +128,22 @@
     "chatConfig": "Panduan Bloomora belum terhubung. Tambahkan konfigurasi Gemini server untuk mengaktifkan chat.",
     "authConfig": "Firebase Authentication belum dikonfigurasi di lingkungan ini.",
     "invalidMessage": "Kirim pesan singkat yang valid.",
-    "saveAuth": "Masuk untuk menyimpan hadiah."
+    "saveAuth": "Masuk untuk menyimpan hadiah.",
+    "subscriptionExpired": "Paketmu sudah habis. Draf tetap bisa dilihat, tetapi penyimpanan dijeda sampai kamu memperpanjang.",
+    "noSubscription": "Paket aktif diperlukan untuk membuat atau mengedit hadiah.",
+    "quotaReached": "Batas jumlah hadiah pada paket ini sudah tercapai.",
+    "templateNotInPackage": "Template ini tidak termasuk dalam paket aktifmu.",
+    "versionConflict": "Ada draf yang lebih baru di server. Muat ulang sebelum melanjutkan penyimpanan.",
+    "incompleteContent": "Masih ada detail wajib yang belum diisi.",
+    "mediaUnavailable": "Unggah foto dan audio belum tersedia.",
+    "serverNotConfigured": "Penyimpanan hadiah belum terhubung di lingkungan ini. Perubahanmu belum tersimpan.",
+    "signInRequired": "Masuk kembali untuk melanjutkan edit hadiah privat ini.",
+    "notOwner": "Draf privat ini bukan milik akun yang sedang digunakan.",
+    "giftNotFound": "Draf ini tidak ditemukan.",
+    "giftArchived": "Draf yang diarsipkan hanya bisa dibaca. Pulihkan hadiah dari ruang kerjamu sebelum mengedit.",
+    "templateUnavailable": "Versi template untuk draf ini tidak tersedia untuk diedit.",
+    "networkError": "Server tidak dapat dijangkau. Perubahanmu masih ada di halaman ini; coba lagi saat siap.",
+    "saveFailed": "Draf belum bisa disimpan. Perubahanmu masih ada di halaman ini; silakan coba lagi."
   },
   "templatesPage": {
     "eyebrow": "Koleksi Bloomora",
@@ -149,7 +186,9 @@
     "registerIntro": "Buat ruang pribadi untuk draf, pesanan, dan hadiah yang ingin kamu bagikan.",
     "newHere": "Baru di sini?",
     "already": "Sudah punya akun?",
-    "createAccount": "Buat akun"
+    "createAccount": "Buat akun",
+    "editorTitle": "Masuk untuk mengedit hadiah ini.",
+    "editorIntro": "Draf ini bersifat privat. Masuk dengan akun pemiliknya; Bloomora akan mengembalikanmu ke editor setelahnya."
   },
   "info": {
     "paymentEyebrow": "Instruksi pembayaran",
@@ -371,9 +410,11 @@
     "start": "Kamu bisa mulai dari",
     "selectedTemplate": "Template pilihan",
     "authEyebrow": "Langkah awal yang tenang",
+    "authTitle": "Masuk untuk memulai drafmu.",
     "authBody": "Buat akun agar Bloomora dapat menyimpan karyamu, menjaga kenangan tetap privat, dan memudahkanmu menerbitkan hadiah saat siap.",
     "register": "Buat akun gratis",
-    "login": "Saya sudah punya akun"
+    "login": "Saya sudah punya akun",
+    "startEditing": "Mulai mengedit template ini"
   },
   "recipient": {
     "demoEyebrow": "Hadiah yang dibuat khusus untukmu",

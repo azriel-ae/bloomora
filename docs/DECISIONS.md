@@ -32,6 +32,9 @@ Setiap butir diberi status: DISEPAKATI (pengguna menyatakannya), DIIMPLEMENTASIK
 | 19 | Tidak ada dependency baru ditambahkan. Dev tooling harness (esbuild, playwright, @firebase/rules-unit-testing, firebase-tools) belum ada di `package.json` agar lockfile pnpm tetap sinkron untuk Vercel | DIIMPLEMENTASIKAN |
 | 20 | `lib/engine/registry.ts` adalah satu-satunya sumber template aktif untuk UI. Kartu/detail/preview berasal dari `TemplateConfig`; status demo, tier, dan kategori tidak diduplikasi dalam registry kedua. Eligibilitas paket hanya informatif sampai backend memeriksa entitlement | DIIMPLEMENTASIKAN (Phase 4; registry legacy dihapus) |
 | 21 | Prefiks locale URL (`/id/`, `/en/`) mengalahkan cookie bahasa lama pada request yang sama agar server render konsisten saat berpindah bahasa | DIIMPLEMENTASIKAN di middleware dan diuji browser (Phase 4) |
+| 22 | GET draft editor mengizinkan pemilik melihat gift privat setelah entitlement berakhir (read-only); setiap save tetap melalui service entitlement dan expectedVersion. Konflik versi perlu reload eksplisit, bukan retry otomatis | DIIMPLEMENTASIKAN dan diuji (Phase 5) |
+| 23 | Tanpa Firebase, sandbox editor hanya untuk development lokal eksplisit (`NODE_ENV=development` + `BLOOMORA_DEV_EDITOR=true`), menggunakan memori proses yang volatil dan peringatan yang terlihat; mode ini tidak tersedia pada production | DIIMPLEMENTASIKAN dan diuji browser (Phase 5) |
+| 24 | ID gift tersimpan tidak berbagi namespace dengan slug template: editor baru di `/editor/new?template=...`, gift di `/editor/g/[giftId]`; path lama `/editor/[giftId]` tetap sebagai alias kompatibilitas | DIIMPLEMENTASIKAN (Phase 5) |
 
 ## Catatan terkait temuan lama
 

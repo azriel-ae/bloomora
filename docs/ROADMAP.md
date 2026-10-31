@@ -28,23 +28,22 @@ Hasil pelaksanaan:
 - Browser test menemukan prefiks `/en/...` sempat merender locale dari cookie lama pada request pertama. Middleware kini menetapkan cookie locale pada request yang dirender sekaligus pada response.
 - Validasi lulus: 62 unit test, i18n 22 section, 119/119 browser test Phase 3, browser test katalog termasuk filter/detail/eligibilitas/locale/homepage/create/editor/mobile, typecheck, lint, dan production build.
 
-Kriteria selesai terpenuhi: semua halaman terkait memakai engine, tidak ada referensi aktif ke `lib/templates.ts`, tes unit/browser dan `pnpm check:i18n` hijau. Phase 5 belum dimulai; tunggu persetujuan eksplisit pengguna.
+Kriteria selesai terpenuhi: semua halaman terkait memakai engine, tidak ada referensi aktif ke `lib/templates.ts`, tes unit/browser dan `pnpm check:i18n` hijau. Phase 5 selesai dan menunggu persetujuan eksplisit untuk Phase 6.
 
 ## Phase 5: editor dan penyimpanan draft
 
-Kondisi sekarang: `components/gift-editor.tsx` hanya state React; indikator "Saved" adalah timer palsu; tombol foto, musik, tipe tidak berfungsi; `app/editor/[giftId]/page.tsx` memperlakukan `giftId` sebagai slug template. Service `createGift`, `saveDraft`, route `/api/gifts` dan `/api/gifts/[giftId]` sudah ada dan diuji dengan Fake Store.
+**Status: SELESAI dan diverifikasi pada 2026-11-01.** Pengguna menyetujui Phase 5 pada 2026-11-01. Kondisi awal dan daftar cakupan dipertahankan di sini sebagai rekam jejak.
 
-Kerjakan:
-- Tulis ulang editor di atas engine: field dibangkitkan dari `TemplateConfig` (`FieldDef`, `ListDef`), hanya field milik template terpilih. Pratinjau langsung memakai `GiftView mode="preview"`.
-- Manajemen section: hanya menyalakan atau mematikan section opsional (urutan milik template, ditegakkan `validateContentForTemplate`).
-- Autosave dengan debounce dan `expectedVersion`; tangani `409 version_conflict`; status simpan nyata (menyimpan, tersimpan, gagal); perlindungan perubahan belum tersimpan (beforeunload); hindari tulis berlebihan.
-- Skema URL editor: perlu id gift terpisah dari slug template (rute lama `/editor/[giftId]` diperlakukan sebagai slug template; putuskan cara kompatibel, jangan hapus rute lama tanpa pengganti).
-- Peta kode galat service (`subscription_expired`, `quota_reached`, `template_not_in_package`, `version_conflict`, `incomplete_content`, `media_unavailable`, dan lainnya) ke teks id dan en.
-- Kondisi paket kedaluwarsa: editor menampilkan pemberitahuan dan menonaktifkan penyimpanan, dengan ajakan perpanjang.
-- Tombol foto dan musik: tampilkan jelas "belum tersedia" selama `MEDIA_UPLOAD_ENABLED` false; jangan buat tombol yang tampak aktif.
-- Backend belum terhubung: gunakan route yang sudah ada dengan adapter Fake atau mode pengembangan yang tegas; jangan simpan di `localStorage` atau file lokal sebagai pengganti database.
+Hasil pelaksanaan:
+- `components/gift-editor.tsx` membangkitkan field/list dari `TemplateConfig`, toggle hanya untuk section opsional, dan mempratinjau melalui `GiftView mode="preview"`; sample hanya mengisi tampilan, bukan isi yang disimpan.
+- Draft dibuat lewat `POST /api/gifts`, dibaca privat lewat `GET /api/gifts/[giftId]`, lalu disimpan lewat `PUT` menggunakan service transaksional dan `expectedVersion`. Route baru `/editor/new?template=...` dan `/editor/g/[giftId]` memisahkan ID gift dari slug template; route lama mempertahankan kompatibilitas dengan redirect.
+- Autosave debounce, status nyata, `beforeunload`, retry untuk error sementara, dan konflik `409` dengan rekonsiliasi eksplisit (tidak pernah retry konflik memakai versi tebakan).
+- GET privat hanya mengembalikan draft kepada pemilik; setelah paket habis draft tetap bisa dibaca tetapi read-only, konten lokal tidak dibuang, dan CTA paket tersedia.
+- Foto/audio secara eksplisit nonaktif. Mode tanpa Firebase untuk browser test hanya hidup pada process memory, wajib `NODE_ENV=development` dan `BLOOMORA_DEV_EDITOR=true`, menampilkan peringatan, serta tidak aktif pada production. Tidak memakai localStorage/file.
+- `AuthCallout` meneruskan tujuan melalui query `next` yang divalidasi sebagai path internal; middleware locale kini mempertahankan query string pada rewrite.
+- Validasi lulus: typecheck/lint dalam production build, 65 unit test, i18n 22 section, `pnpm test:editor` (create/autosave/reload/409/expiry/id-en), dan `pnpm test:catalog`.
 
-Selesai bila: tes unit untuk logika autosave/konflik, tes browser untuk alur edit, konflik, kedaluwarsa, pratinjau; tidak ada kontrol palsu.
+Kriteria Phase 5 terpenuhi. Firebase belum terhubung; alur autentikasi/draft terhadap Firebase nyata, emulator rules, media, publishing, serta halaman publik tidak diklaim sudah diuji/dibangun di Phase ini. Phase 6 belum dimulai; tunggu persetujuan eksplisit pengguna.
 
 ## Phase 6: publishing dan halaman publik
 

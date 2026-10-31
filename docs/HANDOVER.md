@@ -2,7 +2,7 @@
 
 Baca dulu `docs/DECISIONS.md`, lalu `docs/PROGRESS.md`, dan `docs/ROADMAP.md` untuk semua tahap yang masih harus dikerjakan. Dokumen ini diperbarui dari kode aktual per 2026-11-01.
 
-Checkpoint terbaru: Phase 4 katalog/detail template telah selesai dan diverifikasi setelah pengguna menyetujuinya. Phase 5 (editor dan draft) belum dimulai; wajib menunggu persetujuan eksplisit pengguna.
+Checkpoint terbaru: Phase 5 (editor dan penyimpanan draft) telah selesai dan diverifikasi setelah pengguna menyetujuinya pada 2026-11-01. Phase 6 belum dimulai; wajib menunggu persetujuan eksplisit pengguna.
 
 ## Proyek
 
@@ -18,7 +18,7 @@ Kondisi awal (zip `bloomora-fixed.zip`) adalah scaffold UI: 3 template statis, e
 | 2 Template engine | Selesai (unit test) |
 | 3 Renderer dan Featured Demo | COMPLETED; build, lint, typecheck, unit, i18n, browser, dan pemeriksaan route lulus pada 2026-11-01 |
 | 4 Katalog dan detail template | SELESAI; test unit, i18n, production build, browser katalog, dan regression browser lulus pada 2026-11-01 |
-| 5 Editor dan penyimpanan draft | Belum dimulai; jangan mulai tanpa persetujuan pengguna |
+| 5 Editor dan penyimpanan draft | SELESAI; browser editor, unit, build, i18n, dan regresi katalog lulus |
 | 6 dan seterusnya | Belum dimulai; ikuti gate persetujuan di roadmap |
 
 ## Kondisi Firebase dan database
@@ -60,10 +60,18 @@ Pada snapshot tersebut sandbox tidak memiliki dependency atau akses jaringan, se
 4. Konfirmasi dua divergensi di `docs/DECISIONS.md` dengan pengguna sebelum menyentuh `approveOrder` atau kuota.
 5. Jangan menghubungkan Firebase atau mengaktifkan Blaze.
 
-## Handover Phase 4 → Phase 5
+## Handover Phase 4 → Phase 5 (riwayat sebelum Phase 5 disetujui)
 
 Phase 4 selesai: registry aktif menjadi sumber tunggal untuk katalog, detail, create, homepage, preview editor, fallback `/g/demo`, dan konteks chatbot. File legacy telah dihapus, dan hasil/keputusan dicatat di `docs/PROGRESS.md`, `docs/CHANGELOG.md`, `docs/DECISIONS.md`, `docs/ARCHITECTURE.md`, serta `docs/ROADMAP.md`.
 
 Langkah berikutnya adalah Phase 5: bangun editor berbasis `TemplateConfig`, penyimpanan draft lewat service/route yang sudah ada, konflik versi, preview `GiftView mode="preview"`, serta kontrol media yang jujur (rincian dan gate di `docs/ROADMAP.md`). **Jangan mulai sebelum pengguna menyetujuinya.** Jangan mengaktifkan Firebase/Blaze dan jangan ubah Model B atau aturan entitlement.
 
-Sesudah pengguna menyetujui Phase 5, mulai dengan membaca handover, roadmap Phase 5, service serta routes yang sudah ada; jalankan perubahan secara bertahap, perbarui dokumentasi relevan, verifikasi, lalu push ke repository `https://github.com/azriel-ae/bloomora.git` sesuai instruksi pengguna.
+Pada checkpoint saat catatan ini ditulis, Phase 5 belum dimulai dan menunggu persetujuan; instruksi di atas adalah rekam jejak, bukan status terkini.
+
+## Handover Phase 5 → Phase 6 (checkpoint terkini)
+
+Phase 5 telah diimplementasikan: editor membaca `TemplateConfig`, preview bersama `GiftView`, draft melalui service/API, GET owner-only, autosave berbasis versi dan 409 reconciliation, expiry read-only, media disabled, serta sandbox memori khusus development yang eksplisit. Detail perubahan/hasil ada di `docs/ROADMAP.md`, `docs/PROGRESS.md`, `docs/CHANGELOG.md`, `docs/DECISIONS.md`, dan `docs/ARCHITECTURE.md`.
+
+Verifikasi terbaru: `pnpm build` lulus (Next.js 15.5.28, 30/30 halaman statis), build menjalankan lint/typecheck, `pnpm test:unit` 65/65, `pnpm check:i18n` 22 section, `pnpm test:editor` lulus, dan `pnpm test:catalog` lulus. Firebase tidak terhubung; jangan menyatakan tes Firestore/auth produksi sudah dilakukan.
+
+Langkah berikutnya adalah Phase 6 (publishing dan halaman publik `/g/[slug]`). **Berhenti dan tunggu persetujuan eksplisit pengguna sebelum mulai Phase 6.** Jangan mengaktifkan Firebase/Blaze, mengubah Model B, atau mengerjakan scope dashboard/pembayaran/media pada continuation ini. Push checkpoint Phase 5 ke `https://github.com/azriel-ae/bloomora.git`.

@@ -11,8 +11,8 @@ Diperbarui: 2026-11-01. Status ditulis dari kondisi repository, bukan dari ingat
 | Phase 2 | Template engine | SELESAI (diuji unit) |
 | Phase 3 | React renderer dan Featured Demo `chapter-of-us` | COMPLETED setelah typecheck, lint, build, unit, i18n, harness browser, dan pemeriksaan route lulus pada 2026-11-01 |
 | Phase 4 | Katalog dan halaman detail template di atas engine | SELESAI (terverifikasi 2026-11-01) |
-| Phase 5 | Editor dan penyimpanan draft | BELUM DIMULAI — menunggu persetujuan pengguna |
-| Berikutnya | Publishing dan halaman publik `/g/[slug]`, dashboard, payment proof dan admin, template sampai 43, integrasi Firebase, uji keamanan, deployment | BELUM DIMULAI |
+| Phase 5 | Editor dan penyimpanan draft | SELESAI — implementasi dan verifikasi 2026-11-01 |
+| Phase 6+ | Publishing dan halaman publik `/g/[slug]`, dashboard, payment proof dan admin, template sampai 43, integrasi Firebase, uji keamanan, deployment | BELUM DIMULAI — Phase 6 menunggu persetujuan |
 
 Penomoran Phase 4 dan sesudahnya mengikuti urutan prioritas yang Anda tulis. Pembagian nomor setelah Phase 4 adalah usulan saya, belum disepakati.
 
@@ -83,12 +83,16 @@ Kriteria closeout yang tercatat di snapshot awal adalah `pnpm install && pnpm ty
 - `pnpm test:browser`: 119/119 lulus. `pnpm test:catalog`: lulus, termasuk search, kategori, empty/reset, demo, detail/paket, id/en, query template create, homepage, `/g/demo`, editor preview, dan mobile.
 - Dependency browser (Playwright/Chromium) tetap disediakan sementara di luar manifest proyek. `pnpm test:rules` tidak dijalankan; tidak diperlukan untuk Phase 4 dan memerlukan Firebase emulator.
 
+## Penutupan Phase 5 — 2026-11-01
+
+- Editor kini data-driven dari `TemplateConfig` (field dan list) dengan preview langsung `GiftView mode="preview"`; sample preview tidak ditulis sebagai isi draft.
+- Draft dibuat, dibaca, dan disimpan melalui service/route server. GET hanya memberi akses ke pemilik; entitlement habis menghasilkan view read-only, sedangkan save memakai debounce + optimistic `expectedVersion`. Konflik 409 memerlukan reload/reconciliation eksplisit.
+- `giftId` menggunakan `/editor/g/[giftId]`; `/editor/new?template=` membuat draft. Route lama `/editor/[giftId]` tetap ada sebagai alias slug template, `/editor/demo` menuju demo sungguhan.
+- Sandbox tanpa Firebase hanya untuk development yang secara eksplisit diaktifkan dengan `BLOOMORA_DEV_EDITOR=true`; store berada di memori proses, menampilkan warning, reset saat restart, dan tidak ada pada production. Media upload tetap nonaktif.
+- Perbaikan middleware mempertahankan query string saat rewrite locale sehingga pilihan template tidak hilang; auth `next` dibatasi ke URL internal.
+- Verifikasi: `pnpm build` lulus (30/30 static pages generated; Next juga lint/typecheck), `pnpm test:unit` 65/65, `pnpm check:i18n` 22 section, `pnpm test:editor` lulus, dan `pnpm test:catalog` lulus.
+- Keterbatasan: Firebase nyata dan Firestore emulator tidak digunakan, sehingga auth/draft produksi terhadap Firebase dan rules tidak diklaim teruji. Phase publishing, dashboard, media, payment/admin, serta Phase 6 belum dimulai.
+
 ## Pekerjaan berikutnya (belum dimulai, menunggu persetujuan)
 
-Rincian per tahap (cakupan, file, kriteria selesai, keputusan yang menunggu): `docs/ROADMAP.md`. Ringkasan:
-
-1. Phase 4 telah selesai dan diverifikasi pada 2026-11-01.
-2. Phase 5: editor dan penyimpanan draft, memakai `GiftView mode="preview"` — **belum dimulai; tunggu persetujuan eksplisit pengguna**.
-3. Publishing dan `/g/[slug]`, memakai `GiftView mode="public"`.
-4. Dashboard, lalu payment proof dan admin, lalu template sampai 43.
-5. Setelah aplikasi selesai: integrasi Firebase menyeluruh, uji emulator, uji keamanan, deployment.
+Rincian per tahap dan kriteria: `docs/ROADMAP.md`. Phase 5 selesai dan diverifikasi pada 2026-11-01. Langkah berikutnya adalah Phase 6 (publishing dan halaman publik `/g/[slug]`, memakai `GiftView mode="public"`) — **jangan dimulai tanpa persetujuan eksplisit pengguna**. Dashboard, payment proof/admin, template sampai 43, integrasi Firebase, uji keamanan, dan deployment tetap sesudahnya.

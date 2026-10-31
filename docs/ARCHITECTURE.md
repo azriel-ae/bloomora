@@ -32,12 +32,12 @@ Sejak Phase 4, `lib/engine/registry.ts` adalah sumber tunggal daftar template ak
 browser -> route handler (lib/server/http.ts: cek origin, sesi, claim admin dari token terverifikasi)
         -> lib/server/services.ts (satu transaksi per operasi, jam server)
         -> interface Store (lib/server/store.ts)
-              produksi: firestore-store.ts (Admin SDK)      uji: tests/unit/helpers/fake-store.ts
+              produksi: firestore-store.ts (Admin SDK)      uji: Fake Store + sandbox memori development eksplisit
 ```
 
 - Semua tulis ke Firestore melalui server. Rules menolak semua tulis dari client.
 - Service membaca subscription pengguna, memanggil fungsi murni di `lib/entitlements.ts`, lalu menulis. Identitas selalu dari sesi, bukan dari body request.
-- `ServiceError` menjadi respons `{ ok:false, code }`. Kode dipetakan ke teks dua bahasa di UI (belum dibuat).
+- `ServiceError` menjadi respons `{ ok:false, code }`. Kode editor dipetakan ke teks dua bahasa; konflik 409 tidak di-retry secara buta.
 - Fake Store meniru aturan Firestore (semua baca sebelum tulis, `create` gagal bila ada, rollback atomik).
 
 ## Entitlement dan subscription
@@ -71,6 +71,16 @@ Template adalah data: tema (palet, token font, motion), section berurut (tipe + 
 - `/create?template=<id>` mempertahankan pilihan engine; Featured Demo tetap satu (`chapter-of-us`) dan tautan demo kartu muncul hanya bila `hasDemo`.
 - Middleware menyetel locale prefiks pada request yang sedang dirender serta cookie response agar render pertama `/en/...` tidak mewarisi locale lama.
 
+## Editor dan draft (Phase 5)
+
+- `/editor/new?template=<id>` memulai editor atas template aktif; `/editor/g/<giftId>` mengedit draft dengan ID tersimpan. `/editor/[giftId]` adalah alias lama untuk slug template, sedangkan `/editor/demo` mengarah ke demo nyata.
+- `components/gift-editor.tsx` membangun field/list/section dari `TemplateConfig`, dan menampilkan `GiftView mode="preview"` dengan sample hanya untuk field kosong. Kontrol section hanya mengubah bagian opsional dalam urutan config; foto dan audio tetap disabled karena `MEDIA_UPLOAD_ENABLED=false`.
+- `GET /api/gifts/[giftId]` mengembalikan draft hanya setelah pemeriksaan pemilik. Expired/archived draft dapat dibaca sesuai kebijakan, tetapi API menandai `editable=false`; penulisan tetap lewat `saveDraft` dan pemeriksaan entitlement.
+- Autosave di `lib/editor/autosave.ts` debounce, single-flight, mengirim `expectedVersion`, dan berhenti pada konflik. Pemilik memilih reload server untuk rekonsiliasi; perubahan lokal dipertahankan saat kegagalan/expiry.
+- `lib/server/dev-editor-env.ts` menyediakan adapter volatile khusus test/dev yang hanya aktif jika `NODE_ENV=development` dan `BLOOMORA_DEV_EDITOR=true`. State process-global dibutuhkan lintas bundle route Next; tidak ada localStorage/file, dan fungsi menolak production.
+- Auth return path menggunakan `safeInternalRedirect`; middleware mempertahankan query string pada rewrite locale agar `template` tetap ada setelah `/id` atau `/en` dihapus untuk routing internal.
+- Browser test `pnpm test:editor` meliputi create, autosave+reload, konflik 409, expiry, media disabled dan id/en; `pnpm test:catalog` menjaga regresi katalog.
+
 ## Rencana integrasi Firebase (belum dikerjakan)
 
 1. Setelah aplikasi selesai: buat konfigurasi env (lihat README), deploy `firestore.rules` dan `firestore.indexes.json`, seed koleksi `packages`.
@@ -89,5 +99,5 @@ Template adalah data: tema (palet, token font, motion), section berurut (tipe + 
 | Rules Firestore/Storage | Ditulis, BELUM divalidasi atau diuji di emulator |
 | Auth sesi (`lib/session.ts`) | Kode lama, bergantung Firebase, belum diuji di sini |
 | Pembayaran | Hanya order dan persetujuan admin di service. Tidak ada bukti bayar, tidak ada UI admin, tidak ada pembayaran sungguhan |
-| Editor, dashboard, halaman publik `/g/[slug]`, admin | Editor masih mock (preview kini membaca engine); dashboard/admin statis; `/g/[slug]` masih placeholder, belum memakai service publik |
+| Editor, dashboard, halaman publik `/g/[slug]`, admin | Editor/draft Phase 5 menggunakan service dan sandbox dev khusus untuk tes; dashboard/admin masih statis; `/g/[slug]` masih placeholder dan belum memakai service publik |
 | Upload media | Dinonaktifkan |

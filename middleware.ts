@@ -10,7 +10,9 @@ export function middleware(request: NextRequest) {
     // Apply the locale to this request as well as the response cookie. Otherwise
     // server components can render once with a stale locale from the prior page.
     request.cookies.set(localeCookie, first);
-    const response = NextResponse.rewrite(new URL(nextPath, request.url), {
+    const destination = request.nextUrl.clone();
+    destination.pathname = nextPath;
+    const response = NextResponse.rewrite(destination, {
       request: { headers: request.headers },
     });
     response.cookies.set(localeCookie, first, { path: '/', maxAge: 31536000, sameSite: 'lax' });

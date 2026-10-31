@@ -143,6 +143,33 @@ export function saveDraft(env: Env, actor: Actor, giftId: string,
   }));
 }
 
+/** Owner-only draft read. Expired owners may still view their private gift, but cannot save it. */
+export function getGiftDraft(env: Env, actor: Actor, giftId: string) {
+  return guarded(async () => env.store.runTransaction(async (tx) => {
+    const { gift } = normalizeGift(env, giftId, await tx.get(`gifts/${giftId}`));
+    if (gift.ownerUid !== actor.uid) throw new ServiceError(403, 'not_owner');
+    if (gift.status === 'deleted') throw new ServiceError(404, 'gift_deleted');
+
+    const entitlement = await loadEntitlement(env, tx, actor.uid);
+    const permission = canEditGift(entitlement, { ownerUid: gift.ownerUid, status: gift.status }, actor.uid);
+    const content = requireContent(gift.draft.content);
+    return {
+      giftId,
+      templateId: typeof gift.templateId === 'string' ? gift.templateId : null,
+      templateVersion: Number.isInteger(gift.templateVersion) ? gift.templateVersion : 1,
+      status: gift.status,
+      draft: {
+        content,
+        version: Number.isInteger(gift.draft.version) ? gift.draft.version : 1,
+        updatedAtMs: gift.draft.updatedAt?.toMillis?.() ?? env.nowMs(),
+      },
+      editable: permission.allowed,
+      reason: permission.allowed ? null : permission.reason,
+      entitlement: { state: entitlement.state, expiresAtMs: entitlement.expiresAtMs },
+    };
+  }));
+}
+
 export function publishGift(env: Env, actor: Actor, giftId: string, input: { expectedVersion: unknown }, lookup?: TemplateLookup) {
   return guarded(async () => env.store.runTransaction(async (tx) => {
     const ent = await loadEntitlement(env, tx, actor.uid);

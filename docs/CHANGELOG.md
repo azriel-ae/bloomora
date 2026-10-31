@@ -6,6 +6,17 @@ Pada snapshot awal, perubahan belum pernah dikompilasi oleh `next build`. Closeo
 
 - `docs/ROADMAP.md`: rincian Phase 4 sampai 9 dan tahap Firebase, keamanan, deployment.
 
+## [Phase 5] 2026-11-01: editor dan penyimpanan draft
+
+- Mengganti editor mock dengan form dinamis `FieldDef`/`ListDef`, toggle section opsional, preview `GiftView mode="preview"`, dan status simpan nyata. Sample konten hanya untuk preview field kosong.
+- Menambahkan `GET /api/gifts/[giftId]` owner-only. Draft tetap bisa dibaca read-only setelah paket berakhir; semua tulis tetap melalui service, pemeriksaan entitlement, dan `expectedVersion`.
+- Menambahkan autosave debounce/single-flight, 409 reconciliation eksplisit, `beforeunload`, retry error sementara, create draft di `/editor/new?template=...`, dan edit di `/editor/g/[giftId]`. Route editor lama dipertahankan sebagai alias.
+- Foto/audio ditandai belum tersedia. Sandbox browser tanpa Firebase berupa store process-memory yang hanya aktif dengan `NODE_ENV=development` serta `BLOOMORA_DEV_EDITOR=true`, menampilkan peringatan, tidak memakai localStorage/file, dan ditolak saat production.
+- Auth continuation menggunakan path internal terverifikasi. Middleware locale mempertahankan query string saat rewrite; temuan browser sebelumnya akan kehilangan `?template=` telah dikunci oleh regression browser.
+- Ditambahkan unit test autosave serta GET privat/expired, `tests/browser/editor.mjs`, dan script `pnpm test:editor`; regression `tests/browser/catalog.mjs` memeriksa alias editor demo menuju demo nyata.
+- Lulus: production build (30/30 static pages generated; typecheck/lint build lulus), 65/65 unit test, parity i18n 22 section, browser editor lengkap, dan browser katalog.
+- Batas: Firebase/Firestore emulator tidak terhubung, jadi integrasi autentikasi dan penyimpanan produksi tidak diklaim telah diuji. Phase 6 belum dimulai.
+
 ## [Phase 3 closeout] 2026-11-01: verifikasi integrasi
 
 - `lib/server/store.ts`: pengecualian ESLint yang dijelaskan untuk tipe dokumen Firestore dinamis; validasi tetap dilakukan pada batas service/domain.

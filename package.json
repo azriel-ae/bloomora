@@ -13,7 +13,8 @@
     "test:unit": "node --experimental-strip-types --test tests/unit/*.test.ts",
     "test:rules": "firebase emulators:exec --only firestore --config firebase.json \"node --experimental-strip-types --test tests/rules/firestore.rules.test.ts\"",
     "test:browser": "node tests/browser/build.mjs && node tests/browser/run.mjs",
-    "test:catalog": "node tests/browser/catalog.mjs"
+    "test:catalog": "node tests/browser/catalog.mjs",
+    "test:editor": "node tests/browser/editor.mjs"
   },
   "dependencies": {
     "@google/genai": "^1.8.0",

@@ -93,7 +93,29 @@
     "scenes": "Scenes",
     "sceneHelp": "Reorder the approved moments in your gift.",
     "addScene": "+ Add approved scene",
-    "localNote": "Autosave preview is active locally. Firestore saving will activate when Firebase is configured."
+    "localNote": "Draft saving is handled by the server; local development mode is volatile and resets when the server restarts.",
+    "createDraft": "Save as draft",
+    "startEditing": "Start editing",
+    "statusSaved": "All changes saved",
+    "statusUnsaved": "Unsaved changes",
+    "statusSaving": "Saving…",
+    "statusFailed": "Not saved",
+    "statusConflict": "Another version was saved",
+    "loadingDraft": "Loading your private draft…",
+    "chooseTemplate": "Choose a template",
+    "chooseTemplateHelp": "This older draft has no template yet. Choose one to continue editing.",
+    "includeSection": "Include section",
+    "requiredSection": "Required",
+    "addItem": "Add item",
+    "removeItem": "Remove",
+    "media": "Photos and audio",
+    "notAvailable": "Not available yet",
+    "mediaDisabled": "Photo and audio upload is not available yet. Nothing will be uploaded or saved as media.",
+    "previewNote": "This preview uses sample text wherever your draft is still blank. Sample text is never saved to your gift.",
+    "devNotice": "Local development sandbox: drafts live only in this server process, reset on restart, and are not connected to Firebase. Do not enter real personal data.",
+    "retry": "Retry save",
+    "reloadServer": "Reload the server draft (your local edits will be replaced)",
+    "renew": "View packages"
   },
   "payment": {
     "scan": "Scan the QRIS code to make your payment.",
@@ -106,7 +128,22 @@
     "chatConfig": "The Bloomora guide is not connected yet. Add the Gemini server configuration to enable chat.",
     "authConfig": "Firebase Authentication is not configured in this environment yet.",
     "invalidMessage": "Please send a short, valid message.",
-    "saveAuth": "Sign in to save a gift."
+    "saveAuth": "Sign in to save a gift.",
+    "subscriptionExpired": "Your package has expired. You can still view this draft, but saving is paused until you renew.",
+    "noSubscription": "An active package is required to create or edit a gift.",
+    "quotaReached": "This package has reached its gift limit.",
+    "templateNotInPackage": "This template is not included in your current package.",
+    "versionConflict": "A newer draft exists on the server. Reload it before continuing to save.",
+    "incompleteContent": "Some required details are still missing.",
+    "mediaUnavailable": "Photo and audio uploads are not available yet.",
+    "serverNotConfigured": "Gift saving is not connected in this environment. Your changes have not been saved.",
+    "signInRequired": "Sign in again to continue editing this private gift.",
+    "notOwner": "This private draft does not belong to the current account.",
+    "giftNotFound": "This draft could not be found.",
+    "giftArchived": "Archived drafts are read-only. Restore the gift from your workspace before editing.",
+    "templateUnavailable": "This draft's template version is not available for editing.",
+    "networkError": "The server could not be reached. Your changes are still on this page; retry when ready.",
+    "saveFailed": "The draft could not be saved. Your changes are still on this page; please try again."
   },
   "templatesPage": {
     "eyebrow": "The Bloomora collection",
@@ -149,7 +186,9 @@
     "registerIntro": "Create a private space for drafts, orders, and gifts you want to share.",
     "newHere": "New here?",
     "already": "Already have an account?",
-    "createAccount": "Create an account"
+    "createAccount": "Create an account",
+    "editorTitle": "Sign in to edit this gift.",
+    "editorIntro": "This draft is private. Sign in with the account that owns it; Bloomora will return you to this editor afterward."
   },
   "info": {
     "paymentEyebrow": "Payment instructions",
@@ -371,9 +410,11 @@
     "start": "You can start with",
     "selectedTemplate": "Selected template",
     "authEyebrow": "A quiet first step",
+    "authTitle": "Sign in to start your draft.",
     "authBody": "Create an account so Bloomora can save your work, keep your private memories private, and make publishing feel effortless.",
     "register": "Create a free account",
-    "login": "I already have an account"
+    "login": "I already have an account",
+    "startEditing": "Start editing this template"
   },
   "recipient": {
     "demoEyebrow": "A gift made just for you",

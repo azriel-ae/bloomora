@@ -6,6 +6,8 @@ import { TemplateArt } from '@/components/template-art';
 import { CATEGORIES } from '@/lib/engine/categories';
 import { getActiveTemplate, listCatalog } from '@/lib/engine/registry';
 import { getLocale, getMessages } from '@/lib/i18n';
+import { getCurrentUser } from '@/lib/session';
+import { isEditorDevMode } from '@/lib/server/dev-editor-env';
 
 export const metadata: Metadata = { title: 'Create a gift', description: 'Start a private Bloomora gift from a considered template.' };
 
@@ -16,6 +18,9 @@ export default async function CreatePage({ searchParams }: { searchParams: Promi
   const selected = selectedId ? getActiveTemplate(selectedId) : null;
   const previewTemplate = selected ?? catalog[0] ?? null;
   const messages = getMessages(locale);
+  const devMode = isEditorDevMode();
+  const user = devMode ? null : await getCurrentUser();
+  const returnTo = selected ? `/editor/new?template=${encodeURIComponent(selected.id)}` : undefined;
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-16 lg:px-8 lg:py-24">
@@ -31,12 +36,14 @@ export default async function CreatePage({ searchParams }: { searchParams: Promi
             </div>
           )}
           <div className="mt-10">
-            <AuthCallout
+            {selected && (user || devMode) ? <Link href={returnTo!} className="inline-flex rounded-full bg-moss px-6 py-3.5 text-sm font-semibold text-ivory">{messages.createPage.startEditing}</Link> : <AuthCallout
+              title={messages.createPage.authTitle}
               eyebrow={messages.createPage.authEyebrow}
               body={messages.createPage.authBody}
               registerLabel={messages.createPage.register}
               loginLabel={messages.createPage.login}
-            />
+              returnTo={returnTo}
+            />}
           </div>
         </div>
 

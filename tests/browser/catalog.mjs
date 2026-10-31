@@ -90,7 +90,8 @@ try {
   assert.equal(await page.locator('[data-template-art][data-template-id="pressed-garden"]').count(), 1, 'gift demo fallback keeps its matching template artwork');
 
   await page.goto(`${base}/id/editor/demo`, { waitUntil: 'networkidle' });
-  assert.equal(await page.locator('[data-template-art][data-template-id="pressed-garden"]').count(), 1, 'editor preview resolves the selected engine template');
+  assert.match(page.url(), /\/demo\/chapter-of-us$/, 'legacy mock-editor demo exits to the real recipient demo');
+  assert.equal(await page.locator('.bl-root[data-mode="demo"]').count(), 1, 'legacy editor demo alias never presents fake editing controls');
 
   await page.goto(`${base}/en/templates/pressed-garden`, { waitUntil: 'networkidle' });
   assert.equal(await page.getByRole('heading', { name: 'Pressed Garden' }).count(), 1, 'English detail copy is localized');
