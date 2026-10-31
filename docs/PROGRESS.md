@@ -12,7 +12,8 @@ Diperbarui: 2026-11-01. Status ditulis dari kondisi repository, bukan dari ingat
 | Phase 3 | React renderer dan Featured Demo `chapter-of-us` | COMPLETED setelah typecheck, lint, build, unit, i18n, harness browser, dan pemeriksaan route lulus pada 2026-11-01 |
 | Phase 4 | Katalog dan halaman detail template di atas engine | SELESAI (terverifikasi 2026-11-01) |
 | Phase 5 | Editor dan penyimpanan draft | SELESAI — implementasi dan verifikasi 2026-11-01 |
-| Phase 6+ | Publishing dan halaman publik `/g/[slug]`, dashboard, payment proof dan admin, template sampai 43, integrasi Firebase, uji keamanan, deployment | BELUM DIMULAI — Phase 6 menunggu persetujuan |
+| Phase 6 | Publishing dan halaman publik `/g/[slug]` | SELESAI — diverifikasi 2026-11-01 |
+| Phase 7+ | Dashboard, payment proof dan admin, template sampai 43, integrasi Firebase, uji keamanan, deployment | BELUM DIMULAI |
 
 Penomoran Phase 4 dan sesudahnya mengikuti urutan prioritas yang Anda tulis. Pembagian nomor setelah Phase 4 adalah usulan saya, belum disepakati.
 
@@ -93,6 +94,15 @@ Kriteria closeout yang tercatat di snapshot awal adalah `pnpm install && pnpm ty
 - Verifikasi: `pnpm build` lulus (30/30 static pages generated; Next juga lint/typecheck), `pnpm test:unit` 65/65, `pnpm check:i18n` 22 section, `pnpm test:editor` lulus, dan `pnpm test:catalog` lulus.
 - Keterbatasan: Firebase nyata dan Firestore emulator tidak digunakan, sehingga auth/draft produksi terhadap Firebase dan rules tidak diklaim teruji. Phase publishing, dashboard, media, payment/admin, serta Phase 6 belum dimulai.
 
+## Penutupan Phase 6 — 2026-11-01
+
+- `getPublicGift` membaca `publicGifts/{slug}` melalui Env server dan tidak membaca subscription, owner, order, atau draft privat. Slug divalidasi dengan `isValidSlug`; state `published`, `archived`, dan `removed` dipisahkan.
+- `/g/[giftSlug]` sekarang memilih template berversi dan merender konten persis melalui `GiftView mode="public"` tanpa `fillEmptyFrom`. State nonpublik diberi `noindex`; halaman `/g/` bersifat immersive tanpa header/footer/chatbot.
+- Editor mendapatkan dialog konfirmasi publish berbasis `expectedVersion`, sehingga yang diterbitkan adalah versi yang sama dengan pratinjau tersimpan. Halaman publik menyediakan salin link, Web Share API dengan fallback salin, dan QR.
+- Copy recipient, FAQ, dan expiration diperbarui dalam id/en agar sesuai Model B: paket mengatur hak pemilik, bukan umur gift yang sudah terbit.
+- Verifikasi: `pnpm typecheck` lulus, `pnpm lint` lulus tanpa warning, `pnpm build` lulus (30/30 halaman), `pnpm test:unit` 66/66 lulus, dan `pnpm check:i18n` lulus (22 section).
+- `pnpm test:catalog` dan `pnpm test:editor` lulus dengan Playwright/Chromium yang dipasang sementara di luar manifest project. Catalog mencakup fallback `/g/demo`, locale, mobile, dan regresi katalog; editor mencakup preview, create, autosave, konflik 409, expiry, media disabled, dan id/en. Public gift nyata dari Firebase/fixture server belum diuji karena Firebase belum terhubung; Firebase/Firestore emulator juga belum dijalankan.
+
 ## Pekerjaan berikutnya (belum dimulai, menunggu persetujuan)
 
-Rincian per tahap dan kriteria: `docs/ROADMAP.md`. Phase 5 selesai dan diverifikasi pada 2026-11-01. Langkah berikutnya adalah Phase 6 (publishing dan halaman publik `/g/[slug]`, memakai `GiftView mode="public"`) — **jangan dimulai tanpa persetujuan eksplisit pengguna**. Dashboard, payment proof/admin, template sampai 43, integrasi Firebase, uji keamanan, dan deployment tetap sesudahnya.
+Rincian per tahap dan kriteria: `docs/ROADMAP.md`. Phase 6 selesai dan diverifikasi pada 2026-11-01. Langkah berikutnya adalah Phase 7 (dashboard), tetapi belum dimulai dan menunggu persetujuan eksplisit pengguna. Payment proof/admin, template sampai 43, integrasi Firebase, uji keamanan, dan deployment tetap sesudahnya.

@@ -3,11 +3,11 @@ import {
   canArchiveOrDeleteGift, planSubscriptionActivation, canTransitionOrder,
   type Decision, type Entitlement, type SubLike,
 } from '../entitlements.ts';
-import { generateSlug } from '../slug.ts';
+import { generateSlug, isValidSlug } from '../slug.ts';
 import { validateGiftContent } from '../model/content.ts';
 import { planLegacyGiftMigration } from '../model/migrate.ts';
 import { DEFAULT_PACKAGES } from '../packages.ts';
-import type { GiftContent, PackageDoc, PackageId, TemplateTier } from '../model/types.ts';
+import type { GiftContent, PackageDoc, PackageId, PublicGiftDoc, TemplateTier } from '../model/types.ts';
 import { ServiceError, guarded, type Doc, type Env, type Tx } from './store.ts';
 
 /**
@@ -79,6 +79,21 @@ const requireContent = (input: unknown): GiftContent => {
 };
 
 /* ------------------------------ Gifts ------------------------------ */
+
+/**
+ * Public read path. It deliberately performs one document read only: a public
+ * gift has no owner, order, or subscription dependency (Model B).
+ */
+export function getPublicGift(env: Env, slug: unknown) {
+  return guarded(async () => env.store.runTransaction(async (tx) => {
+    if (!isValidSlug(slug)) throw new ServiceError(404, 'gift_not_found');
+    const raw = await tx.get(`publicGifts/${slug}`);
+    if (!raw) throw new ServiceError(404, 'gift_not_found');
+    const status = raw.status;
+    if (status !== 'published') return { slug, status };
+    return { publicGift: raw as PublicGiftDoc };
+  }));
+}
 
 export function createGift(env: Env, actor: Actor, input: { templateId: unknown; content: unknown }, lookup: TemplateLookup) {
   return guarded(async () => env.store.runTransaction(async (tx) => {

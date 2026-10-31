@@ -12,6 +12,24 @@ const mallory: S.Actor = { uid: 'mallory', admin: false };
 const admin: S.Actor = { uid: 'root', admin: true };
 const content = (msg = 'hello') => ({ fields: { title: 'T', message: msg }, sections: ['Opening', 'Letter'], data: {}, media: [] });
 
+test('public read uses only publicGifts and remains available without an owner subscription', async () => {
+  const h = makeEnv(T0);
+  h.store.docs.set('publicGifts/abc234def567', {
+    slug: 'abc234def567', status: 'published', templateId: 'pressed-garden', templateVersion: 1, revision: 1,
+    content: content('forever'), publishedAt: new Ts(T0), updatedAt: new Ts(T0), schemaVersion: 2,
+  });
+  const published = await S.getPublicGift(h.env, 'abc234def567');
+  assert.ok(published.ok && 'publicGift' in published);
+  if (!published.ok || !('publicGift' in published)) return;
+  assert.equal(published.publicGift!.content.fields.message, 'forever');
+  h.advance(90 * DAY_MS);
+  const stillPublished = await S.getPublicGift(h.env, 'abc234def567');
+  assert.ok(stillPublished.ok && 'publicGift' in stillPublished);
+  if (!stillPublished.ok || !('publicGift' in stillPublished)) return;
+  assert.equal(stillPublished.publicGift!.status, 'published');
+  assert.deepEqual(await S.getPublicGift(h.env, 'not-a-valid-slug'), { ok: false, status: 404, code: 'gift_not_found', detail: undefined });
+});
+
 /** Orders reach proof_submitted only after the (not yet built) proof upload; tests set it as a fixture. */
 async function buy(h: ReturnType<typeof makeEnv>, actor: S.Actor, pkg: 'basic' | 'plus' | 'premium') {
   const o = await S.createOrder(h.env, actor, pkg);

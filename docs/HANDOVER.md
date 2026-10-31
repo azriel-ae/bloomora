@@ -2,7 +2,7 @@
 
 Baca dulu `docs/DECISIONS.md`, lalu `docs/PROGRESS.md`, dan `docs/ROADMAP.md` untuk semua tahap yang masih harus dikerjakan. Dokumen ini diperbarui dari kode aktual per 2026-11-01.
 
-Checkpoint terbaru: Phase 5 (editor dan penyimpanan draft) telah selesai dan diverifikasi setelah pengguna menyetujuinya pada 2026-11-01. Phase 6 belum dimulai; wajib menunggu persetujuan eksplisit pengguna.
+Checkpoint terbaru: Phase 6 (publishing dan halaman publik) telah selesai dan diverifikasi pada 2026-11-01. Phase 7 belum dimulai; wajib menunggu persetujuan eksplisit pengguna.
 
 ## Proyek
 
@@ -19,7 +19,8 @@ Kondisi awal (zip `bloomora-fixed.zip`) adalah scaffold UI: 3 template statis, e
 | 3 Renderer dan Featured Demo | COMPLETED; build, lint, typecheck, unit, i18n, browser, dan pemeriksaan route lulus pada 2026-11-01 |
 | 4 Katalog dan detail template | SELESAI; test unit, i18n, production build, browser katalog, dan regression browser lulus pada 2026-11-01 |
 | 5 Editor dan penyimpanan draft | SELESAI; browser editor, unit, build, i18n, dan regresi katalog lulus |
-| 6 dan seterusnya | Belum dimulai; ikuti gate persetujuan di roadmap |
+| 6 | Publishing dan halaman publik | SELESAI; build, lint, typecheck, unit, i18n lulus 2026-11-01 |
+| 7 dan seterusnya | Belum dimulai; ikuti gate persetujuan di roadmap |
 
 ## Kondisi Firebase dan database
 
@@ -42,7 +43,7 @@ Dibuat dan diubah dalam pengerjaan: lihat daftar per phase di `docs/CHANGELOG.md
 
 ## Hasil pengujian terakhir
 
-Terbaru: `pnpm typecheck`, `pnpm lint`, `pnpm build` (29/29 halaman statis), 62/62 unit test, parity i18n (22 section), 119/119 regression browser Phase 3, dan `pnpm test:catalog` lulus. Browser katalog mencakup pencarian/filter/empty/reset, badges/demo, detail & eligibilitas paket, id → en dalam sesi sama, create selection, homepage, fallback `/g/demo`, editor preview, dan mobile. Tool Playwright/Chromium disediakan sementara di luar manifest. `pnpm test:rules` belum dijalankan karena butuh Firebase emulator. Rincian ada di `docs/PROGRESS.md`.
+Terbaru untuk Phase 6: `pnpm typecheck`, `pnpm lint`, `pnpm build` (30/30 halaman), 66/66 unit test, parity i18n (22 section), `pnpm test:catalog`, dan `pnpm test:editor` lulus. Playwright/Chromium dipasang sementara di luar manifest; Firebase rules/emulator dan public gift nyata dari Firebase/fixture server belum dijalankan. Rincian ada di `docs/PROGRESS.md`.
 
 ## Bug yang sudah diperbaiki
 
@@ -68,10 +69,16 @@ Langkah berikutnya adalah Phase 5: bangun editor berbasis `TemplateConfig`, peny
 
 Pada checkpoint saat catatan ini ditulis, Phase 5 belum dimulai dan menunggu persetujuan; instruksi di atas adalah rekam jejak, bukan status terkini.
 
-## Handover Phase 5 → Phase 6 (checkpoint terkini)
+## Handover Phase 5 → Phase 6 (riwayat checkpoint)
 
 Phase 5 telah diimplementasikan: editor membaca `TemplateConfig`, preview bersama `GiftView`, draft melalui service/API, GET owner-only, autosave berbasis versi dan 409 reconciliation, expiry read-only, media disabled, serta sandbox memori khusus development yang eksplisit. Detail perubahan/hasil ada di `docs/ROADMAP.md`, `docs/PROGRESS.md`, `docs/CHANGELOG.md`, `docs/DECISIONS.md`, dan `docs/ARCHITECTURE.md`.
 
 Verifikasi terbaru: `pnpm build` lulus (Next.js 15.5.28, 30/30 halaman statis), build menjalankan lint/typecheck, `pnpm test:unit` 65/65, `pnpm check:i18n` 22 section, `pnpm test:editor` lulus, dan `pnpm test:catalog` lulus. Firebase tidak terhubung; jangan menyatakan tes Firestore/auth produksi sudah dilakukan.
 
-Langkah berikutnya adalah Phase 6 (publishing dan halaman publik `/g/[slug]`). **Berhenti dan tunggu persetujuan eksplisit pengguna sebelum mulai Phase 6.** Jangan mengaktifkan Firebase/Blaze, mengubah Model B, atau mengerjakan scope dashboard/pembayaran/media pada continuation ini. Push checkpoint Phase 5 ke `https://github.com/azriel-ae/bloomora.git`.
+Langkah berikutnya saat checkpoint ini ditulis adalah Phase 6 (publishing dan halaman publik `/g/[slug]`). Instruksi tersebut adalah rekam jejak; Phase 6 kini selesai.
+
+## Handover Phase 6 → Phase 7
+
+Phase 6 telah diimplementasikan: `getPublicGift` membaca public document tanpa subscription, `/g/[slug]` merender revisi publik berversi dengan `GiftView mode="public"`, status nonpublik dan metadata ditangani, serta editor memiliki konfirmasi publish berbasis versi. Kontrol salin link, share, dan QR tersedia di pengalaman penerima. Detail perubahan dan batas pengujian ada di `docs/PROGRESS.md` dan `docs/CHANGELOG.md`.
+
+Jangan mulai Phase 7 (dashboard) tanpa persetujuan eksplisit pengguna. Jangan mengaktifkan Firebase/Blaze, mengubah Model B, atau mengerjakan payment/admin/media pada continuation berikutnya.

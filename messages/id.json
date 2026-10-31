@@ -115,7 +115,14 @@
     "devNotice": "Sandbox pengembangan lokal: draf hanya hidup di proses server ini, direset saat dimulai ulang, dan tidak terhubung ke Firebase. Jangan masukkan data pribadi nyata.",
     "retry": "Coba simpan lagi",
     "reloadServer": "Muat ulang draf server (perubahan lokalmu akan diganti)",
-    "renew": "Lihat paket"
+    "renew": "Lihat paket",
+    "publish": "Terbitkan",
+    "publishConfirm": "Terbitkan versi ini?",
+    "publishBody": "Hadiah akan menerbitkan persis versi pratinjau yang sudah tersimpan. Perubahan berikutnya tidak mengubah link sampai diterbitkan lagi.",
+    "published": "Hadiah sudah terbit",
+    "publishedBody": "Link publik siap dibagikan.",
+    "publishFailed": "Hadiah belum bisa diterbitkan. Muat ulang dan pastikan paketmu masih aktif.",
+    "openGift": "Buka hadiah"
   },
   "payment": {
     "scan": "Silakan pindai kode QRIS untuk melakukan pembayaran.",
@@ -274,7 +281,7 @@
         },
         {
           "heading": "Apa yang terjadi saat hadiah kedaluwarsa?",
-          "body": "Tautan akan menunjukkan status kedaluwarsa sesuai masa aktif paket. Kebijakan perpanjangan dan retensi media harus mengikuti konfigurasi pemilik."
+          "body": "Hadiah yang sudah diterbitkan tetap dapat dibuka penerima tanpa batas waktu karena paket pemilik mengatur hak membuat dan mengedit, bukan umur hadiah."
         }
       ]
     },
@@ -345,8 +352,8 @@
           "body": "Penerima dapat membuka tautan selama hadiah berada dalam status aktif dan entitlement pembayaran telah dipenuhi."
         },
         {
-          "heading": "Saat kedaluwarsa",
-          "body": "Halaman penerima akan menampilkan status kedaluwarsa dan tidak menganggap hadiah masih dapat dibuka."
+          "heading": "Setelah paket pemilik berakhir",
+          "body": "Hadiah yang sudah diterbitkan tetap dapat dibuka melalui tautannya. Paket hanya mengatur hak pemilik untuk membuat, mengedit, dan menerbitkan."
         },
         {
           "heading": "Perpanjangan",
@@ -419,13 +426,21 @@
   "recipient": {
     "demoEyebrow": "Hadiah yang dibuat khusus untukmu",
     "demoTitle": "Taman kecil penuh kenangan.",
-    "demoIntro": "Ini adalah demo pengalaman penerima yang diberi label dengan jelas. Hadiah nyata hanya akan dimuat setelah pemeriksaan akses, pembayaran, dan kedaluwarsa di server lolos.",
+    "demoIntro": "Ini adalah demo pengalaman penerima yang diberi label dengan jelas. Hadiah nyata dimuat dari revisi publik yang diterbitkan server.",
     "private": "Tautan privat",
     "care": "Dibuat dengan perhatian",
     "gift": "Hadiah Bloomora",
     "unavailable": "Hadiah ini tidak tersedia.",
     "unavailableBody": "Tautan mungkin tidak valid, privat, kedaluwarsa, atau belum diterbitkan. Jika kamu mengharapkan hadiah di sini, minta pengirim memeriksa tautannya dari dashboard.",
-    "explore": "Jelajahi Bloomora"
+    "explore": "Jelajahi Bloomora",
+    "archived": "Hadiah ini sedang diarsipkan.",
+    "archivedBody": "Pengirim menyembunyikan hadiah ini untuk sementara. Minta pengirim memulihkannya jika kamu seharusnya dapat membukanya.",
+    "removed": "Hadiah ini sudah tidak tersedia.",
+    "removedBody": "Tautan ini telah dicabut atau dihapus dan tidak dapat dibuka kembali.",
+    "copy": "Salin link",
+    "share": "Bagikan",
+    "qr": "Tampilkan QR",
+    "copied": "Link tersalin"
   },
   "templateDetail": {
     "back": "Kembali ke template",

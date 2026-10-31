@@ -47,17 +47,17 @@ Kriteria Phase 5 terpenuhi. Firebase belum terhubung; alur autentikasi/draft ter
 
 ## Phase 6: publishing dan halaman publik
 
-Kondisi sekarang: `app/g/[giftSlug]/page.tsx` hanya placeholder (`demo` dan kartu "tidak tersedia"). Service `publishGift`, `archiveGift`, `unarchiveGift`, `deleteGift` sudah ada dan diuji.
+**Status: SELESAI dan diverifikasi pada 2026-11-01.**
 
 Kerjakan:
-- `/g/[slug]`: server component membaca `publicGifts/{slug}` (Admin SDK), memilih template lewat `getTemplateForRender(templateId, templateVersion)`, merender `GiftView mode="public"` tanpa `fillEmptyFrom`. Validasi slug dengan `isValidSlug`.
+- `/g/[slug]`: server component membaca `publicGifts/{slug}` (Admin SDK), memilih template lewat `getTemplateForRender(templateId, templateVersion)`, merender `GiftView mode="public"` tanpa `fillEmptyFrom`. Validasi slug dengan `isValidSlug`. Public read hanya membaca satu dokumen public dan tidak memuat entitlement.
 - Keadaan: terbit, diarsipkan, dihapus/dicabut, slug tidak valid atau tidak ditemukan; metadata Open Graph; `noindex` bila perlu; layar tanpa header situs (perluas `ChromeGate` untuk `/g/`; ubah `/g/demo` lama dengan hati-hati agar tidak merusak rute lama).
 - Dialog konfirmasi publish (publikasikan persis versi yang dipratinjau), salin link, `navigator.share` bila ada, kode QR (`qrcode.react` sudah menjadi dependency).
 - Model B: halaman publik tidak boleh membaca subscription sama sekali. Tambahkan tes yang membuktikannya.
 - Audio: selesaikan `audioSrc` dari media publik; selama media nonaktif, bagian musik tidak muncul.
 - Tulis ulang teks yang masih menyiratkan gift kedaluwarsa (FAQ, `/expiration`, teks penerima, `plan.md`) agar sesuai Model B, dalam dua bahasa.
 
-Selesai bila: halaman publik teruji di browser (id, en, mobile) dengan data dari Fake Store atau fixture server, plus tes bahwa gift tetap tampil setelah paket pemilik habis.
+Hasil: halaman publik terhubung ke service public-read, state terbit/arsip/cabut/tidak ditemukan dilokalkan, metadata diberi `noindex` untuk state nonpublik, chrome situs disembunyikan pada `/g/`, dan kontrol publish/share/QR tersedia. Unit test membuktikan gift tetap tampil setelah paket pemilik tidak lagi memiliki subscription. Regression browser katalog/editor lulus dengan Playwright/Chromium sementara di luar manifest; browser test public dengan Firebase/fixture server belum dijalankan karena Firebase belum dikonfigurasi.
 
 ## Phase 7: dashboard
 

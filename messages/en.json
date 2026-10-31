@@ -115,7 +115,14 @@
     "devNotice": "Local development sandbox: drafts live only in this server process, reset on restart, and are not connected to Firebase. Do not enter real personal data.",
     "retry": "Retry save",
     "reloadServer": "Reload the server draft (your local edits will be replaced)",
-    "renew": "View packages"
+    "renew": "View packages",
+    "publish": "Publish",
+    "publishConfirm": "Publish this version?",
+    "publishBody": "The gift will publish the exact saved preview version. Later changes will not change this link until you publish again.",
+    "published": "Gift published",
+    "publishedBody": "The public link is ready to share.",
+    "publishFailed": "The gift could not be published. Reload and make sure your package is still active.",
+    "openGift": "Open gift"
   },
   "payment": {
     "scan": "Scan the QRIS code to make your payment.",
@@ -274,7 +281,7 @@
         },
         {
           "heading": "What happens when a gift expires?",
-          "body": "The link shows an expired state according to the package lifetime. Extension and media retention follow owner configuration."
+          "body": "A gift that has been published remains available to its recipient without a package expiry. The package controls the owner’s ability to create and edit, not the lifetime of a published gift."
         }
       ]
     },
@@ -345,8 +352,8 @@
           "body": "Recipients can open the link while the gift is active and payment entitlement is satisfied."
         },
         {
-          "heading": "When it expires",
-          "body": "The recipient page shows an expired state and does not imply the gift is still available."
+          "heading": "After the owner package ends",
+          "body": "A published gift remains available through its link. The package controls the owner’s ability to create, edit, and publish."
         },
         {
           "heading": "Extension",
@@ -419,13 +426,21 @@
   "recipient": {
     "demoEyebrow": "A gift made just for you",
     "demoTitle": "A little garden of memories.",
-    "demoIntro": "This is a clearly labelled demo recipient experience. A real published gift will load only after its server-side access, payment, and expiry checks pass.",
+    "demoIntro": "This is a clearly labelled demo recipient experience. A real gift loads from a server-published public revision.",
     "private": "Private link",
     "care": "Made with care",
     "gift": "Bloomora gift",
     "unavailable": "This gift is not available.",
     "unavailableBody": "The link may be invalid, private, expired, or not published yet. If you expected a gift here, ask the sender to check the link from their dashboard.",
-    "explore": "Explore Bloomora"
+    "explore": "Explore Bloomora",
+    "archived": "This gift is temporarily archived.",
+    "archivedBody": "The sender has hidden this gift for now. Ask them to restore it if you should be able to open it.",
+    "removed": "This gift is no longer available.",
+    "removedBody": "This link was revoked or removed and cannot be reopened.",
+    "copy": "Copy link",
+    "share": "Share",
+    "qr": "Show QR",
+    "copied": "Link copied"
   },
   "templateDetail": {
     "back": "Back to templates",

@@ -8,6 +8,7 @@ import { GiftView } from '@/components/gift/gift-view';
 import { giftLabels } from '@/components/gift/labels';
 import { useLocale } from './locale-provider';
 import { DraftAutosaver, type AutosaveStatus } from '@/lib/editor/autosave';
+import { PublishDialog } from '@/components/publish-dialog';
 import { blankContent } from '@/lib/engine/resolve';
 import { getActiveTemplate, getTemplateForRender, listCatalog } from '@/lib/engine/registry';
 import type { FieldDef, ListDef, SectionDef, TemplateConfig } from '@/lib/engine/types';
@@ -340,6 +341,7 @@ export function GiftEditor({ giftId, initialTemplateId, devMode = false }: {
             {saveStatus === 'saving' ? <LoaderCircle size={15} className="animate-spin" aria-hidden="true" /> : saveStatus === 'saved' ? <Check size={15} className="text-moss" aria-hidden="true" /> : saveStatus === 'error' || saveStatus === 'conflict' ? <AlertCircle size={15} className="text-rose" aria-hidden="true" /> : <Save size={15} aria-hidden="true" />}
             {statusText}{activeGiftId && draftVersion ? ` · v${draftVersion}` : ''}
           </span>
+          {activeGiftId && canEditContent && <PublishDialog giftId={activeGiftId} expectedVersion={draftVersion} disabled={draftVersion < 1 || hasUnsaved || saveStatus !== 'saved'} />}
           {!activeGiftId && <button type="button" disabled={!canEditContent || creating} onClick={() => void createDraft()} className="rounded-full bg-moss px-5 py-2.5 text-sm font-semibold text-ivory disabled:cursor-not-allowed disabled:opacity-50" data-create-draft>{creating ? t('editor', 'statusSaving') : t('editor', 'createDraft')}</button>}
         </div>
       </div>

@@ -63,6 +63,13 @@ Template adalah data: tema (palet, token font, motion), section berurut (tipe + 
 - Konten pengguna dirender sebagai teks (React escaping). Ada tes bahwa markup tampil literal dan tidak dieksekusi.
 - Musik: bagian dirender hanya bila ada audio DAN `audioSrc` terselesaikan; tidak pernah autoplay.
 
+## Publishing dan public gift (Phase 6)
+
+- `getPublicGift` adalah read path server-only yang hanya mengambil `publicGifts/{slug}` setelah `isValidSlug`; fungsi ini tidak memanggil `loadEntitlement` dan tidak membaca `gifts`, `subscriptions`, atau `orders`.
+- `/g/[giftSlug]` memilih `getTemplateForRender(templateId, templateVersion)` dari dokumen publik, lalu merender `GiftView mode="public"` dengan konten revisi yang tersimpan. `fillEmptyFrom` hanya aktif pada preview/demo, tidak pada public gift.
+- Status `published` dirender sebagai pengalaman penerima immersive. `archived`, `removed`, slug invalid, dokumen hilang, dan server belum terkonfigurasi dirender sebagai status card; state nonpublik diberi `noindex` melalui `generateMetadata`.
+- Editor publish memakai `expectedVersion` dari draft yang sudah tersimpan. Kontrol penerima untuk salin link, Web Share/fallback, dan QR berada di `components/public-gift-actions.tsx`. Media tetap tidak menghasilkan `audioSrc` selama upload nonaktif.
+
 ## Katalog dan detail template (Phase 4)
 
 - `components/templates-page.tsx` menggunakan `searchCatalog` dan `CATEGORIES`; pencarian mencakup konten id/en, filter kategori aktif, hasil kosong/reset, serta state pemulihan error. `app/templates/loading.tsx` dan `error.tsx` menyediakan boundary route.

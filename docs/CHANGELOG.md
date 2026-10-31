@@ -6,6 +6,15 @@ Pada snapshot awal, perubahan belum pernah dikompilasi oleh `next build`. Closeo
 
 - `docs/ROADMAP.md`: rincian Phase 4 sampai 9 dan tahap Firebase, keamanan, deployment.
 
+## [Phase 6] 2026-11-01: publishing dan halaman publik
+
+- Mengganti placeholder `/g/[giftSlug]` dengan public-read server path yang hanya membaca `publicGifts`, memvalidasi slug, memilih template berversi, dan merender `GiftView mode="public"` tanpa isian contoh.
+- Menambahkan state publik terpisah untuk gift terbit, diarsipkan, dicabut/dihapus, slug invalid, dan storage belum terkonfigurasi; state nonpublik memakai `noindex` dan halaman `/g/` menyembunyikan site chrome.
+- Menambahkan dialog konfirmasi publish di editor berbasis `expectedVersion`, kontrol salin link/Web Share, dan QR publik. Audio tetap tidak muncul saat media upload nonaktif.
+- Menyelaraskan copy id/en pada halaman recipient, FAQ, dan expiration dengan Model B: gift yang sudah terbit tidak kedaluwarsa hanya karena paket pemilik habis.
+- Menambahkan unit test public-read yang membuktikan tidak ada subscription read dan gift tetap tersedia setelah waktu subscription berlalu.
+- Lulus: typecheck, lint, production build (30/30 halaman), 66 unit test, i18n parity 22 section, serta `test:catalog` dan `test:editor` dengan Playwright/Chromium sementara di luar manifest. Public gift nyata dari Firebase/fixture server dan Firebase emulator belum digunakan.
+
 ## [Phase 5] 2026-11-01: editor dan penyimpanan draft
 
 - Mengganti editor mock dengan form dinamis `FieldDef`/`ListDef`, toggle section opsional, preview `GiftView mode="preview"`, dan status simpan nyata. Sample konten hanya untuk preview field kosong.
