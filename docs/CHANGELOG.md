@@ -1,10 +1,19 @@
 # Changelog
 
-Semua perubahan di bawah belum pernah dikompilasi oleh `next build` (lihat `docs/PROGRESS.md`).
+Pada snapshot awal, perubahan belum pernah dikompilasi oleh `next build`. Closeout Phase 3 berikutnya lulus build pada 2026-11-01; lihat `docs/PROGRESS.md`.
 
 ## Dokumentasi
 
 - `docs/ROADMAP.md`: rincian Phase 4 sampai 9 dan tahap Firebase, keamanan, deployment.
+
+## [Phase 3 closeout] 2026-11-01: verifikasi integrasi
+
+- `lib/server/store.ts`: pengecualian ESLint yang dijelaskan untuk tipe dokumen Firestore dinamis; validasi tetap dilakukan pada batas service/domain.
+- `lib/server/firestore-store.ts`: adapter memakai alias `Doc` yang sama untuk hasil baca dan query.
+- `tsconfig.json`: tes Firestore emulator dikecualikan dari typecheck aplikasi karena `@firebase/rules-unit-testing` tidak termasuk dependency proyek; tes emulator tetap terpisah dan belum dijalankan.
+- Dependency sementara untuk harness browser dipasang di luar proyek; tidak ada perubahan pada `package.json` atau `pnpm-lock.yaml`.
+- Lulus: `pnpm typecheck`, `pnpm lint`, `pnpm build`, 63 unit test, parity i18n, 119/119 tes browser, dan 12 pemeriksaan rute produksi untuk id/en serta desktop/mobile.
+- Phase 4 belum dimulai; menunggu persetujuan pengguna.
 
 ## [Phase 3] 2026-11-01: React renderer dan Featured Demo
 

@@ -9,11 +9,20 @@ Diperbarui: 2026-11-01. Status ditulis dari kondisi repository, bukan dari ingat
 | Phase 0 | Audit repository | SELESAI |
 | Phase 1 | Data model, entitlement, service server, rules, migrasi timestamp | KODE SELESAI. Unit test lulus. Rules Firestore/Storage belum dijalankan di emulator |
 | Phase 2 | Template engine | SELESAI (diuji unit) |
-| Phase 3 | React renderer dan Featured Demo `chapter-of-us` | DIIMPLEMENTASIKAN DAN DIVERIFIKASI DI HARNESS BROWSER. BELUM BOLEH DISEBUT COMPLETED (lihat "Yang belum terverifikasi") |
+| Phase 3 | React renderer dan Featured Demo `chapter-of-us` | COMPLETED setelah typecheck, lint, build, unit, i18n, harness browser, dan pemeriksaan route lulus pada 2026-11-01 |
 | Phase 4 | Katalog dan halaman detail template di atas engine | BELUM DIMULAI |
 | Berikutnya | Editor dan draft, publishing dan halaman publik `/g/[slug]`, dashboard, payment proof dan admin, template sampai 43, integrasi Firebase, uji keamanan, deployment | BELUM DIMULAI |
 
 Penomoran Phase 4 dan sesudahnya mengikuti urutan prioritas yang Anda tulis. Pembagian nomor setelah Phase 4 adalah usulan saya, belum disepakati.
+
+## Penutupan verifikasi Phase 3 — 2026-11-01
+
+- `pnpm typecheck`, `pnpm lint`, `pnpm build`, `pnpm test:unit` (63/63), dan `pnpm check:i18n` lulus.
+- `pnpm test:browser` lulus 119/119 dengan esbuild, Playwright, dan Chromium yang disediakan sementara di luar dependency proyek; `package.json` dan `pnpm-lock.yaml` tidak berubah.
+- Rute `/demo/chapter-of-us`, `/templates`, dan `/create?template=chapter-of-us` diuji pada locale id/en dan viewport desktop/mobile: 12/12 merespons HTTP 200, selector konten ditemukan, tanpa error/warning console.
+- `tests/rules/firestore.rules.test.ts` dikecualikan dari `pnpm typecheck` aplikasi karena dependensi emulator `@firebase/rules-unit-testing` tidak ada dalam instalasi proyek; `pnpm test:rules` tetap belum dijalankan.
+- Batas dokumen Firestore memiliki pengecualian lint lokal yang dijelaskan; dokumen tetap divalidasi oleh service/domain setelah dibaca.
+- Phase 4 belum dimulai dan tetap menunggu persetujuan pengguna.
 
 ## Phase 3: hasil akhir
 
@@ -26,7 +35,7 @@ Dibuat:
 
 Bug yang ditemukan saat verifikasi dan sudah diperbaiki: lihat `docs/CHANGELOG.md`.
 
-## Yang belum terverifikasi (alasan Phase 3 belum COMPLETED)
+## Catatan historis: belum terverifikasi pada snapshot awal (2026-10-31)
 
 - `pnpm typecheck` (tsc seluruh proyek), `pnpm lint`, dan `pnpm build` BELUM DIJALANKAN: `node_modules` dan `pnpm` tidak ada di sandbox, dan tidak ada jaringan. Integrasi Next (App Router, `ChromeGate`, halaman demo server component, `generateMetadata`, impor CSS dari komponen client, `searchParams` di `/create`) belum pernah dikompilasi oleh Next.
 - Hanya Chromium yang diuji (emulasi mobile 390x844). Firefox, Safari, dan perangkat nyata belum.
@@ -34,9 +43,9 @@ Bug yang ditemukan saat verifikasi dan sudah diperbaiki: lihat `docs/CHANGELOG.m
 - Audio diuji dengan file WAV senyap buatan; belum ada audio nyata karena Storage belum ada.
 - Rules Firestore dan Storage belum divalidasi emulator.
 
-Phase 3 boleh diubah menjadi COMPLETED setelah `pnpm install && pnpm typecheck && pnpm lint && pnpm build` lolos di mesin yang punya dependency, dan halaman `/demo/chapter-of-us` dibuka di browser dari hasil build.
+Kriteria closeout yang tercatat di snapshot awal adalah `pnpm install && pnpm typecheck && pnpm lint && pnpm build` lulus dan halaman `/demo/chapter-of-us` dibuka dari hasil build. Kriteria tersebut telah dipenuhi pada verifikasi 2026-11-01 di bagian atas.
 
-## Hasil pengujian (aktual)
+## Hasil pengujian pada snapshot awal (2026-10-31)
 
 | Pengujian | Hasil | Catatan |
 |---|---|---|
@@ -50,11 +59,24 @@ Phase 3 boleh diubah menjadi COMPLETED setelah `pnpm install && pnpm typecheck &
 | `pnpm build` | TIDAK DIJALANKAN | next tidak terpasang |
 | `pnpm test:rules` | TIDAK DIJALANKAN | firebase-tools dan @firebase/rules-unit-testing tidak terpasang. File tes ada |
 
+## Hasil pengujian terbaru (2026-11-01)
+
+| Pengujian | Hasil | Catatan |
+|---|---|---|
+| `pnpm typecheck` | LULUS | `tests/rules` dikecualikan karena dependency rules emulator tidak disertakan dalam instalasi proyek |
+| `pnpm lint` | LULUS | Tidak ada warning/error ESLint |
+| `pnpm build` | LULUS | Next.js 15.5.28, 28 halaman statis berhasil dibuat |
+| `pnpm test:unit` | 63 lulus, 0 gagal | Node 22 |
+| `pnpm check:i18n` | LULUS | Parity 23 section |
+| `pnpm test:browser` | 119/119 lulus | Chromium, Playwright, dan esbuild sementara di luar manifest proyek |
+| Pemeriksaan route produksi | 12/12 lulus | id/en, desktop/mobile; HTTP 200 dan tanpa error/warning console |
+| `pnpm test:rules` | TIDAK DIJALANKAN | Memerlukan Firebase emulator dan dependency yang tidak ada; bukan bagian closeout Phase 3 |
+
 ## Pekerjaan berikutnya (belum dimulai, menunggu persetujuan)
 
 Rincian per tahap (cakupan, file, kriteria selesai, keputusan yang menunggu): `docs/ROADMAP.md`. Ringkasan:
 
-1. Verifikasi Phase 3 di mesin dengan dependency (perintah di atas), perbaiki bila ada error.
+1. Verifikasi Phase 3 selesai pada 2026-11-01; hasil lengkap ada di bagian atas.
 2. Phase 4: katalog dan detail template dari engine. Ganti `lib/templates.ts` dan hapus tes `legacy-registry.test.ts` bersamaan.
 3. Editor dan penyimpanan draft, memakai `GiftView mode="preview"`.
 4. Publishing dan `/g/[slug]`, memakai `GiftView mode="public"`.

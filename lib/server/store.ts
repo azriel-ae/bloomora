@@ -5,6 +5,8 @@ import type { TimestampLike } from '../model/types.ts';
  * adapter wraps the Firebase Admin SDK; tests use an in-memory fake that
  * enforces Firestore's "all reads before any write" rule.
  */
+// Firestore documents are dynamic; domain/service validators narrow them after reading.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- intentional untyped document boundary
 export type Doc = Record<string, any>;
 export interface Tx {
   get(path: string): Promise<Doc | null>;
