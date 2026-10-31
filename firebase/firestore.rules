@@ -1,0 +1,95 @@
+rules_version = '2';
+
+// Bloomora Firestore rules, schema v2.
+//
+// Principle: the browser may READ only what belongs to it (or is public) and
+// may WRITE nothing. Every mutation (gifts, subscriptions, orders, publishing,
+// admin actions) goes through server route handlers using the Admin SDK, which
+// bypasses these rules after doing its own authorization. That keeps
+// entitlement checks, quotas and payment state out of the client's reach.
+//
+// MODEL B: publicGifts/{slug} is readable without any subscription check. No
+// rule here or anywhere references subscription expiry for public reads.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function isAdmin() { return signedIn() && request.auth.token.admin == true; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+
+    // Profile mirror. Roles come from custom claims only, never from this doc.
+    match /users/{uid} {
+      allow get: if isOwner(uid) || isAdmin();
+      allow list: if isAdmin();
+      allow write: if false;
+    }
+
+    // Public pricing. Edited by admins through the server.
+    match /packages/{packageId} {
+      allow get, list: if true;
+      allow write: if false;
+    }
+
+    // Public catalog overrides (activation, featured flags). Edited via server.
+    match /templates/{templateId} {
+      allow get, list: if true;
+      allow write: if false;
+    }
+
+    // Subscriptions and orders: the owner can read their own; only the server writes.
+    match /subscriptions/{subscriptionId} {
+      allow get: if isOwner(resource.data.userId) || isAdmin();
+      allow list: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow write: if false;
+    }
+
+    match /orders/{orderId} {
+      allow get: if isOwner(resource.data.userId) || isAdmin();
+      allow list: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
+      allow write: if false;
+    }
+
+    // PRIVATE gifts: drafts, ownership, revisions. Never public.
+    match /gifts/{giftId} {
+      allow get: if isOwner(resource.data.ownerUid) || isAdmin();
+      allow list: if isAdmin() || (signedIn() && resource.data.ownerUid == request.auth.uid);
+      allow write: if false;
+
+      match /revisions/{revision} {
+        allow get: if isOwner(get(/databases/$(database)/documents/gifts/$(giftId)).data.ownerUid) || isAdmin();
+        allow list: if false;
+        allow write: if false;
+      }
+    }
+
+    // PUBLIC gifts: single-document get only (no listing, so slugs cannot be
+    // enumerated). Only the published state is served. The visibility check
+    // reads the document's own status and nothing else.
+    match /publicGifts/{slug} {
+      allow get: if resource.data.status == 'published';
+      allow list: if false;
+      allow write: if false;
+    }
+
+    // Slug reservations, abuse reports, moderation and audit trail: server only.
+    match /slugs/{slug} {
+      allow read, write: if false;
+    }
+    match /reports/{reportId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    match /moderation/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+    match /adminAuditLogs/{id} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

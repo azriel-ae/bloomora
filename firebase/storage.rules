@@ -1,0 +1,55 @@
+rules_version = '2';
+
+// Bloomora Storage rules, schema v2. NOT DEPLOYED: Firebase Storage is not
+// provisioned (Blaze billing not approved). These rules are ready for when it is.
+//
+// Clients never write to Storage directly. Uploads are issued by the server
+// after it checks the user's entitlement, and the server enforces type, size
+// and count (for example via signed upload URLs that fix content type and a
+// content-length-range). Rules therefore deny all client writes.
+//
+// Layout:
+//   private/{uid}/gifts/{giftId}/...        draft media, owner/admin read
+//   public/gifts/{slug}/{revision}/...      media copied by the server at publish
+//                                            time, world readable (Model B)
+//   paymentProofs/{uid}/{orderId}/...       private, owner/admin read
+//   admin/qris/...  templates/...           public read, server write
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function signedIn() { return request.auth != null; }
+    function isAdmin() { return signedIn() && request.auth.token.admin == true; }
+    function isOwner(uid) { return signedIn() && request.auth.uid == uid; }
+
+    match /private/{uid}/gifts/{giftId}/{allPaths=**} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow write: if false;
+    }
+
+    // Published media lives under an immutable revision folder, so editing a
+    // draft can never change what recipients see. No subscription check on read.
+    match /public/gifts/{slug}/{revision}/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /paymentProofs/{uid}/{orderId}/{allPaths=**} {
+      allow read: if isOwner(uid) || isAdmin();
+      allow write: if false;
+    }
+
+    match /admin/qris/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /templates/{allPaths=**} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

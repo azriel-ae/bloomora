@@ -1,0 +1,442 @@
+{
+  "navigation": {
+    "templates": "Template",
+    "pricing": "Harga",
+    "story": "Cerita kami",
+    "faq": "FAQ",
+    "login": "Masuk",
+    "createGift": "Buat hadiah",
+    "language": "Bahasa"
+  },
+  "common": {
+    "loading": "Memuat…",
+    "save": "Simpan",
+    "saved": "Tersimpan",
+    "saving": "Menyimpan…",
+    "back": "Kembali",
+    "preview": "Pratinjau",
+    "close": "Tutup",
+    "send": "Kirim",
+    "tryAgain": "Coba lagi"
+  },
+  "home": {
+    "eyebrow": "untuk momen di antara kata-kata",
+    "headline": "Buat dunia kecil untuk seseorang yang kamu cintai.",
+    "description": "Bloomora mengubah kenangan, pesan, dan detail kecil favoritmu menjadi hadiah digital interaktif — tanpa kode dan tanpa kanvas kosong.",
+    "start": "Mulai dari template",
+    "explore": "Jelajahi koleksi",
+    "privacy": "Privat sejak awal",
+    "noCode": "Tanpa perlu coding",
+    "collection": "Mulai dari yang indah",
+    "templateHeading": "Template untuk setiap rasa.",
+    "seeAll": "Lihat semua template",
+    "pricingHeading": "Berikan waktu yang layak untuknya.",
+    "pricingCta": "Lihat paket",
+    "stepsHeading": "Dari klik pertama sampai tautan yang dibagikan",
+    "stepsIntro": "Kamu membawa perasaan. Kami memberi ruang agar ia tumbuh.",
+    "step1": "Pilih titik awal",
+    "step1Body": "Mulai dari template yang sudah memahami suasananya.",
+    "step2": "Jadikan milikmu",
+    "step2Body": "Tambahkan kata, foto, adegan, dan kejutan kecil.",
+    "step3": "Kirim momennya",
+    "step3Body": "Publikasikan tautan privat dan biarkan ia dibuka di mana saja.",
+    "featuresHeading": "Detail yang membuatnya terasa milikmu.",
+    "feature1": "Privat sejak awal",
+    "feature1Body": "Hadiahmu milikmu. Bagikan hanya saat kamu siap.",
+    "feature2": "Sedikit interaktif",
+    "feature2Body": "Amplop, timeline, pertanyaan, dan galeri membuat momen terbuka perlahan.",
+    "feature3": "Mudah dibentuk",
+    "feature3Body": "Tidak perlu gelar desain. Mulai dari template yang sudah dipikirkan.",
+    "feature4": "Dibuat untuk disimpan",
+    "feature4Body": "Setiap hadiah punya masa aktif dan riwayat pembayaran yang jelas.",
+    "faqHeading": "Sebelum kamu mulai.",
+    "faq1": "Perlu pengalaman desain atau coding?",
+    "faq1Body": "Tidak sama sekali. Pilih titik awal, tambahkan kata dan kenangan, lalu Bloomora mengurus presentasinya.",
+    "faq2": "Bisa melihat pratinjau sebelum membayar?",
+    "faq2Body": "Bisa. Kamu dapat membentuk dan melihat hadiah sebelum checkout.",
+    "faq3": "Bagaimana cara pembayarannya?",
+    "faq3Body": "Bloomora menggunakan verifikasi QRIS manual.",
+    "ctaEyebrow": "Hanya perlu beberapa menit untuk mulai",
+    "ctaHeading": "Hadiah terbaik adalah yang hanya bisa ditujukan untuk mereka."
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Kata sandi",
+    "login": "Masuk dengan aman",
+    "register": "Buat akun",
+    "forgot": "Lupa kata sandi?",
+    "loginTitle": "Selamat datang kembali.",
+    "registerTitle": "Beri ruang untuk perasaan.",
+    "configMissing": "Firebase Authentication belum dikonfigurasi di lingkungan ini.",
+    "newHere": "Baru di sini?",
+    "already": "Sudah punya akun?"
+  },
+  "chat": {
+    "label": "Panduan Bloomora",
+    "subtitle": "Bantuan kecil saat kamu membutuhkannya.",
+    "welcome": "Halo kak, aku pemandu hadiah Bloomora. Mau bikin kado buat siapa?",
+    "placeholder": "Tanya tentang hadiah…",
+    "thinking": "Sedang berpikir…",
+    "unavailable": "Panduan sedang mengambil jeda. Coba lagi nanti."
+  },
+  "editor": {
+    "eyebrow": "Editor hadiah",
+    "heading": "Buat agar terasa seperti milikmu.",
+    "details": "Detail hadiah",
+    "title": "Judul hadiah",
+    "recipient": "Nama penerima",
+    "message": "Pesan pembuka",
+    "quickAdd": "Tambah cepat",
+    "photos": "Tambah foto",
+    "music": "Tambah musik",
+    "type": "Ubah gaya",
+    "scenes": "Adegan",
+    "sceneHelp": "Atur momen yang disetujui dalam hadiahmu.",
+    "addScene": "+ Tambah adegan",
+    "localNote": "Pratinjau autosave aktif secara lokal. Penyimpanan Firestore akan aktif setelah Firebase dikonfigurasi."
+  },
+  "payment": {
+    "scan": "Silakan pindai kode QRIS untuk melakukan pembayaran.",
+    "upload": "Unggah bukti pembayaran setelah transaksi selesai.",
+    "pending": "Pembayaran sedang menunggu verifikasi admin.",
+    "verified": "Pembayaran berhasil diverifikasi.",
+    "rejected": "Bukti pembayaran ditolak. Silakan periksa alasan penolakan."
+  },
+  "errors": {
+    "chatConfig": "Panduan Bloomora belum terhubung. Tambahkan konfigurasi Gemini server untuk mengaktifkan chat.",
+    "authConfig": "Firebase Authentication belum dikonfigurasi di lingkungan ini.",
+    "invalidMessage": "Kirim pesan singkat yang valid.",
+    "saveAuth": "Masuk untuk menyimpan hadiah."
+  },
+  "templates": {
+    "pressedName": "Pressed Garden",
+    "pressedDesc": "Keepsake botani yang tenang untuk orang yang membuat hari-hari terasa lebih ringan.",
+    "pressedCategory": "Terima kasih",
+    "archiveName": "Our Little Archive",
+    "archiveDesc": "Scrapbook interaktif berisi lelucon, kemenangan kecil, dan tempat-tempat dalam cerita kalian.",
+    "archiveCategory": "Persahabatan",
+    "letterName": "Just a Letter",
+    "letterDesc": "Surat penuh perhatian dengan ruang untuk foto, jeda, dan semua yang tak muat dalam chat.",
+    "letterCategory": "Jarak jauh"
+  },
+  "templatesPage": {
+    "eyebrow": "Koleksi Bloomora",
+    "title": "Mulai dari sebuah rasa.",
+    "intro": "Setiap template adalah tempat yang dipikirkan dengan hati — dengan ruang untuk kata-katamu, kenanganmu, dan detail yang hanya mereka pahami.",
+    "all": "Semua",
+    "preview": "Lihat template",
+    "create": "Gunakan template"
+  },
+  "pricingPage": {
+    "eyebrow": "Jelas sejak awal",
+    "title": "Berikan waktu yang layak untuknya.",
+    "intro": "Lihat pratinjau sebelum membayar. Setiap paket dibuat agar batasnya jelas dan perasaannya tetap sederhana.",
+    "active": "aktif selama",
+    "mostChosen": "Paling dipilih",
+    "choose": "Pilih",
+    "limits": "Batas dan harga paket dapat diatur oleh pemilik. Server selalu menghitung jumlah akhir dari paket aktif saat checkout."
+  },
+  "authPage": {
+    "eyebrow": "Ruang pribadimu",
+    "loginIntro": "Masuk untuk melanjutkan draf, memeriksa pesanan, atau membagikan hadiah yang sudah siap.",
+    "registerIntro": "Buat ruang pribadi untuk draf, pesanan, dan hadiah yang ingin kamu bagikan.",
+    "newHere": "Baru di sini?",
+    "already": "Sudah punya akun?",
+    "createAccount": "Buat akun"
+  },
+  "info": {
+    "paymentEyebrow": "Instruksi pembayaran",
+    "paymentTitle": "Jalur yang jelas dari pesanan hingga hadiah dibagikan.",
+    "paymentIntro": "Alur pembayaran awal Bloomora menggunakan gambar QRIS yang dikelola admin dan verifikasi manual.",
+    "step1": "1. Buat dan lihat pratinjau",
+    "step1Body": "Bentuk hadiahmu dan lihat pratinjaunya sebelum pembayaran. Server memilih harga dan batas paket dari konfigurasi aktif.",
+    "step2": "2. Bayar melalui QRIS aktif",
+    "step2Body": "Gunakan gambar QRIS yang ditampilkan untuk pesanan saat ini. Jangan mempercayai tangkapan layar dari pesanan lain.",
+    "step3": "3. Unggah bukti",
+    "step3Body": "Kirim bukti melalui alur pesanan terautentikasi. Jenis file, ukuran, kepemilikan, dan kaitan pesanan divalidasi di server.",
+    "step4": "4. Tunggu verifikasi",
+    "step4Body": "Admin yang berwenang meninjau bukti. Publikasi tersedia setelah pesanan mencapai status terverifikasi."
+  },
+  "footer": {
+    "explore": "Jelajahi",
+    "clarity": "Sedikit kejelasan",
+    "giftTemplates": "Template hadiah",
+    "ourStory": "Cerita kami",
+    "questions": "Pertanyaan umum",
+    "payment": "Instruksi pembayaran",
+    "privacy": "Privasi",
+    "terms": "Ketentuan",
+    "media": "Kebijakan media",
+    "tagline": "Dunia kecil yang indah untuk orang-orang yang membuat duniamu terasa lebih besar.",
+    "copyright": "© 2026 Bloomora. Sebuah karya penuh perhatian yang terus bertumbuh."
+  },
+  "pages": {
+    "about": {
+      "eyebrow": "Tentang Bloomora",
+      "title": "Hadiah digital yang terasa seperti ruang kecil milik kalian.",
+      "intro": "Bloomora dibuat untuk momen yang terlalu personal untuk kartu generik, tetapi tidak perlu menjadi proyek besar.",
+      "sections": [
+        {
+          "heading": "Kami percaya pada detail kecil.",
+          "body": "Satu kalimat yang tepat, foto yang hanya kalian pahami, atau kejutan yang dibuka perlahan dapat mengubah sebuah hadiah menjadi kenangan."
+        },
+        {
+          "heading": "Dibuat dengan tenang.",
+          "body": "Kami memilih template yang terarah, interaksi yang seperlunya, dan bahasa yang jujur agar perhatian tetap berada pada orang yang kamu sayangi."
+        },
+        {
+          "heading": "Tidak ada klaim yang dibuat-buat.",
+          "body": "Bloomora masih bertumbuh. Detail harga, masa aktif, penyimpanan media, dan dukungan mengikuti konfigurasi bisnis yang aktif."
+        }
+      ]
+    },
+    "contact": {
+      "eyebrow": "Hubungi Bloomora",
+      "title": "Ada sesuatu yang ingin kamu tanyakan?",
+      "intro": "Kirim pesan melalui kanal dukungan yang dikonfigurasi pemilik. Kami akan memperbarui alamat dan jam dukungan sebelum peluncuran publik.",
+      "sections": [
+        {
+          "heading": "Dukungan produk",
+          "body": "Untuk pertanyaan tentang template, editor, hadiah yang kedaluwarsa, atau alur pembayaran, sertakan detail yang tidak sensitif agar kami dapat membantu."
+        },
+        {
+          "heading": "Pertanyaan pembayaran",
+          "body": "Jangan kirim kata sandi, kredensial pembayaran, atau media pribadi melalui email. Status pembayaran resmi hanya berasal dari pesanan di akunmu."
+        },
+        {
+          "heading": "Kontak saat ini",
+          "body": "hello@bloomora.example — alamat contoh yang harus diganti dengan kanal dukungan bisnis sebelum digunakan."
+        }
+      ]
+    },
+    "faq": {
+      "eyebrow": "Pertanyaan umum",
+      "title": "Sedikit kejelasan sebelum kamu mulai.",
+      "intro": "Jawaban ini menjelaskan perilaku produk yang saat ini direncanakan. Kebijakan final tetap mengikuti konfigurasi bisnis yang aktif.",
+      "sections": [
+        {
+          "heading": "Perlu pengalaman coding?",
+          "body": "Tidak. Pilih template, tambahkan kata dan kenangan, lalu lihat pratinjaunya."
+        },
+        {
+          "heading": "Apakah hadiah bisa dibuka tanpa aplikasi?",
+          "body": "Ya. Hadiah penerima dirancang untuk dibuka melalui tautan web responsif."
+        },
+        {
+          "heading": "Bagaimana pembayaran dilakukan?",
+          "body": "Bloomora menggunakan QRIS yang dikelola admin dan verifikasi manual. Harga final ditentukan server dari paket aktif."
+        },
+        {
+          "heading": "Apa yang terjadi saat hadiah kedaluwarsa?",
+          "body": "Tautan akan menunjukkan status kedaluwarsa sesuai masa aktif paket. Kebijakan perpanjangan dan retensi media harus mengikuti konfigurasi pemilik."
+        }
+      ]
+    },
+    "privacy": {
+      "eyebrow": "Privasi",
+      "title": "Perhatianmu tetap milikmu.",
+      "intro": "Halaman ini adalah kerangka kebijakan yang dapat diedit pemilik sebelum peluncuran publik dan bukan pengganti nasihat hukum.",
+      "sections": [
+        {
+          "heading": "Data akun dan hadiah",
+          "body": "Bloomora perlu memproses data akun, draft hadiah, media, dan status pesanan untuk menyediakan fitur yang kamu minta."
+        },
+        {
+          "heading": "Media dan tautan",
+          "body": "Media harus terkait dengan akun atau hadiah yang berwenang. Jangan mengunggah materi yang tidak kamu miliki atau tidak berhak kamu bagikan."
+        },
+        {
+          "heading": "Retensi",
+          "body": "Masa aktif hadiah dan kebijakan penghapusan media harus diisi pemilik secara spesifik sebelum produksi."
+        }
+      ]
+    },
+    "terms": {
+      "eyebrow": "Ketentuan layanan",
+      "title": "Ruang yang dibuat dengan jelas.",
+      "intro": "Kerangka ketentuan ini harus ditinjau dan dilengkapi identitas bisnis, hukum yang berlaku, serta prosedur resmi sebelum peluncuran.",
+      "sections": [
+        {
+          "heading": "Gunakan dengan itikad baik.",
+          "body": "Kamu bertanggung jawab atas konten yang diunggah, hak untuk membagikannya, dan penerima tautan hadiah."
+        },
+        {
+          "heading": "Fitur yang dikonfigurasi.",
+          "body": "Harga, masa aktif, batas media, template, dan musik dapat berubah mengikuti konfigurasi bisnis yang aktif."
+        },
+        {
+          "heading": "Tidak ada janji yang belum disetujui.",
+          "body": "Bloomora tidak boleh menampilkan jaminan, identitas hukum, atau kebijakan refund final sebelum disetujui pemilik."
+        }
+      ]
+    },
+    "refunds": {
+      "eyebrow": "Refund dan pembatalan",
+      "title": "Kebijakan yang jelas untuk pembayaran manual.",
+      "intro": "Halaman ini menjelaskan batas informasi yang aman sebelum kebijakan refund resmi dikonfigurasi dan disetujui pemilik.",
+      "sections": [
+        {
+          "heading": "Sebelum verifikasi",
+          "body": "Pesanan manual dapat tetap menunggu sampai bukti pembayaran ditinjau admin. Jangan menganggap upload bukti sebagai persetujuan."
+        },
+        {
+          "heading": "Jika bukti ditolak",
+          "body": "Status dan alasan penolakan harus berasal dari admin resmi melalui pesananmu. Instruksi perbaikan akan mengikuti konfigurasi bisnis."
+        },
+        {
+          "heading": "Kebijakan final",
+          "body": "Batas waktu, kondisi refund, biaya, dan kanal eskalasi harus diisi pemilik sebelum pembayaran produksi diaktifkan."
+        }
+      ]
+    },
+    "expiration": {
+      "eyebrow": "Masa aktif hadiah",
+      "title": "Setiap momen punya batas yang jelas.",
+      "intro": "Masa aktif hadiah ditentukan oleh paket yang dipilih dan timestamp yang disimpan server, bukan bahasa antarmuka.",
+      "sections": [
+        {
+          "heading": "Saat masih aktif",
+          "body": "Penerima dapat membuka tautan selama hadiah berada dalam status aktif dan entitlement pembayaran telah dipenuhi."
+        },
+        {
+          "heading": "Saat kedaluwarsa",
+          "body": "Halaman penerima akan menampilkan status kedaluwarsa dan tidak menganggap hadiah masih dapat dibuka."
+        },
+        {
+          "heading": "Perpanjangan",
+          "body": "Perpanjangan hanya boleh mengubah masa aktif melalui alur resmi dan perhitungan server."
+        }
+      ]
+    },
+    "media": {
+      "eyebrow": "Kebijakan media",
+      "title": "Foto dan audio diperlakukan dengan hati-hati.",
+      "intro": "Media pengguna tidak diterjemahkan oleh pergantian bahasa antarmuka dan tidak boleh digantikan tanpa persetujuan.",
+      "sections": [
+        {
+          "heading": "Hak dan keamanan",
+          "body": "Unggah hanya foto atau audio yang kamu miliki atau berhak bagikan. Server harus memvalidasi tipe, ukuran, kepemilikan, dan akses."
+        },
+        {
+          "heading": "Musik yang disetujui",
+          "body": "Musik bawaan harus berasal dari sumber yang disetujui dan aman hak. Bloomora tidak menyediakan katalog musik komersial tanpa izin."
+        },
+        {
+          "heading": "Penghapusan",
+          "body": "Masa retensi dan alur permintaan penghapusan harus mengikuti kebijakan bisnis yang aktif."
+        }
+      ]
+    }
+  },
+  "dashboard": {
+    "eyebrow": "Ruang pribadimu",
+    "title": "Senang melihatmu kembali.",
+    "intro": "Hadiah tersimpan, pesanan, dan tautan bagikanmu akan tinggal di sini.",
+    "create": "Buat hadiah",
+    "ready": "Ruangmu siap.",
+    "signed": "Masuk sebagai",
+    "counts": "Jumlah hadiah akan diisi dari Firestore setelah data terhubung.",
+    "gifts": "Hadiah dibuat",
+    "pending": "Pembayaran menunggu",
+    "published": "Hadiah diterbitkan",
+    "waiting": "Ruang pribadimu menunggu.",
+    "setup": "Firebase Authentication belum dikonfigurasi di lingkungan ini."
+  },
+  "admin": {
+    "eyebrow": "Ruang pemilik",
+    "title": "Jaga pengalaman tetap penuh perhatian.",
+    "intro": "Otorisasi admin, QRIS, paket, verifikasi pembayaran, konten, dan audit log berjalan sebagai operasi server yang terlindungi.",
+    "gated": "Akses admin sengaja dibatasi.",
+    "verify": "Verifikasi pembayaran",
+    "verifyBody": "Tinjau bukti dan setujui pesanan yang memenuhi syarat.",
+    "qris": "Kelola QRIS",
+    "qrisBody": "Ganti gambar QRIS aktif dan instruksinya.",
+    "packages": "Paket",
+    "packagesBody": "Atur harga, durasi, dan batas.",
+    "settings": "Pengaturan situs",
+    "settingsBody": "Edit brand, konten, dan detail dukungan.",
+    "open": "Buka bagian"
+  },
+  "createPage": {
+    "eyebrow": "Ruang pribadimu",
+    "title": "Mari buat sesuatu yang personal.",
+    "intro": "Simpan draf, kembali kapan saja, dan bagikan hanya saat momennya terasa siap. Masuk untuk mulai membentuk hadiahmu.",
+    "start": "Kamu bisa mulai dari",
+    "selectedTemplate": "Template pilihan"
+  },
+  "recipient": {
+    "demoEyebrow": "Hadiah yang dibuat khusus untukmu",
+    "demoTitle": "Taman kecil penuh kenangan.",
+    "demoIntro": "Ini adalah demo pengalaman penerima yang diberi label dengan jelas. Hadiah nyata hanya akan dimuat setelah pemeriksaan akses, pembayaran, dan kedaluwarsa di server lolos.",
+    "private": "Tautan privat",
+    "care": "Dibuat dengan perhatian",
+    "gift": "Hadiah Bloomora",
+    "unavailable": "Hadiah ini tidak tersedia.",
+    "unavailableBody": "Tautan mungkin tidak valid, privat, kedaluwarsa, atau belum diterbitkan. Jika kamu mengharapkan hadiah di sini, minta pengirim memeriksa tautannya dari dashboard.",
+    "explore": "Jelajahi Bloomora"
+  },
+  "templateDetail": {
+    "back": "Kembali ke template",
+    "use": "Gunakan template ini",
+    "photo": "Siap untuk foto",
+    "music": "Musik opsional",
+    "make": "Jadikan milikmu",
+    "notFound": "Template tidak ditemukan"
+  },
+  "adminSection": {
+    "back": "Kembali ke admin",
+    "protected": "Ruang pemilik terlindungi",
+    "verified": "Status admin terverifikasi",
+    "gated": "Akses admin sengaja dibatasi.",
+    "notConfigured": "Bagian pengelolaan ini belum dikonfigurasi."
+  },
+  "gift": {
+    "forLabel": "Untuk",
+    "fromLabel": "Dari",
+    "openHint": "Ketuk segel untuk membuka surat",
+    "openButton": "Buka surat",
+    "chapterWord": "Bab",
+    "navChapters": "Isi cerita",
+    "navMenuTitle": "Lompat ke bab",
+    "navClose": "Tutup menu",
+    "backToStart": "Kembali ke awal",
+    "progress": "Kemajuan membaca",
+    "sectionOpening": "Segel",
+    "sectionHero": "Sampul",
+    "sectionLetter": "Surat",
+    "sectionTimeline": "Linimasa",
+    "sectionGallery": "Galeri",
+    "sectionMessage": "Alasan",
+    "sectionAppreciation": "Terima kasih",
+    "sectionMusic": "Musik",
+    "sectionClosing": "Penutup",
+    "openPlate": "Perbesar: {caption}",
+    "lightboxTitle": "Tampilan galeri",
+    "lightboxPrev": "Gambar sebelumnya",
+    "lightboxNext": "Gambar berikutnya",
+    "lightboxClose": "Tutup galeri",
+    "lightboxCounter": "{current} dari {total}",
+    "reasonOpen": "Buka alasan {n}",
+    "reasonClose": "Tutup alasan {n}",
+    "reasonLabel": "Alasan",
+    "reasonsOpenNext": "Buka berikutnya",
+    "reasonsCloseAll": "Tutup semua",
+    "reasonsStatus": "{open} dari {total} terbuka",
+    "musicPlay": "Putar musik",
+    "musicPause": "Jeda musik",
+    "musicLabel": "Musik pengiring",
+    "closingReplay": "Baca dari awal",
+    "emptyGift": "Hadiah ini belum memiliki isi untuk ditampilkan."
+  },
+  "featuredDemo": {
+    "eyebrow": "Demo unggulan",
+    "viewDemo": "Lihat Demo",
+    "useTemplate": "Gunakan Template",
+    "noSignup": "Jelajahi tanpa daftar dan tanpa pembayaran.",
+    "demoBadge": "Demo",
+    "allTemplates": "Semua template",
+    "footerTitle": "Suka dengan yang kamu lihat?",
+    "footerBody": "Buat versimu sendiri, dengan kata-kata dan kenanganmu.",
+    "from": "Harga mulai"
+  }
+}

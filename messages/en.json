@@ -1,0 +1,442 @@
+{
+  "navigation": {
+    "templates": "Templates",
+    "pricing": "Pricing",
+    "story": "Our story",
+    "faq": "FAQ",
+    "login": "Log in",
+    "createGift": "Create a gift",
+    "language": "Language"
+  },
+  "common": {
+    "loading": "Loading…",
+    "save": "Save",
+    "saved": "Saved",
+    "saving": "Saving…",
+    "back": "Back",
+    "preview": "Preview",
+    "close": "Close",
+    "send": "Send",
+    "tryAgain": "Try again"
+  },
+  "home": {
+    "eyebrow": "made for the moments between words",
+    "headline": "Make a little world for someone you love.",
+    "description": "Bloomora turns your memories, messages, and favorite little details into an interactive digital gift — no code and no blank canvas.",
+    "start": "Start with a template",
+    "explore": "Explore the collection",
+    "privacy": "Private by design",
+    "noCode": "No coding needed",
+    "collection": "Start somewhere lovely",
+    "templateHeading": "A template for the feeling.",
+    "seeAll": "See all templates",
+    "pricingHeading": "Give it the time it deserves.",
+    "pricingCta": "See the packages",
+    "stepsHeading": "From first click to shared link",
+    "stepsIntro": "You bring the feeling. We make room for it to unfold.",
+    "step1": "Choose a starting point",
+    "step1Body": "Begin with a template that already understands the mood.",
+    "step2": "Make it yours",
+    "step2Body": "Add words, photos, scenes, and small surprises.",
+    "step3": "Send the moment",
+    "step3Body": "Publish a private link and let your recipient open it anywhere.",
+    "featuresHeading": "The details that make it feel like yours.",
+    "feature1": "Private by design",
+    "feature1Body": "Your gift is yours. Share it only when the moment feels ready.",
+    "feature2": "A little interactive",
+    "feature2Body": "Envelopes, timelines, questions, and galleries make the moment unfold.",
+    "feature3": "Easy to shape",
+    "feature3Body": "No design degree required. Start with a considered template.",
+    "feature4": "Made to be kept",
+    "feature4Body": "Every gift has a clear lifetime and payment history.",
+    "faqHeading": "Before you begin.",
+    "faq1": "Do I need design or coding experience?",
+    "faq1Body": "Not at all. Choose a starting point, add your memories, and Bloomora handles the presentation.",
+    "faq2": "Can I preview before paying?",
+    "faq2Body": "Yes. Shape and preview your gift before checkout.",
+    "faq3": "How does payment work?",
+    "faq3Body": "Bloomora uses manual QRIS verification.",
+    "ctaEyebrow": "It only takes a few minutes to start",
+    "ctaHeading": "The best gifts are the ones that could only be for them."
+  },
+  "auth": {
+    "email": "Email",
+    "password": "Password",
+    "login": "Log in securely",
+    "register": "Create my account",
+    "forgot": "Forgot your password?",
+    "loginTitle": "Welcome back.",
+    "registerTitle": "Make room for the feeling.",
+    "configMissing": "Firebase Authentication is not configured in this environment yet.",
+    "newHere": "New here?",
+    "already": "Already have an account?"
+  },
+  "chat": {
+    "label": "Bloomora guide",
+    "subtitle": "A little help when you need it.",
+    "welcome": "Hi, I’m Bloomora’s gift guide. Who are you making a gift for?",
+    "placeholder": "Ask about a gift…",
+    "thinking": "Thinking gently…",
+    "unavailable": "The guide is taking a quiet moment. Please try again."
+  },
+  "editor": {
+    "eyebrow": "Gift editor",
+    "heading": "Make it feel like yours.",
+    "details": "Your details",
+    "title": "Gift title",
+    "recipient": "Recipient name",
+    "message": "Opening message",
+    "quickAdd": "Quick add",
+    "photos": "Add photos",
+    "music": "Add music",
+    "type": "Change type",
+    "scenes": "Scenes",
+    "sceneHelp": "Reorder the approved moments in your gift.",
+    "addScene": "+ Add approved scene",
+    "localNote": "Autosave preview is active locally. Firestore saving will activate when Firebase is configured."
+  },
+  "payment": {
+    "scan": "Scan the QRIS code to make your payment.",
+    "upload": "Upload your payment receipt after completing the transaction.",
+    "pending": "Your payment is awaiting administrator verification.",
+    "verified": "Your payment has been verified successfully.",
+    "rejected": "Your payment proof was rejected. Please review the rejection reason."
+  },
+  "errors": {
+    "chatConfig": "The Bloomora guide is not connected yet. Add the Gemini server configuration to enable chat.",
+    "authConfig": "Firebase Authentication is not configured in this environment yet.",
+    "invalidMessage": "Please send a short, valid message.",
+    "saveAuth": "Sign in to save a gift."
+  },
+  "templates": {
+    "pressedName": "Pressed Garden",
+    "pressedDesc": "A quiet botanical keepsake for the person who makes ordinary days feel lighter.",
+    "pressedCategory": "Thank you",
+    "archiveName": "Our Little Archive",
+    "archiveDesc": "An interactive scrapbook of inside jokes, tiny victories, and all the places your story has been.",
+    "archiveCategory": "Friendship",
+    "letterName": "Just a Letter",
+    "letterDesc": "A considered note with room for photographs, pauses, and everything that did not fit in a text.",
+    "letterCategory": "Long-distance"
+  },
+  "templatesPage": {
+    "eyebrow": "The Bloomora collection",
+    "title": "Start with a feeling.",
+    "intro": "Every template is a considered place to begin — with room for your words, your memories, and the details only they will understand.",
+    "all": "All",
+    "preview": "View template",
+    "create": "Use this template"
+  },
+  "pricingPage": {
+    "eyebrow": "Clear from the beginning",
+    "title": "Give it the time it deserves.",
+    "intro": "Preview before you pay. Every package is designed to make the limits clear and the feeling uncomplicated.",
+    "active": "active for",
+    "mostChosen": "Most chosen",
+    "choose": "Choose",
+    "limits": "Package limits and prices are owner-configurable. The server will always calculate the final amount from the active package definition at checkout."
+  },
+  "authPage": {
+    "eyebrow": "Your private workspace",
+    "loginIntro": "Log in to pick up a draft, check an order, or share a gift that is ready.",
+    "registerIntro": "Create a private space for drafts, orders, and gifts you want to share.",
+    "newHere": "New here?",
+    "already": "Already have an account?",
+    "createAccount": "Create an account"
+  },
+  "info": {
+    "paymentEyebrow": "Payment instructions",
+    "paymentTitle": "A clear path from order to shared gift.",
+    "paymentIntro": "Bloomora’s initial payment flow uses an administrator-managed QRIS image and manual verification.",
+    "step1": "1. Create and preview",
+    "step1Body": "Shape your gift and preview it before payment. The server selects the package price and limits from the active configuration.",
+    "step2": "2. Pay through the active QRIS",
+    "step2Body": "Use the QRIS image displayed for the current order. Do not trust screenshots or payment instructions copied from another order.",
+    "step3": "3. Upload proof",
+    "step3Body": "Submit proof through the authenticated order flow. File type, size, ownership, and order association are validated server-side.",
+    "step4": "4. Wait for verification",
+    "step4Body": "An authorized administrator reviews the proof. Publication is available only when the order reaches the configured verified state."
+  },
+  "footer": {
+    "explore": "Explore",
+    "clarity": "A little clarity",
+    "giftTemplates": "Gift templates",
+    "ourStory": "Our story",
+    "questions": "Common questions",
+    "payment": "Payment instructions",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "media": "Media policy",
+    "tagline": "Small, beautiful worlds for the people who make your world feel bigger.",
+    "copyright": "© 2026 Bloomora. A thoughtful work in progress."
+  },
+  "pages": {
+    "about": {
+      "eyebrow": "About Bloomora",
+      "title": "Digital gifts that feel like a little room of your own.",
+      "intro": "Bloomora is for moments too personal for a generic card, but not meant to become a large project.",
+      "sections": [
+        {
+          "heading": "We believe in small details.",
+          "body": "One right sentence, a photograph only you understand, or a surprise that opens slowly can turn a gift into a memory."
+        },
+        {
+          "heading": "Made with quiet intention.",
+          "body": "We choose considered templates, just-enough interaction, and honest language so attention stays with the person you love."
+        },
+        {
+          "heading": "No made-up claims.",
+          "body": "Bloomora is still growing. Pricing, lifetime, media retention, and support follow active business configuration."
+        }
+      ]
+    },
+    "contact": {
+      "eyebrow": "Contact Bloomora",
+      "title": "Have something you want to ask?",
+      "intro": "Send a message through the owner-configured support channel. The address and support hours should be updated before public launch.",
+      "sections": [
+        {
+          "heading": "Product support",
+          "body": "For questions about templates, the editor, expired gifts, or payment flow, include non-sensitive details so we can help."
+        },
+        {
+          "heading": "Payment questions",
+          "body": "Never send passwords, payment credentials, or private media by email. Official payment status comes only from your order."
+        },
+        {
+          "heading": "Current contact",
+          "body": "hello@bloomora.example — a placeholder address that must be replaced with a business support channel before use."
+        }
+      ]
+    },
+    "faq": {
+      "eyebrow": "Common questions",
+      "title": "A little clarity before you begin.",
+      "intro": "These answers describe currently planned product behavior. Final policy follows active business configuration.",
+      "sections": [
+        {
+          "heading": "Do I need coding experience?",
+          "body": "No. Choose a template, add your words and memories, and preview it."
+        },
+        {
+          "heading": "Can a gift open without an app?",
+          "body": "Yes. Recipient gifts are designed to open through a responsive web link."
+        },
+        {
+          "heading": "How does payment work?",
+          "body": "Bloomora uses admin-managed QRIS and manual verification. Final amount comes from the active package on the server."
+        },
+        {
+          "heading": "What happens when a gift expires?",
+          "body": "The link shows an expired state according to the package lifetime. Extension and media retention follow owner configuration."
+        }
+      ]
+    },
+    "privacy": {
+      "eyebrow": "Privacy",
+      "title": "Your attention stays yours.",
+      "intro": "This is an editable policy framework for the owner to complete before public launch and is not legal advice.",
+      "sections": [
+        {
+          "heading": "Account and gift data",
+          "body": "Bloomora processes account data, gift drafts, media, and order status to provide the features you request."
+        },
+        {
+          "heading": "Media and links",
+          "body": "Media must belong to an authorized account or gift. Do not upload material you do not own or have permission to share."
+        },
+        {
+          "heading": "Retention",
+          "body": "Gift lifetime and media deletion policy must be specified by the owner before production."
+        }
+      ]
+    },
+    "terms": {
+      "eyebrow": "Terms of service",
+      "title": "A space made with clarity.",
+      "intro": "This terms framework must be reviewed and completed with business identity, applicable law, and official procedures before launch.",
+      "sections": [
+        {
+          "heading": "Use in good faith",
+          "body": "You are responsible for uploaded content, your right to share it, and who receives the gift link."
+        },
+        {
+          "heading": "Configured features",
+          "body": "Pricing, lifetime, media limits, templates, and music may change with active business configuration."
+        },
+        {
+          "heading": "No unapproved promises",
+          "body": "Bloomora must not show guarantees, legal identity, or final refund policy before owner approval."
+        }
+      ]
+    },
+    "refunds": {
+      "eyebrow": "Refunds and cancellation",
+      "title": "Clear boundaries for manual payment.",
+      "intro": "This page explains safe boundaries before an official refund policy is configured and approved by the owner.",
+      "sections": [
+        {
+          "heading": "Before verification",
+          "body": "A manual order may remain pending while an administrator reviews proof. Uploading proof is not approval."
+        },
+        {
+          "heading": "If proof is rejected",
+          "body": "Status and rejection reasons must come from an official administrator through your order. Correction instructions follow business configuration."
+        },
+        {
+          "heading": "Final policy",
+          "body": "Deadlines, refund conditions, fees, and escalation channels must be completed before production payments are enabled."
+        }
+      ]
+    },
+    "expiration": {
+      "eyebrow": "Gift lifetime",
+      "title": "Every moment gets a clear boundary.",
+      "intro": "Gift lifetime comes from the selected package and server-stored timestamp, not interface language.",
+      "sections": [
+        {
+          "heading": "While active",
+          "body": "Recipients can open the link while the gift is active and payment entitlement is satisfied."
+        },
+        {
+          "heading": "When it expires",
+          "body": "The recipient page shows an expired state and does not imply the gift is still available."
+        },
+        {
+          "heading": "Extension",
+          "body": "Extension may only change lifetime through an official flow and server calculation."
+        }
+      ]
+    },
+    "media": {
+      "eyebrow": "Media policy",
+      "title": "Photos and audio deserve care.",
+      "intro": "User media is not translated by an interface-language change and must not be replaced without approval.",
+      "sections": [
+        {
+          "heading": "Rights and safety",
+          "body": "Upload only photos or audio you own or have permission to share. The server should validate type, size, ownership, and access."
+        },
+        {
+          "heading": "Approved music",
+          "body": "Built-in music must come from approved rights-safe sources. Bloomora does not provide unlicensed commercial music."
+        },
+        {
+          "heading": "Deletion",
+          "body": "Retention periods and deletion requests follow active business policy."
+        }
+      ]
+    }
+  },
+  "dashboard": {
+    "eyebrow": "Your private workspace",
+    "title": "Good to see you.",
+    "intro": "Your saved gifts, orders, and share links will live here.",
+    "create": "Create a gift",
+    "ready": "Your workspace is ready.",
+    "signed": "Signed in as",
+    "counts": "Gift counts will be populated from Firestore once data is connected.",
+    "gifts": "Gifts created",
+    "pending": "Pending payments",
+    "published": "Published gifts",
+    "waiting": "Your private workspace is waiting.",
+    "setup": "Firebase Authentication is not configured in this environment yet."
+  },
+  "admin": {
+    "eyebrow": "Owner workspace",
+    "title": "Keep the experience thoughtful.",
+    "intro": "Admin authorization, QRIS management, package configuration, payment verification, content, and audit logs are protected server operations.",
+    "gated": "Admin access is intentionally gated.",
+    "verify": "Verify payments",
+    "verifyBody": "Review proof and approve eligible orders.",
+    "qris": "Manage QRIS",
+    "qrisBody": "Replace the active QRIS image and instructions.",
+    "packages": "Packages",
+    "packagesBody": "Configure price, duration, and limits.",
+    "settings": "Site settings",
+    "settingsBody": "Edit brand, content, and support details.",
+    "open": "Open section"
+  },
+  "createPage": {
+    "eyebrow": "Your private workspace",
+    "title": "Let’s make something personal.",
+    "intro": "Save your draft, come back whenever you like, and share only when the moment feels ready. Sign in to begin shaping your gift.",
+    "start": "You can start with",
+    "selectedTemplate": "Selected template"
+  },
+  "recipient": {
+    "demoEyebrow": "A gift made just for you",
+    "demoTitle": "A little garden of memories.",
+    "demoIntro": "This is a clearly labelled demo recipient experience. A real published gift will load only after its server-side access, payment, and expiry checks pass.",
+    "private": "Private link",
+    "care": "Made with care",
+    "gift": "Bloomora gift",
+    "unavailable": "This gift is not available.",
+    "unavailableBody": "The link may be invalid, private, expired, or not published yet. If you expected a gift here, ask the sender to check the link from their dashboard.",
+    "explore": "Explore Bloomora"
+  },
+  "templateDetail": {
+    "back": "Back to templates",
+    "use": "Use this template",
+    "photo": "Photo-ready",
+    "music": "Optional music",
+    "make": "Make this one yours.",
+    "notFound": "Template not found"
+  },
+  "adminSection": {
+    "back": "Back to admin",
+    "protected": "Protected owner workspace",
+    "verified": "Verified admin state",
+    "gated": "Admin access is intentionally gated.",
+    "notConfigured": "This management section is not configured yet."
+  },
+  "gift": {
+    "forLabel": "For",
+    "fromLabel": "From",
+    "openHint": "Tap the seal to open the letter",
+    "openButton": "Open the letter",
+    "chapterWord": "Chapter",
+    "navChapters": "Contents",
+    "navMenuTitle": "Jump to a chapter",
+    "navClose": "Close menu",
+    "backToStart": "Back to the beginning",
+    "progress": "Reading progress",
+    "sectionOpening": "The seal",
+    "sectionHero": "Cover",
+    "sectionLetter": "The letter",
+    "sectionTimeline": "Timeline",
+    "sectionGallery": "Gallery",
+    "sectionMessage": "Reasons",
+    "sectionAppreciation": "Thank you",
+    "sectionMusic": "Music",
+    "sectionClosing": "Closing",
+    "openPlate": "Enlarge: {caption}",
+    "lightboxTitle": "Gallery viewer",
+    "lightboxPrev": "Previous image",
+    "lightboxNext": "Next image",
+    "lightboxClose": "Close gallery",
+    "lightboxCounter": "{current} of {total}",
+    "reasonOpen": "Open reason {n}",
+    "reasonClose": "Close reason {n}",
+    "reasonLabel": "Reason",
+    "reasonsOpenNext": "Open the next one",
+    "reasonsCloseAll": "Close all",
+    "reasonsStatus": "{open} of {total} open",
+    "musicPlay": "Play music",
+    "musicPause": "Pause music",
+    "musicLabel": "Accompanying music",
+    "closingReplay": "Read from the beginning",
+    "emptyGift": "This gift has no content to show yet."
+  },
+  "featuredDemo": {
+    "eyebrow": "Featured demo",
+    "viewDemo": "View demo",
+    "useTemplate": "Use template",
+    "noSignup": "No sign-up and no payment needed to explore it.",
+    "demoBadge": "Demo",
+    "allTemplates": "All templates",
+    "footerTitle": "Like what you see?",
+    "footerBody": "Make your own, with your words and your memories.",
+    "from": "Entry price"
+  }
+}

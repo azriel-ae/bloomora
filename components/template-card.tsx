@@ -1,0 +1,10 @@
+'use client';
+
+import Link from 'next/link';
+import { ArrowUpRight, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
+import type { Template } from '@/lib/templates';
+import { TemplateArt } from './template-art';
+import { useLocale } from './locale-provider';
+
+export function TemplateCard({ template }: { template: Template }) { const { t } = useLocale(); const copy = template.slug === 'pressed-garden' ? { name: t('templates', 'pressedName'), description: t('templates', 'pressedDesc'), category: t('templates', 'pressedCategory') } : template.slug === 'our-little-archive' ? { name: t('templates', 'archiveName'), description: t('templates', 'archiveDesc'), category: t('templates', 'archiveCategory') } : { name: t('templates', 'letterName'), description: t('templates', 'letterDesc'), category: t('templates', 'letterCategory') }; return <motion.article initial={{ opacity: 0, y: 14 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true, margin: '-30px' }} transition={{ duration: .5 }} className="group"><Link href={`/templates/${template.slug}`}><div className="relative"><TemplateArt template={template} /><span className="absolute left-4 top-4 rounded-full bg-paper/85 px-3 py-1 text-[10px] font-bold uppercase tracking-[.16em] text-moss backdrop-blur">{copy.category}</span>{template.badge && <span className="absolute bottom-4 right-4 flex items-center gap-1 rounded-full bg-ink px-3 py-1 text-[10px] font-bold uppercase tracking-[.14em] text-ivory"><Sparkles size={11} /> {template.badge}</span>}</div><div className="flex items-start justify-between gap-4 pt-4"><div><h3 className="font-display text-2xl group-hover:underline group-hover:decoration-moss group-hover:underline-offset-4">{copy.name}</h3><p className="mt-1 max-w-sm text-sm leading-6 text-ink/60">{copy.description}</p></div><span className="grid h-9 w-9 shrink-0 place-items-center rounded-full border border-line transition group-hover:border-moss group-hover:bg-moss group-hover:text-ivory"><ArrowUpRight size={16} /></span></div></Link></motion.article>; }

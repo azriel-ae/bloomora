@@ -1,0 +1,31 @@
+{
+  "routes": [
+    { "path": "/", "title": "Bloomora — Digital gifts with feeling" },
+    { "path": "/id", "title": "Bloomora — Hadiah digital penuh rasa" },
+    { "path": "/en", "title": "Bloomora — Digital gifts with feeling" },
+    { "path": "/id/templates", "title": "Template hadiah — Bloomora" },
+    { "path": "/en/templates", "title": "Gift templates — Bloomora" },
+    { "path": "/id/pricing", "title": "Harga — Bloomora" },
+    { "path": "/en/pricing", "title": "Pricing — Bloomora" },
+    { "path": "/templates", "title": "Gift templates — Bloomora" },
+    { "path": "/templates/:slug", "title": "Template preview — Bloomora" },
+    { "path": "/pricing", "title": "Pricing — Bloomora" },
+    { "path": "/about", "title": "About Bloomora" },
+    { "path": "/contact", "title": "Contact Bloomora" },
+    { "path": "/faq", "title": "FAQ — Bloomora" },
+    { "path": "/payment", "title": "Payment instructions — Bloomora" },
+    { "path": "/privacy", "title": "Privacy — Bloomora" },
+    { "path": "/terms", "title": "Terms — Bloomora" },
+    { "path": "/refunds", "title": "Refunds — Bloomora" },
+    { "path": "/expiration", "title": "Gift expiration — Bloomora" },
+    { "path": "/media-policy", "title": "Media policy — Bloomora" },
+    { "path": "/login", "title": "Log in — Bloomora" },
+    { "path": "/register", "title": "Create account — Bloomora" },
+    { "path": "/dashboard", "title": "Dashboard — Bloomora" },
+    { "path": "/create", "title": "Create a gift — Bloomora" },
+    { "path": "/editor/:giftId", "title": "Gift editor — Bloomora" },
+    { "path": "/admin", "title": "Admin dashboard — Bloomora" },
+    { "path": "/admin/:section", "title": "Admin management — Bloomora" },
+    { "path": "/g/:giftSlug", "title": "A gift from Bloomora" }
+  ]
+}
