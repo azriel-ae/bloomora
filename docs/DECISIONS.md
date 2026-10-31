@@ -30,9 +30,11 @@ Setiap butir diberi status: DISEPAKATI (pengguna menyatakannya), DIIMPLEMENTASIK
 | 17 | Font memakai system stack (tanpa dependency atau request jaringan) | DIIMPLEMENTASIKAN. Dapat diubah ke `next/font` |
 | 18 | Harga dan durasi paket: Basic Rp19.000/3 hari, Plus Rp39.000/14 hari, Premium Rp69.000/30 hari. Konstanta di `lib/packages.ts` mencerminkan halaman harga dan menjadi seed. Koleksi Firestore `packages` akan menjadi sumber otoritatif | DIIMPLEMENTASIKAN sebagai seed |
 | 19 | Tidak ada dependency baru ditambahkan. Dev tooling harness (esbuild, playwright, @firebase/rules-unit-testing, firebase-tools) belum ada di `package.json` agar lockfile pnpm tetap sinkron untuk Vercel | DIIMPLEMENTASIKAN |
+| 20 | `lib/engine/registry.ts` adalah satu-satunya sumber template aktif untuk UI. Kartu/detail/preview berasal dari `TemplateConfig`; status demo, tier, dan kategori tidak diduplikasi dalam registry kedua. Eligibilitas paket hanya informatif sampai backend memeriksa entitlement | DIIMPLEMENTASIKAN (Phase 4; registry legacy dihapus) |
+| 21 | Prefiks locale URL (`/id/`, `/en/`) mengalahkan cookie bahasa lama pada request yang sama agar server render konsisten saat berpindah bahasa | DIIMPLEMENTASIKAN di middleware dan diuji browser (Phase 4) |
 
 ## Catatan terkait temuan lama
 
 - Header lama (`components/language-switcher.tsx`) memakai emoji bendera. Itu di luar area desain baru dan belum diubah.
-- Chip kategori di `/templates` adalah `<span>` tanpa fungsi (kondisi asli). Akan diganti saat Phase 4.
+- Chip kategori `/templates` kini memakai filter kategori dari `CATEGORIES` (Phase 4); hanya status aktif dari registry engine yang ditampilkan.
 - Teks FAQ, `/expiration`, dan `plan.md` lama masih menyiratkan gift kedaluwarsa. Bertentangan dengan Model B dan harus ditulis ulang di fase UI.

@@ -108,24 +108,31 @@
     "invalidMessage": "Kirim pesan singkat yang valid.",
     "saveAuth": "Masuk untuk menyimpan hadiah."
   },
-  "templates": {
-    "pressedName": "Pressed Garden",
-    "pressedDesc": "Keepsake botani yang tenang untuk orang yang membuat hari-hari terasa lebih ringan.",
-    "pressedCategory": "Terima kasih",
-    "archiveName": "Our Little Archive",
-    "archiveDesc": "Scrapbook interaktif berisi lelucon, kemenangan kecil, dan tempat-tempat dalam cerita kalian.",
-    "archiveCategory": "Persahabatan",
-    "letterName": "Just a Letter",
-    "letterDesc": "Surat penuh perhatian dengan ruang untuk foto, jeda, dan semua yang tak muat dalam chat.",
-    "letterCategory": "Jarak jauh"
-  },
   "templatesPage": {
     "eyebrow": "Koleksi Bloomora",
     "title": "Mulai dari sebuah rasa.",
     "intro": "Setiap template adalah tempat yang dipikirkan dengan hati — dengan ruang untuk kata-katamu, kenanganmu, dan detail yang hanya mereka pahami.",
+    "catalog": "Jelajahi template",
+    "searchLabel": "Cari template",
+    "searchPlaceholder": "Cari nama, suasana, atau detail",
+    "filterLabel": "Filter template berdasarkan momen",
     "all": "Semua",
+    "details": "Lihat detail",
     "preview": "Lihat template",
-    "create": "Gunakan template"
+    "create": "Gunakan template",
+    "demo": "Lihat demo",
+    "featured": "Unggulan",
+    "popular": "Populer",
+    "new": "Baru",
+    "sectionCount": "{count} momen",
+    "resultCount": "{count} template",
+    "emptyTitle": "Template tidak ditemukan",
+    "emptyBody": "Coba kata pencarian atau momen lain, atau hapus filter untuk melihat seluruh koleksi.",
+    "clearFilters": "Hapus filter",
+    "loading": "Memuat template",
+    "loadError": "Koleksi belum dapat dimuat",
+    "loadErrorBody": "Silakan coba lagi. Filter yang dipilih akan dipulihkan setelah halaman dimuat ulang.",
+    "retry": "Coba lagi"
   },
   "pricingPage": {
     "eyebrow": "Jelas sejak awal",
@@ -362,7 +369,11 @@
     "title": "Mari buat sesuatu yang personal.",
     "intro": "Simpan draf, kembali kapan saja, dan bagikan hanya saat momennya terasa siap. Masuk untuk mulai membentuk hadiahmu.",
     "start": "Kamu bisa mulai dari",
-    "selectedTemplate": "Template pilihan"
+    "selectedTemplate": "Template pilihan",
+    "authEyebrow": "Langkah awal yang tenang",
+    "authBody": "Buat akun agar Bloomora dapat menyimpan karyamu, menjaga kenangan tetap privat, dan memudahkanmu menerbitkan hadiah saat siap.",
+    "register": "Buat akun gratis",
+    "login": "Saya sudah punya akun"
   },
   "recipient": {
     "demoEyebrow": "Hadiah yang dibuat khusus untukmu",
@@ -378,9 +389,22 @@
   "templateDetail": {
     "back": "Kembali ke template",
     "use": "Gunakan template ini",
-    "photo": "Siap untuk foto",
-    "music": "Musik opsional",
+    "viewDemo": "Jelajahi demo langsung",
+    "previewNote": "Pratinjau orisinal yang disusun dari tema, bagian, dan konten contoh template ini.",
+    "detailsEyebrow": "Isi template",
+    "sectionsHeading": "Rangkaian momen yang penuh perhatian.",
+    "optional": "Opsional",
+    "tierLabel": "Tier template",
+    "tierCore": "Inti",
+    "tierExtended": "Lanjutan",
+    "eligiblePackages": "Paket yang sesuai",
+    "noEligiblePackages": "Belum ada paket aktif yang mencakup tier template ini.",
+    "eligibilityNote": "Kecocokan paket bersifat informatif dan mengikuti definisi paket aktif. Informasi ini tidak memeriksa akun atau mengunci harga; server mengonfirmasi paket akhir saat checkout.",
     "make": "Jadikan milikmu",
+    "authEyebrow": "Ruang pribadimu",
+    "authBody": "Buat akun untuk menyimpan draf, melanjutkannya nanti, dan menerbitkan hadiah saat sudah siap.",
+    "register": "Buat akun gratis",
+    "login": "Saya sudah punya akun",
     "notFound": "Template tidak ditemukan"
   },
   "adminSection": {

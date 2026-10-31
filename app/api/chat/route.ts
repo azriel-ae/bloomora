@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import { hasGeminiConfig } from '@/lib/env';
 import { isLocale } from '@/lib/i18n';
-import { templates } from '@/lib/templates';
+import { listCatalog } from '@/lib/engine/registry';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;
@@ -35,7 +35,7 @@ ABOUT BLOOMORA
 Bloomora turns memories, messages, and small details into interactive DIGITAL gifts: a private web link (and QR code) the recipient opens on their phone. No code, no blank canvas. It is NOT a physical product: there are no frames, prints, dried flowers, or shipping. Never mention physical items.
 
 TEMPLATES (real, do not invent others)
-${templates.map((t) => `- ${t.name} (${t.category}): ${t.description} Scenes: ${t.scenes.join(', ')}. From ${rupiah(t.priceFrom)}. Active ${t.duration}.`).join('\n')}
+${listCatalog().map((template) => `- ${template.name.en} (${template.category}, ${template.tier} tier): ${template.description.en} Sections: ${template.sections.map((section) => section.type).join(', ')}.${template.hasDemo ? ' A real interactive demo is available.' : ' No interactive demo is available yet.'}`).join('\n')}
 
 PLANS (real prices, do not invent others)
 - Basic ${rupiah(19000)}: active 3 days, 1 gift, up to 8 photos, core scenes, private link.

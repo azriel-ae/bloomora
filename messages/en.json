@@ -108,24 +108,31 @@
     "invalidMessage": "Please send a short, valid message.",
     "saveAuth": "Sign in to save a gift."
   },
-  "templates": {
-    "pressedName": "Pressed Garden",
-    "pressedDesc": "A quiet botanical keepsake for the person who makes ordinary days feel lighter.",
-    "pressedCategory": "Thank you",
-    "archiveName": "Our Little Archive",
-    "archiveDesc": "An interactive scrapbook of inside jokes, tiny victories, and all the places your story has been.",
-    "archiveCategory": "Friendship",
-    "letterName": "Just a Letter",
-    "letterDesc": "A considered note with room for photographs, pauses, and everything that did not fit in a text.",
-    "letterCategory": "Long-distance"
-  },
   "templatesPage": {
     "eyebrow": "The Bloomora collection",
     "title": "Start with a feeling.",
     "intro": "Every template is a considered place to begin — with room for your words, your memories, and the details only they will understand.",
+    "catalog": "Browse templates",
+    "searchLabel": "Search templates",
+    "searchPlaceholder": "Search by name, feeling, or detail",
+    "filterLabel": "Filter templates by occasion",
     "all": "All",
+    "details": "View details",
     "preview": "View template",
-    "create": "Use this template"
+    "create": "Use this template",
+    "demo": "View demo",
+    "featured": "Featured",
+    "popular": "Popular",
+    "new": "New",
+    "sectionCount": "{count} moments",
+    "resultCount": "{count} templates",
+    "emptyTitle": "No templates found",
+    "emptyBody": "Try another search or occasion, or clear your filters to see the full collection.",
+    "clearFilters": "Clear filters",
+    "loading": "Loading templates",
+    "loadError": "The collection could not be loaded",
+    "loadErrorBody": "Please try again. Your selected filters will be restored after the page reloads.",
+    "retry": "Try again"
   },
   "pricingPage": {
     "eyebrow": "Clear from the beginning",
@@ -362,7 +369,11 @@
     "title": "Let’s make something personal.",
     "intro": "Save your draft, come back whenever you like, and share only when the moment feels ready. Sign in to begin shaping your gift.",
     "start": "You can start with",
-    "selectedTemplate": "Selected template"
+    "selectedTemplate": "Selected template",
+    "authEyebrow": "A quiet first step",
+    "authBody": "Create an account so Bloomora can save your work, keep your private memories private, and make publishing feel effortless.",
+    "register": "Create a free account",
+    "login": "I already have an account"
   },
   "recipient": {
     "demoEyebrow": "A gift made just for you",
@@ -378,9 +389,22 @@
   "templateDetail": {
     "back": "Back to templates",
     "use": "Use this template",
-    "photo": "Photo-ready",
-    "music": "Optional music",
+    "viewDemo": "Explore the live demo",
+    "previewNote": "An original preview composed from this template’s theme, sections, and sample content.",
+    "detailsEyebrow": "What is inside",
+    "sectionsHeading": "A thoughtful sequence of moments.",
+    "optional": "Optional",
+    "tierLabel": "Template tier",
+    "tierCore": "Core",
+    "tierExtended": "Extended",
+    "eligiblePackages": "Eligible packages",
+    "noEligiblePackages": "No active package currently includes this template tier.",
+    "eligibilityNote": "Package eligibility is informational and follows the active package definitions. It does not check an account or reserve a price; the server confirms the final package at checkout.",
     "make": "Make this one yours.",
+    "authEyebrow": "Your private workspace",
+    "authBody": "Create an account to save your draft, return to it later, and publish your gift when it is ready.",
+    "register": "Create a free account",
+    "login": "I already have an account",
     "notFound": "Template not found"
   },
   "adminSection": {

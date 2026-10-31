@@ -15,6 +15,16 @@ Pada snapshot awal, perubahan belum pernah dikompilasi oleh `next build`. Closeo
 - Lulus: `pnpm typecheck`, `pnpm lint`, `pnpm build`, 63 unit test, parity i18n, 119/119 tes browser, dan 12 pemeriksaan rute produksi untuk id/en serta desktop/mobile.
 - Phase 4 belum dimulai; menunggu persetujuan pengguna.
 
+## [Phase 4] 2026-11-01: katalog dan detail template dari engine
+
+- Memindahkan katalog, kartu, detail, create, homepage, preview editor, fallback `/g/demo`, dan konteks chatbot ke konfigurasi aktif di `lib/engine/registry.ts`; pratinjau dibentuk dari theme, varian section, dan sample tiap template.
+- Menambahkan search/filter kategori, empty/reset, badges, loading/error boundary, halaman detail dengan eligibilitas paket yang hanya bersifat informasi, CTA template terpilih, serta copy id/en.
+- Menghapus `lib/templates.ts`, `tests/unit/legacy-registry.test.ts`, dan namespace pesan per-slug lama setelah pencarian kode aktif menunjukkan tak ada import tersisa.
+- Memperbaiki `middleware.ts`: locale dari prefiks URL diterapkan pada request sebelum server component dirender, bukan hanya pada cookie response; browser test mereproduksi dan mengunci perpindahan id → en.
+- Menambah `tests/browser/catalog.mjs` dan script `pnpm test:catalog`; tidak menambah dependency proyek/lockfile.
+- Lulus: typecheck, lint, build (29/29 halaman statis), 62/62 unit test, parity i18n (22 section), 119/119 browser test Phase 3, dan browser test katalog/home/editor/fallback/mobile.
+- Phase 5 (editor dan draft) belum dimulai; menunggu persetujuan eksplisit pengguna.
+
 ## [Phase 3] 2026-11-01: React renderer dan Featured Demo
 
 Ditambahkan

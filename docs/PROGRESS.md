@@ -10,8 +10,9 @@ Diperbarui: 2026-11-01. Status ditulis dari kondisi repository, bukan dari ingat
 | Phase 1 | Data model, entitlement, service server, rules, migrasi timestamp | KODE SELESAI. Unit test lulus. Rules Firestore/Storage belum dijalankan di emulator |
 | Phase 2 | Template engine | SELESAI (diuji unit) |
 | Phase 3 | React renderer dan Featured Demo `chapter-of-us` | COMPLETED setelah typecheck, lint, build, unit, i18n, harness browser, dan pemeriksaan route lulus pada 2026-11-01 |
-| Phase 4 | Katalog dan halaman detail template di atas engine | BELUM DIMULAI |
-| Berikutnya | Editor dan draft, publishing dan halaman publik `/g/[slug]`, dashboard, payment proof dan admin, template sampai 43, integrasi Firebase, uji keamanan, deployment | BELUM DIMULAI |
+| Phase 4 | Katalog dan halaman detail template di atas engine | SELESAI (terverifikasi 2026-11-01) |
+| Phase 5 | Editor dan penyimpanan draft | BELUM DIMULAI — menunggu persetujuan pengguna |
+| Berikutnya | Publishing dan halaman publik `/g/[slug]`, dashboard, payment proof dan admin, template sampai 43, integrasi Firebase, uji keamanan, deployment | BELUM DIMULAI |
 
 Penomoran Phase 4 dan sesudahnya mengikuti urutan prioritas yang Anda tulis. Pembagian nomor setelah Phase 4 adalah usulan saya, belum disepakati.
 
@@ -72,13 +73,22 @@ Kriteria closeout yang tercatat di snapshot awal adalah `pnpm install && pnpm ty
 | Pemeriksaan route produksi | 12/12 lulus | id/en, desktop/mobile; HTTP 200 dan tanpa error/warning console |
 | `pnpm test:rules` | TIDAK DIJALANKAN | Memerlukan Firebase emulator dan dependency yang tidak ada; bukan bagian closeout Phase 3 |
 
+## Penutupan Phase 4 — 2026-11-01
+
+- Sumber katalog, kartu, detail, create, homepage, editor preview, fallback `/g/demo`, dan konteks chatbot disatukan ke `lib/engine/registry.ts`. Registry `lib/templates.ts`, tes sinkronisasi legacy, serta namespace pesan per-slug yang tak terpakai dihapus.
+- `/templates` mendukung pencarian dua bahasa, filter `CATEGORIES`, hasil kosong/reset, badge status, loading/error boundary, dan demo hanya untuk template `hasDemo`. Preview tiap template dirangkai dari data config (theme, section variants, dan sample), bukan screenshot yang sama.
+- Halaman detail menampilkan section, tier, dan paket eligible dari seed aktif; informasi tidak mengklaim memeriksa akun dan keputusan harga final tetap di server saat checkout. CTA mempertahankan id template dan memakai alur auth yang ada.
+- Browser test menemukan bug locale: prefiks `/en/...` sebelumnya baru mengubah cookie response, sehingga render pertama dapat memakai cookie lama. Middleware diperbaiki; perpindahan id → en dalam sesi yang sama kini lulus.
+- `pnpm typecheck`, `pnpm lint`, `pnpm build` (Next.js 15.5.28; 29/29 halaman statis dibuat), `pnpm test:unit` (62/62), dan `pnpm check:i18n` (22 section) lulus.
+- `pnpm test:browser`: 119/119 lulus. `pnpm test:catalog`: lulus, termasuk search, kategori, empty/reset, demo, detail/paket, id/en, query template create, homepage, `/g/demo`, editor preview, dan mobile.
+- Dependency browser (Playwright/Chromium) tetap disediakan sementara di luar manifest proyek. `pnpm test:rules` tidak dijalankan; tidak diperlukan untuk Phase 4 dan memerlukan Firebase emulator.
+
 ## Pekerjaan berikutnya (belum dimulai, menunggu persetujuan)
 
 Rincian per tahap (cakupan, file, kriteria selesai, keputusan yang menunggu): `docs/ROADMAP.md`. Ringkasan:
 
-1. Verifikasi Phase 3 selesai pada 2026-11-01; hasil lengkap ada di bagian atas.
-2. Phase 4: katalog dan detail template dari engine. Ganti `lib/templates.ts` dan hapus tes `legacy-registry.test.ts` bersamaan.
-3. Editor dan penyimpanan draft, memakai `GiftView mode="preview"`.
-4. Publishing dan `/g/[slug]`, memakai `GiftView mode="public"`.
-5. Dashboard, lalu payment proof dan admin, lalu template sampai 43.
-6. Setelah aplikasi selesai: integrasi Firebase menyeluruh, uji emulator, uji keamanan, deployment.
+1. Phase 4 telah selesai dan diverifikasi pada 2026-11-01.
+2. Phase 5: editor dan penyimpanan draft, memakai `GiftView mode="preview"` — **belum dimulai; tunggu persetujuan eksplisit pengguna**.
+3. Publishing dan `/g/[slug]`, memakai `GiftView mode="public"`.
+4. Dashboard, lalu payment proof dan admin, lalu template sampai 43.
+5. Setelah aplikasi selesai: integrasi Firebase menyeluruh, uji emulator, uji keamanan, deployment.

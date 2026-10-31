@@ -2,7 +2,7 @@
 
 Baca dulu `docs/DECISIONS.md`, lalu `docs/PROGRESS.md`, dan `docs/ROADMAP.md` untuk semua tahap yang masih harus dikerjakan. Dokumen ini diperbarui dari kode aktual per 2026-11-01.
 
-Checkpoint terbaru: Phase 3 kini COMPLETED setelah closeout typecheck/lint/build, unit, i18n, harness browser, dan pemeriksaan route lulus. Phase 4 belum dimulai dan wajib menunggu persetujuan pengguna.
+Checkpoint terbaru: Phase 4 katalog/detail template telah selesai dan diverifikasi setelah pengguna menyetujuinya. Phase 5 (editor dan draft) belum dimulai; wajib menunggu persetujuan eksplisit pengguna.
 
 ## Proyek
 
@@ -17,7 +17,9 @@ Kondisi awal (zip `bloomora-fixed.zip`) adalah scaffold UI: 3 template statis, e
 | 1 Data model, entitlement, rules | Kode selesai. Unit test lulus. Rules belum diuji emulator |
 | 2 Template engine | Selesai (unit test) |
 | 3 Renderer dan Featured Demo | COMPLETED; build, lint, typecheck, unit, i18n, browser, dan pemeriksaan route lulus pada 2026-11-01 |
-| 4 dan seterusnya | Belum dimulai. Jangan mulai tanpa persetujuan pengguna |
+| 4 Katalog dan detail template | SELESAI; test unit, i18n, production build, browser katalog, dan regression browser lulus pada 2026-11-01 |
+| 5 Editor dan penyimpanan draft | Belum dimulai; jangan mulai tanpa persetujuan pengguna |
+| 6 dan seterusnya | Belum dimulai; ikuti gate persetujuan di roadmap |
 
 ## Kondisi Firebase dan database
 
@@ -36,15 +38,15 @@ Model B (gift terbit tidak pernah kedaluwarsa karena paket habis), semua tulis l
 - `firebase/*.rules`, `firebase/firestore.indexes.json`.
 - `tests/unit`, `tests/browser`, `tests/rules`.
 
-Dibuat dan diubah dalam pengerjaan: lihat daftar per phase di `docs/CHANGELOG.md`. File lama yang diubah pada fase awal: `app/layout.tsx`, `app/create/page.tsx`, `components/templates-page.tsx`, `messages/en.json`, `messages/id.json`, `package.json`, `tsconfig.json`, rules/indeks Firebase, dan route `app/api/gifts/[giftId]/route.ts` (diganti). Closeout Phase 3 juga menyentuh `lib/server/store.ts`, `lib/server/firestore-store.ts`, dan `tsconfig.json`. Tidak ada file dihapus.
+Dibuat dan diubah dalam pengerjaan: lihat daftar per phase di `docs/CHANGELOG.md`. Phase 4 memindahkan konsumen UI dari registry lama ke engine, memperbarui middleware locale dan dokumentasi, serta menambah browser test katalog. `lib/templates.ts` dan `tests/unit/legacy-registry.test.ts` dihapus sesuai kriteria Phase 4; tidak ada dokumentasi lama yang dihapus.
 
 ## Hasil pengujian terakhir
 
-`pnpm typecheck`, `pnpm lint`, dan `pnpm build` lulus; 63/63 unit test, parity i18n, dan 119/119 pemeriksaan browser lulus. Pemeriksaan production route 12/12 lulus pada locale id/en dan desktop/mobile tanpa error/warning console. `pnpm test:rules` belum dijalankan karena membutuhkan Firebase emulator dan dependency terpisah. Rincian dan hasil snapshot awal ada di `docs/PROGRESS.md`.
+Terbaru: `pnpm typecheck`, `pnpm lint`, `pnpm build` (29/29 halaman statis), 62/62 unit test, parity i18n (22 section), 119/119 regression browser Phase 3, dan `pnpm test:catalog` lulus. Browser katalog mencakup pencarian/filter/empty/reset, badges/demo, detail & eligibilitas paket, id → en dalam sesi sama, create selection, homepage, fallback `/g/demo`, editor preview, dan mobile. Tool Playwright/Chromium disediakan sementara di luar manifest. `pnpm test:rules` belum dijalankan karena butuh Firebase emulator. Rincian ada di `docs/PROGRESS.md`.
 
 ## Bug yang sudah diperbaiki
 
-Lihat `docs/CHANGELOG.md` (Phase 1: migrasi legacy tidak tersimpan; Phase 3: spesifisitas CSS tombol, kebocoran fokus lightbox, tap highlight mobile, bilah atas mobile, dan lainnya).
+Lihat `docs/CHANGELOG.md` (Phase 1: migrasi legacy tidak tersimpan; Phase 3: spesifisitas CSS tombol, kebocoran fokus lightbox, tap highlight mobile, bilah atas mobile; Phase 4: locale prefiks kini mengalahkan cookie lama pada render pertama).
 
 ## Keterbatasan lingkungan pada snapshot awal
 
@@ -58,10 +60,10 @@ Pada snapshot tersebut sandbox tidak memiliki dependency atau akses jaringan, se
 4. Konfirmasi dua divergensi di `docs/DECISIONS.md` dengan pengguna sebelum menyentuh `approveOrder` atau kuota.
 5. Jangan menghubungkan Firebase atau mengaktifkan Blaze.
 
-## Instruksi untuk Phase 4 (setelah persetujuan pengguna)
+## Handover Phase 4 → Phase 5
 
-Cakupan menurut urutan pengguna: katalog dan detail template di atas engine. Langkah konkret:
-- Ganti sumber data `components/templates-page.tsx`, `template-card.tsx`, `app/templates/[slug]/page.tsx`, `app/create/page.tsx` dari `lib/templates.ts` ke `lib/engine/registry.ts`; hapus `lib/templates.ts` dan `legacy-registry.test.ts` bersamaan, serta kunci pesan per-slug yang tidak terpakai.
-- Pencarian dan filter kategori memakai `searchCatalog` dan `CATEGORIES` (chip lama hanya `<span>`). Kartu: "Lihat Demo" hanya untuk template dengan `hasDemo` (sekarang hanya `chapter-of-us`) dan "Gunakan Template" untuk semua. Jangan membuat demo palsu untuk template lain; gunakan pratinjau statis dari data template atau tidak sama sekali, sesuai keputusan pengguna.
-- Detail template: tampilkan section, kategori, tier dan paket yang eligible (dari `DEFAULT_PACKAGES`/`allowedTemplateTiers`), dua bahasa. Tambahkan kunci pesan ke `en.json` dan `id.json` dan jalankan `pnpm check:i18n`.
-- Jangan tambahkan template atau demo baru di phase ini. Pertahankan gerbang `validateTemplateConfig` dan tes browser tetap hijau.
+Phase 4 selesai: registry aktif menjadi sumber tunggal untuk katalog, detail, create, homepage, preview editor, fallback `/g/demo`, dan konteks chatbot. File legacy telah dihapus, dan hasil/keputusan dicatat di `docs/PROGRESS.md`, `docs/CHANGELOG.md`, `docs/DECISIONS.md`, `docs/ARCHITECTURE.md`, serta `docs/ROADMAP.md`.
+
+Langkah berikutnya adalah Phase 5: bangun editor berbasis `TemplateConfig`, penyimpanan draft lewat service/route yang sudah ada, konflik versi, preview `GiftView mode="preview"`, serta kontrol media yang jujur (rincian dan gate di `docs/ROADMAP.md`). **Jangan mulai sebelum pengguna menyetujuinya.** Jangan mengaktifkan Firebase/Blaze dan jangan ubah Model B atau aturan entitlement.
+
+Sesudah pengguna menyetujui Phase 5, mulai dengan membaca handover, roadmap Phase 5, service serta routes yang sudah ada; jalankan perubahan secara bertahap, perbarui dokumentasi relevan, verifikasi, lalu push ke repository `https://github.com/azriel-ae/bloomora.git` sesuai instruksi pengguna.

@@ -2,9 +2,77 @@
 
 import { GripVertical, ImagePlus, Music2, Save, Sparkles, Type, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
+import { getActiveTemplate, listCatalog } from '@/lib/engine/registry';
 import { TemplateArt } from './template-art';
-import { templates } from '@/lib/templates';
 import { useLocale } from './locale-provider';
 
 const baseScenes = ['Opening', 'Letter', 'Photo gallery', 'Appreciation', 'Closing'];
-export function GiftEditor({ templateSlug = 'pressed-garden' }: { templateSlug?: string }) { const { t, locale } = useLocale(); const template = useMemo(() => templates.find((item) => item.slug === templateSlug) ?? templates[0], [templateSlug]); const [title, setTitle] = useState(locale === 'id' ? 'Taman kecil penuh kenangan' : 'A little garden of memories'); const [recipient, setRecipient] = useState(locale === 'id' ? 'Seseorang yang istimewa' : 'Someone wonderful'); const [message, setMessage] = useState(locale === 'id' ? 'Terima kasih sudah tumbuh bersamaku.' : 'Thank you for growing with me.'); const [scenes, setScenes] = useState(baseScenes); const [saved, setSaved] = useState(true); useEffect(() => { setSaved(false); const timer = window.setTimeout(() => setSaved(true), 650); return () => window.clearTimeout(timer); }, [title, recipient, message, scenes]); return <div className="mx-auto max-w-[1500px] px-4 py-5 lg:px-8"><div className="mb-5 flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-moss">{t('editor', 'eyebrow')} / {template.name}</p><h1 className="mt-2 font-display text-3xl">{t('editor', 'heading')}</h1></div><div className="flex items-center gap-3"><span className="flex items-center gap-2 text-xs text-ink/50">{saved ? <Save size={14} className="text-moss" /> : <span className="h-2 w-2 animate-pulse rounded-full bg-rose" />}{saved ? t('common', 'saved') : t('common', 'saving')}</span><button className="rounded-full bg-moss px-5 py-2.5 text-sm font-semibold text-ivory">{t('common', 'preview')}</button></div></div><div className="grid gap-5 lg:grid-cols-[330px_minmax(0,1fr)_330px]"><aside className="order-2 rounded-3xl border border-line bg-paper p-5 lg:order-1"><div className="mb-5 flex items-center justify-between"><h2 className="font-display text-2xl">{t('editor', 'details')}</h2><Sparkles size={17} className="text-moss" /></div><label className="mb-4 block text-sm font-semibold">{t('editor', 'title')}<input value={title} onChange={(event) => setTitle(event.target.value)} className="mt-2 w-full rounded-xl border border-line bg-ivory px-3 py-2.5 text-sm outline-none focus:border-moss" /></label><label className="mb-4 block text-sm font-semibold">{t('editor', 'recipient')}<input value={recipient} onChange={(event) => setRecipient(event.target.value)} className="mt-2 w-full rounded-xl border border-line bg-ivory px-3 py-2.5 text-sm outline-none focus:border-moss" /></label><label className="block text-sm font-semibold">{t('editor', 'message')}<textarea value={message} onChange={(event) => setMessage(event.target.value)} rows={4} className="mt-2 w-full resize-none rounded-xl border border-line bg-ivory px-3 py-2.5 text-sm leading-6 outline-none focus:border-moss" /></label><div className="mt-6 border-t border-line pt-5"><p className="mb-3 text-xs font-bold uppercase tracking-[.16em] text-moss">{t('editor', 'quickAdd')}</p><div className="grid gap-2"><button className="flex items-center gap-2 rounded-xl border border-line px-3 py-2.5 text-left text-sm hover:border-moss"><ImagePlus size={16} /> {t('editor', 'photos')}</button><button className="flex items-center gap-2 rounded-xl border border-line px-3 py-2.5 text-left text-sm hover:border-moss"><Music2 size={16} /> {t('editor', 'music')}</button><button className="flex items-center gap-2 rounded-xl border border-line px-3 py-2.5 text-left text-sm hover:border-moss"><Type size={16} /> {t('editor', 'type')}</button></div></div></aside><section className="order-1 flex min-h-[620px] items-center justify-center rounded-3xl border border-line bg-[#e9e8df] p-6 shadow-soft lg:order-2"><div className="w-full max-w-2xl"><div className="rounded-[2.5rem] border border-line bg-paper p-4 shadow-paper"><TemplateArt template={template} /><div className="px-5 pb-3 pt-5 text-center"><p className="text-xs font-bold uppercase tracking-[.18em] text-moss">{locale === 'id' ? 'Untuk' : 'For'} {recipient || (locale === 'id' ? 'seseorang yang istimewa' : 'someone wonderful')}</p><h2 className="mt-2 font-display text-3xl">{title || (locale === 'id' ? 'Sebuah hadiah kecil' : 'A little gift')}</h2><p className="mx-auto mt-2 max-w-md text-sm leading-6 text-ink/60">{message || (locale === 'id' ? 'Pesan yang dibuat dengan penuh perhatian.' : 'A note made with care.')}</p></div></div><p className="mt-4 text-center text-xs text-ink/45">{locale === 'id' ? 'Pratinjau penerima · interaksi aktif saat dipublikasikan' : 'Recipient preview · interactions activate when published'}</p></div></section><aside className="order-3 rounded-3xl border border-line bg-paper p-5"><div className="flex items-center justify-between"><h2 className="font-display text-2xl">{t('editor', 'scenes')}</h2><span className="rounded-full bg-sage px-2.5 py-1 text-xs text-moss">{scenes.length} {locale === 'id' ? 'adegan' : 'scenes'}</span></div><p className="mt-2 text-sm leading-6 text-ink/55">{t('editor', 'sceneHelp')}</p><div className="mt-5 space-y-2">{scenes.map((scene, index) => <div key={scene} className="flex items-center gap-2 rounded-xl border border-line bg-ivory px-3 py-3 text-sm"><GripVertical size={15} className="text-ink/30" /><span className="grid h-6 w-6 place-items-center rounded-full bg-paper text-xs text-moss">{index + 1}</span><span className="flex-1">{scene}</span><button aria-label={`${t('common', 'close')} ${scene}`} onClick={() => setScenes((current) => current.filter((item) => item !== scene))} className="text-ink/35 hover:text-rose"><X size={15} /></button></div>)}</div><button onClick={() => setScenes((current) => current.length < 8 ? [...current, 'Interactive question'] : current)} className="mt-4 w-full rounded-xl border border-dashed border-moss px-3 py-3 text-sm font-semibold text-moss">{t('editor', 'addScene')}</button><div className="mt-6 rounded-2xl bg-ivory p-4 text-xs leading-5 text-ink/55">{t('editor', 'localNote')}</div></aside></div></div>; }
+
+export function GiftEditor({ templateSlug = 'pressed-garden' }: { templateSlug?: string }) {
+  const { t, locale } = useLocale();
+  const template = useMemo(() => getActiveTemplate(templateSlug) ?? listCatalog()[0], [templateSlug]);
+  const [title, setTitle] = useState(locale === 'id' ? 'Taman kecil penuh kenangan' : 'A little garden of memories');
+  const [recipient, setRecipient] = useState(locale === 'id' ? 'Seseorang yang istimewa' : 'Someone wonderful');
+  const [message, setMessage] = useState(locale === 'id' ? 'Terima kasih sudah tumbuh bersamaku.' : 'Thank you for growing with me.');
+  const [scenes, setScenes] = useState(baseScenes);
+  const [saved, setSaved] = useState(true);
+
+  useEffect(() => {
+    setSaved(false);
+    const timer = window.setTimeout(() => setSaved(true), 650);
+    return () => window.clearTimeout(timer);
+  }, [title, recipient, message, scenes]);
+
+  if (!template) return null;
+
+  return (
+    <div className="mx-auto max-w-[1500px] px-4 py-5 lg:px-8">
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-xs font-bold uppercase tracking-[.18em] text-moss">{t('editor', 'eyebrow')} / {template.name[locale]}</p>
+          <h1 className="mt-2 font-display text-3xl">{t('editor', 'heading')}</h1>
+        </div>
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-2 text-xs text-ink/50">{saved ? <Save size={14} className="text-moss" /> : <span className="h-2 w-2 animate-pulse rounded-full bg-rose" />}{saved ? t('common', 'saved') : t('common', 'saving')}</span>
+          <button className="rounded-full bg-moss px-5 py-2.5 text-sm font-semibold text-ivory">{t('common', 'preview')}</button>
+        </div>
+      </div>
+      <div className="grid gap-5 lg:grid-cols-[330px_minmax(0,1fr)_330px]">
+        <aside className="order-2 rounded-3xl border border-line bg-paper p-5 lg:order-1">
+          <div className="mb-5 flex items-center justify-between"><h2 className="font-display text-2xl">{t('editor', 'details')}</h2><Sparkles size={17} className="text-moss" /></div>
+          <label className="mb-4 block text-sm font-semibold">{t('editor', 'title')}<input value={title} onChange={(event) => setTitle(event.target.value)} className="mt-2 w-full rounded-xl border border-line bg-ivory px-3 py-2.5 text-sm outline-none focus:border-moss" /></label>
+          <label className="mb-4 block text-sm font-semibold">{t('editor', 'recipient')}<input value={recipient} onChange={(event) => setRecipient(event.target.value)} className="mt-2 w-full rounded-xl border border-line bg-ivory px-3 py-2.5 text-sm outline-none focus:border-moss" /></label>
+          <label className="block text-sm font-semibold">{t('editor', 'message')}<textarea value={message} onChange={(event) => setMessage(event.target.value)} rows={4} className="mt-2 w-full resize-none rounded-xl border border-line bg-ivory px-3 py-2.5 text-sm leading-6 outline-none focus:border-moss" /></label>
+          <div className="mt-6 border-t border-line pt-5">
+            <p className="mb-3 text-xs font-bold uppercase tracking-[.16em] text-moss">{t('editor', 'quickAdd')}</p>
+            <div className="grid gap-2">
+              <button className="flex items-center gap-2 rounded-xl border border-line px-3 py-2.5 text-left text-sm hover:border-moss"><ImagePlus size={16} /> {t('editor', 'photos')}</button>
+              <button className="flex items-center gap-2 rounded-xl border border-line px-3 py-2.5 text-left text-sm hover:border-moss"><Music2 size={16} /> {t('editor', 'music')}</button>
+              <button className="flex items-center gap-2 rounded-xl border border-line px-3 py-2.5 text-left text-sm hover:border-moss"><Type size={16} /> {t('editor', 'type')}</button>
+            </div>
+          </div>
+        </aside>
+        <section className="order-1 flex min-h-[620px] items-center justify-center rounded-3xl border border-line bg-[#e9e8df] p-6 shadow-soft lg:order-2">
+          <div className="w-full max-w-2xl">
+            <div className="rounded-[2.5rem] border border-line bg-paper p-4 shadow-paper">
+              <TemplateArt template={template} locale={locale} />
+              <div className="px-5 pb-3 pt-5 text-center">
+                <p className="text-xs font-bold uppercase tracking-[.18em] text-moss">{locale === 'id' ? 'Untuk' : 'For'} {recipient || (locale === 'id' ? 'seseorang yang istimewa' : 'someone wonderful')}</p>
+                <h2 className="mt-2 font-display text-3xl">{title || (locale === 'id' ? 'Sebuah hadiah kecil' : 'A little gift')}</h2>
+                <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-ink/60">{message || (locale === 'id' ? 'Pesan yang dibuat dengan penuh perhatian.' : 'A note made with care.')}</p>
+              </div>
+            </div>
+            <p className="mt-4 text-center text-xs text-ink/45">{locale === 'id' ? 'Pratinjau penerima · interaksi aktif saat dipublikasikan' : 'Recipient preview · interactions activate when published'}</p>
+          </div>
+        </section>
+        <aside className="order-3 rounded-3xl border border-line bg-paper p-5">
+          <div className="flex items-center justify-between"><h2 className="font-display text-2xl">{t('editor', 'scenes')}</h2><span className="rounded-full bg-sage px-2.5 py-1 text-xs text-moss">{scenes.length} {locale === 'id' ? 'adegan' : 'scenes'}</span></div>
+          <p className="mt-2 text-sm leading-6 text-ink/55">{t('editor', 'sceneHelp')}</p>
+          <div className="mt-5 space-y-2">{scenes.map((scene, index) => <div key={scene} className="flex items-center gap-2 rounded-xl border border-line bg-ivory px-3 py-3 text-sm"><GripVertical size={15} className="text-ink/30" /><span className="grid h-6 w-6 place-items-center rounded-full bg-paper text-xs text-moss">{index + 1}</span><span className="flex-1">{scene}</span><button aria-label={`${t('common', 'close')} ${scene}`} onClick={() => setScenes((current) => current.filter((item) => item !== scene))} className="text-ink/35 hover:text-rose"><X size={15} /></button></div>)}</div>
+          <button onClick={() => setScenes((current) => current.length < 8 ? [...current, 'Interactive question'] : current)} className="mt-4 w-full rounded-xl border border-dashed border-moss px-3 py-3 text-sm font-semibold text-moss">{t('editor', 'addScene')}</button>
+          <div className="mt-6 rounded-2xl bg-ivory p-4 text-xs leading-5 text-ink/55">{t('editor', 'localNote')}</div>
+        </aside>
+      </div>
+    </div>
+  );
+}

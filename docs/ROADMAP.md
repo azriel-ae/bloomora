@@ -18,17 +18,17 @@ Verifikasi Phase 3 di mesin yang punya dependency: `pnpm install && pnpm typeche
 
 ## Phase 4: katalog dan detail template
 
-Kondisi sekarang: `components/templates-page.tsx`, `template-card.tsx`, `app/templates/[slug]/page.tsx`, `app/create/page.tsx` masih memakai `lib/templates.ts` (3 template lama, teks per-slug lewat ternary). Chip kategori hanya `<span>`. Satu band Featured Demo sudah ada.
+**Status: SELESAI dan diverifikasi pada 2026-11-01.** Pengguna menyetujui Phase 4 pada 2026-11-01. Kondisi awal dan daftar cakupan di bawah dipertahankan sebagai rekam jejak persyaratan.
 
-Kerjakan:
-- Pindahkan semua halaman itu ke `lib/engine/registry.ts` (`listCatalog`, `searchCatalog`, `getActiveTemplate`). Hapus `lib/templates.ts` dan `tests/unit/legacy-registry.test.ts` bersamaan, juga kunci pesan per-slug yang tidak terpakai.
-- Pencarian, filter kategori (`CATEGORIES`), state kosong, loading, error. Penanda featured/popular/baru dari field `featured`, `popular`, `isNew`.
-- Kartu: "Lihat Demo" hanya untuk template dengan `hasDemo` (sekarang hanya `chapter-of-us`); "Gunakan Template" untuk semua.
-- Halaman detail per template: nama, kategori, deskripsi, section yang didukung, pratinjau yang berbeda per template (dirender dari data template, bukan satu screenshot untuk semua), eligibilitas paket dari `allowedTemplateTiers` dan `DEFAULT_PACKAGES`, dua bahasa.
-- "Gunakan Template" membutuhkan login; pengecekan paket sungguhan menunggu backend (Tahap 10), tampilkan informasi eligibilitas saja dan jangan berpura-pura memeriksa.
-- Jangan membuat demo palsu untuk template lain (keputusan pengguna: satu Featured Demo).
+Hasil pelaksanaan:
+- Semua konsumen UI yang tersisa (`templates-page`, kartu, detail, create, homepage, editor preview, fallback `/g/demo`, dan konteks chatbot) kini membaca template dari engine aktif. `lib/templates.ts`, `tests/unit/legacy-registry.test.ts`, dan namespace pesan per-slug yang usang dihapus; tidak ada referensi kode aktif yang tertinggal.
+- Pencarian dan filter kategori memakai `searchCatalog`/`CATEGORIES`; state kosong/reset, route loading dan error, serta badge featured/popular/new tersedia dalam dua bahasa.
+- Demo link hanya muncul untuk template yang `hasDemo`; CTA gunakan template mempertahankan slug terpilih dan mengarahkan ke alur akun yang ada. Tidak ada demo palsu.
+- Detail dirender per template dari nama, kategori, deskripsi, section, palet, varian, dan sample data. Eligibilitas paket dihitung dari `DEFAULT_PACKAGES`/`allowedTemplateTiers`, ditampilkan sebagai informasi saja dan bukan pemeriksaan akun.
+- Browser test menemukan prefiks `/en/...` sempat merender locale dari cookie lama pada request pertama. Middleware kini menetapkan cookie locale pada request yang dirender sekaligus pada response.
+- Validasi lulus: 62 unit test, i18n 22 section, 119/119 browser test Phase 3, browser test katalog termasuk filter/detail/eligibilitas/locale/homepage/create/editor/mobile, typecheck, lint, dan production build.
 
-Selesai bila: semua halaman memakai engine, tidak ada referensi ke `lib/templates.ts`, tes unit dan browser hijau, `pnpm check:i18n` lulus, dan tes browser baru untuk pencarian, filter, state kosong, dan detail halaman.
+Kriteria selesai terpenuhi: semua halaman terkait memakai engine, tidak ada referensi aktif ke `lib/templates.ts`, tes unit/browser dan `pnpm check:i18n` hijau. Phase 5 belum dimulai; tunggu persetujuan eksplisit pengguna.
 
 ## Phase 5: editor dan penyimpanan draft
 

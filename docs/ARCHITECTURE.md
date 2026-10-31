@@ -24,7 +24,7 @@ tests/unit, tests/browser, tests/rules
 docs/
 ```
 
-`lib/templates.ts` (registry lama untuk 3 template, dipakai halaman katalog/detail/editor lama) masih ada. `tests/unit/legacy-registry.test.ts` menjaganya tidak menyimpang dari engine sampai dihapus.
+Sejak Phase 4, `lib/engine/registry.ts` adalah sumber tunggal daftar template aktif untuk katalog, homepage, detail, create, preview editor, fallback demo, dan konteks chatbot. Registry lama `lib/templates.ts`, tes sinkronisasinya, serta kunci pesan nama/deskripsi per-slug telah dihapus. UI mengambil nama, deskripsi, kategori, section, tier, status demo, dan sample dari `TemplateConfig`.
 
 ## Alur data dan service
 
@@ -63,6 +63,14 @@ Template adalah data: tema (palet, token font, motion), section berurut (tipe + 
 - Konten pengguna dirender sebagai teks (React escaping). Ada tes bahwa markup tampil literal dan tidak dieksekusi.
 - Musik: bagian dirender hanya bila ada audio DAN `audioSrc` terselesaikan; tidak pernah autoplay.
 
+## Katalog dan detail template (Phase 4)
+
+- `components/templates-page.tsx` menggunakan `searchCatalog` dan `CATEGORIES`; pencarian mencakup konten id/en, filter kategori aktif, hasil kosong/reset, serta state pemulihan error. `app/templates/loading.tsx` dan `error.tsx` menyediakan boundary route.
+- `components/template-art.tsx` menyusun preview SVG/CSS tanpa aset eksternal dari palet, varian section, dan sample masing-masing template. Preview bukan gift demo dan tidak mengklaim interaksi penerima.
+- `app/templates/[slug]/page.tsx` menerima hanya template aktif dari `getActiveTemplate`, menampilkan sections dan paket yang `allowedTemplateTiers`-nya mencakup tier. Ini informasi; pemeriksaan entitlement tetap di service/server saat alur berikutnya.
+- `/create?template=<id>` mempertahankan pilihan engine; Featured Demo tetap satu (`chapter-of-us`) dan tautan demo kartu muncul hanya bila `hasDemo`.
+- Middleware menyetel locale prefiks pada request yang sedang dirender serta cookie response agar render pertama `/en/...` tidak mewarisi locale lama.
+
 ## Rencana integrasi Firebase (belum dikerjakan)
 
 1. Setelah aplikasi selesai: buat konfigurasi env (lihat README), deploy `firestore.rules` dan `firestore.indexes.json`, seed koleksi `packages`.
@@ -81,5 +89,5 @@ Template adalah data: tema (palet, token font, motion), section berurut (tipe + 
 | Rules Firestore/Storage | Ditulis, BELUM divalidasi atau diuji di emulator |
 | Auth sesi (`lib/session.ts`) | Kode lama, bergantung Firebase, belum diuji di sini |
 | Pembayaran | Hanya order dan persetujuan admin di service. Tidak ada bukti bayar, tidak ada UI admin, tidak ada pembayaran sungguhan |
-| Editor, dashboard, halaman publik `/g/[slug]`, admin | Tampilan statis lama. BELUM memakai engine atau service |
+| Editor, dashboard, halaman publik `/g/[slug]`, admin | Editor masih mock (preview kini membaca engine); dashboard/admin statis; `/g/[slug]` masih placeholder, belum memakai service publik |
 | Upload media | Dinonaktifkan |
