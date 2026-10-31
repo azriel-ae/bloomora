@@ -169,6 +169,17 @@ export interface PublicGiftDoc<T extends TimestampLike = TimestampLike> {
   schemaVersion: 2;
 }
 
+/** giftAnalytics/{slug} - server-only aggregate; contains no visitor identity. */
+export interface GiftAnalyticsDoc<T extends TimestampLike = TimestampLike> {
+  slug: string;
+  totalViews: number;
+  firstViewedAt: T;
+  lastViewedAt: T;
+  /** Bounded by the number of days the link has received traffic. */
+  viewsByDay: Record<string, number>;
+  schemaVersion: 1;
+}
+
 /** slugs/{slug} - server-only reservation and slug -> gift mapping. */
 export interface SlugDoc<T extends TimestampLike = TimestampLike> {
   giftId: string;

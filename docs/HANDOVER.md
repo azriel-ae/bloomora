@@ -2,7 +2,7 @@
 
 Baca dulu `docs/DECISIONS.md`, lalu `docs/PROGRESS.md`, dan `docs/ROADMAP.md` untuk semua tahap yang masih harus dikerjakan. Dokumen ini diperbarui dari kode aktual per 2026-11-01.
 
-Checkpoint terbaru: Phase 6 (publishing dan halaman publik) telah selesai dan diverifikasi pada 2026-11-01. Phase 7 belum dimulai; wajib menunggu persetujuan eksplisit pengguna.
+Checkpoint terbaru: Phase 7 (Analytics, Insights & Export) implementasi inti telah selesai pada 2026-11-01; build/lint/browser closeout masih berjalan. Phase 8 belum dimulai.
 
 ## Proyek
 
@@ -20,7 +20,8 @@ Kondisi awal (zip `bloomora-fixed.zip`) adalah scaffold UI: 3 template statis, e
 | 4 Katalog dan detail template | SELESAI; test unit, i18n, production build, browser katalog, dan regression browser lulus pada 2026-11-01 |
 | 5 Editor dan penyimpanan draft | SELESAI; browser editor, unit, build, i18n, dan regresi katalog lulus |
 | 6 | Publishing dan halaman publik | SELESAI; build, lint, typecheck, unit, i18n lulus 2026-11-01 |
-| 7 dan seterusnya | Belum dimulai; ikuti gate persetujuan di roadmap |
+| 7 | Analytics, Insights & Export | IMPLEMENTASI INTI; typecheck, 67 unit, i18n lulus; closeout berjalan |
+| 8 dan seterusnya | Belum dimulai; ikuti gate persetujuan di roadmap |
 
 ## Kondisi Firebase dan database
 
@@ -43,7 +44,7 @@ Dibuat dan diubah dalam pengerjaan: lihat daftar per phase di `docs/CHANGELOG.md
 
 ## Hasil pengujian terakhir
 
-Terbaru untuk Phase 6: `pnpm typecheck`, `pnpm lint`, `pnpm build` (30/30 halaman), 66/66 unit test, parity i18n (22 section), `pnpm test:catalog`, dan `pnpm test:editor` lulus. Playwright/Chromium dipasang sementara di luar manifest; Firebase rules/emulator dan public gift nyata dari Firebase/fixture server belum dijalankan. Rincian ada di `docs/PROGRESS.md`.
+Terbaru untuk Phase 7 checkpoint: `pnpm typecheck`, `pnpm test:unit` (67/67), dan parity i18n (22 section) lulus. `pnpm lint`, `pnpm build`, dan browser regression Phase 7 belum dijalankan pada checkpoint ini. Firebase rules/emulator dan public gift nyata dari Firebase/fixture server belum dijalankan. Rincian ada di `docs/PROGRESS.md`.
 
 ## Bug yang sudah diperbaiki
 
@@ -81,4 +82,4 @@ Langkah berikutnya saat checkpoint ini ditulis adalah Phase 6 (publishing dan ha
 
 Phase 6 telah diimplementasikan: `getPublicGift` membaca public document tanpa subscription, `/g/[slug]` merender revisi publik berversi dengan `GiftView mode="public"`, status nonpublik dan metadata ditangani, serta editor memiliki konfirmasi publish berbasis versi. Kontrol salin link, share, dan QR tersedia di pengalaman penerima. Detail perubahan dan batas pengujian ada di `docs/PROGRESS.md` dan `docs/CHANGELOG.md`.
 
-Jangan mulai Phase 7 (dashboard) tanpa persetujuan eksplisit pengguna. Jangan mengaktifkan Firebase/Blaze, mengubah Model B, atau mengerjakan payment/admin/media pada continuation berikutnya.
+Phase 7 kini sedang dikerjakan sesuai persetujuan pengguna: dashboard server-side, aggregate public views tanpa identitas, insight publication rate/top gift, dan export JSON/CSV owner-only. Jangan mengaktifkan Firebase/Blaze, mengubah Model B, atau mulai Phase 8 payment/admin/media pada continuation berikutnya.

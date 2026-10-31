@@ -15,6 +15,14 @@ Pada snapshot awal, perubahan belum pernah dikompilasi oleh `next build`. Closeo
 - Menambahkan unit test public-read yang membuktikan tidak ada subscription read dan gift tetap tersedia setelah waktu subscription berlalu.
 - Lulus: typecheck, lint, production build (30/30 halaman), 66 unit test, i18n parity 22 section, serta `test:catalog` dan `test:editor` dengan Playwright/Chromium sementara di luar manifest. Public gift nyata dari Firebase/fixture server dan Firebase emulator belum digunakan.
 
+## [Phase 7] 2026-11-01: Analytics, Insights & Export
+
+- Mengganti placeholder dashboard dengan data server owner-only: gift total/draf/terbit/arsip, pending order, subscription, expiry, public views, gift cards, dan tautan aksi.
+- Menambahkan aggregate `giftAnalytics/{slug}` tanpa identitas visitor, pencatatan view hanya untuk public gift berstatus `published`, serta insight publication rate dan gift paling dilihat.
+- Menambahkan export JSON/CSV owner-only di `/api/dashboard/export`; data draft penuh tidak pernah dikirim ke dashboard, hanya melalui route export yang terautentikasi.
+- Menambahkan copy id/en dashboard untuk analytics, insights, status, expiry, dan export.
+- Checkpoint lulus: typecheck, 67 unit test, dan i18n parity 22 section. Build/lint/browser Phase 7 menunggu verifikasi berikutnya.
+
 ## [Phase 5] 2026-11-01: editor dan penyimpanan draft
 
 - Mengganti editor mock dengan form dinamis `FieldDef`/`ListDef`, toggle section opsional, preview `GiftView mode="preview"`, dan status simpan nyata. Sample konten hanya untuk preview field kosong.

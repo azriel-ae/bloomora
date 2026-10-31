@@ -30,6 +30,26 @@ test('public read uses only publicGifts and remains available without an owner s
   assert.deepEqual(await S.getPublicGift(h.env, 'not-a-valid-slug'), { ok: false, status: 404, code: 'gift_not_found', detail: undefined });
 });
 
+test('dashboard analytics aggregates public views and export stays owner-scoped', async () => {
+  const h = makeEnv(T0);
+  await buy(h, alice, 'basic');
+  const g = await S.createGift(h.env, alice, { templateId: 'pressed-garden', content: content('analytics') }, lookup);
+  assert.ok(g.ok);
+  await S.publishGift(h.env, alice, g.giftId, { expectedVersion: 1 });
+  await S.recordPublicGiftView(h.env, g.slug);
+  await S.recordPublicGiftView(h.env, g.slug);
+  const dashboard = await S.getDashboardData(h.env, alice);
+  assert.ok(dashboard.ok);
+  assert.equal(dashboard.summary.totalViews, 2);
+  assert.equal(dashboard.summary.published, 1);
+  assert.equal(dashboard.insight.publicationRate, 100);
+  const exported = await S.exportDashboardData(h.env, alice);
+  assert.ok(exported.ok && exported.gifts.length === 1);
+  assert.equal(exported.gifts[0]!.totalViews, 2);
+  const stranger = await S.getDashboardData(h.env, mallory);
+  assert.ok(stranger.ok && stranger.summary.total === 0);
+});
+
 /** Orders reach proof_submitted only after the (not yet built) proof upload; tests set it as a fixture. */
 async function buy(h: ReturnType<typeof makeEnv>, actor: S.Actor, pkg: 'basic' | 'plus' | 'premium') {
   const o = await S.createOrder(h.env, actor, pkg);

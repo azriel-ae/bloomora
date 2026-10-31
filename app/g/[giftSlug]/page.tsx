@@ -7,7 +7,7 @@ import { TemplateArt } from '@/components/template-art';
 import { getActiveTemplate, getTemplateForRender, listCatalog } from '@/lib/engine/registry';
 import { getLocale, getMessages } from '@/lib/i18n';
 import { getServerEnv } from '@/lib/server/runtime';
-import { getPublicGift } from '@/lib/server/services';
+import { getPublicGift, recordPublicGiftView } from '@/lib/server/services';
 
 async function readPublicGift(giftSlug: string) {
   const env = getServerEnv();
@@ -53,5 +53,7 @@ export default async function GiftPage({ params }: { params: Promise<{ giftSlug:
   const gift = result.publicGift;
   const template = getTemplateForRender(gift.templateId, gift.templateVersion);
   if (!template) return <StatusCard title={recipient.unavailable} body={recipient.unavailableBody} explore={recipient.explore} />;
+  const env = getServerEnv();
+  if (env) await recordPublicGiftView(env, giftSlug);
   return <GiftView templateId={gift.templateId} templateVersion={gift.templateVersion} content={gift.content} locale={locale} mode="public" navActions={<PublicGiftActions labels={{ copy: recipient.copy, share: recipient.share, qr: recipient.qr, copied: recipient.copied, close: messages.common.close }} />} />;
 }

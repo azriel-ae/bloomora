@@ -59,11 +59,15 @@ Kerjakan:
 
 Hasil: halaman publik terhubung ke service public-read, state terbit/arsip/cabut/tidak ditemukan dilokalkan, metadata diberi `noindex` untuk state nonpublik, chrome situs disembunyikan pada `/g/`, dan kontrol publish/share/QR tersedia. Unit test membuktikan gift tetap tampil setelah paket pemilik tidak lagi memiliki subscription. Regression browser katalog/editor lulus dengan Playwright/Chromium sementara di luar manifest; browser test public dengan Firebase/fixture server belum dijalankan karena Firebase belum dikonfigurasi.
 
-## Phase 7: dashboard
+## Phase 7: Analytics, Insights & Export
 
-Kondisi sekarang: `app/dashboard/page.tsx` memakai angka literal "-".
+**Status: IMPLEMENTASI INTI SELESAI; verifikasi build/browser dan closeout dokumentasi masih berjalan.**
 
-Kerjakan: paket dan status, tanggal kedaluwarsa, sisa waktu, jumlah gift total/draf/terbit/arsip, dari data nyata lewat route server (perlu route baru untuk daftar gift dan subscription milik pengguna; indeks sudah ada di `firebase/firestore.indexes.json`). Kartu gift: edit, pratinjau, salin URL, bagikan, publish/perbarui, arsipkan, hapus dengan konfirmasi. Saat kedaluwarsa: nonaktifkan buat dan edit, tetap tampilkan dan izinkan salin link, tampilkan ajakan perpanjang dan teks bahwa gift terbit tetap bisa dibuka penerima. Tanpa statistik hardcoded.
+Implementasi inti:
+- `getDashboardData` membaca gift, subscription, dan order milik user melalui service server; dashboard menampilkan total, draf, terbit, arsip, pending order, paket, expiry, dan gift cards tanpa angka hardcoded.
+- `giftAnalytics/{slug}` menyimpan aggregate `totalViews`, `firstViewedAt`, `lastViewedAt`, dan `viewsByDay` tanpa identitas visitor. Public page hanya mencatat view untuk gift yang benar-benar published; tidak ada subscription read pada jalur publik.
+- Insight mencakup publication rate, total public views, dan gift paling dilihat. `GET /api/dashboard/export?format=json|csv` mengekspor data gift milik user saja melalui session server.
+- Dashboard menjelaskan state belum terhubung Firebase secara jujur; tidak memakai localStorage/file sebagai database.
 
 ## Phase 8: bukti bayar dan verifikasi admin
 

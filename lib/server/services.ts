@@ -95,6 +95,90 @@ export function getPublicGift(env: Env, slug: unknown) {
   }));
 }
 
+const millis = (value: unknown, fallback: number): number => {
+  if (value && typeof (value as { toMillis?: unknown }).toMillis === 'function') return (value as { toMillis(): number }).toMillis();
+  return fallback;
+};
+
+export type DashboardGift = {
+  giftId: string; slug: string; templateId: string | null; status: string;
+  version: number; publishedRevision: number | null; updatedAtMs: number;
+  publishedAtMs: number | null; analytics: { totalViews: number; lastViewedAtMs: number | null };
+};
+export type DashboardData = {
+  summary: { total: number; drafts: number; published: number; archived: number; totalViews: number; pendingOrders: number };
+  insight: { topGiftId: string | null; topGiftViews: number; publicationRate: number };
+  subscription: { packageId: string; expiresAtMs: number } | null;
+  gifts: DashboardGift[];
+};
+
+/** Owner-only dashboard read. It intentionally returns aggregates, not private draft content. */
+export function getDashboardData(env: Env, actor: Actor) {
+  return guarded(async () => env.store.runTransaction(async (tx) => {
+    const [giftRows, subscriptions, orders] = await Promise.all([
+      tx.query('gifts', 'ownerUid', actor.uid),
+      tx.query('subscriptions', 'userId', actor.uid),
+      tx.query('orders', 'userId', actor.uid),
+    ]);
+    const entitlement = resolveEntitlement(subscriptions.map((r) => ({ ...(r.data as SubLike), id: r.id })), env.nowMs());
+    const gifts: DashboardGift[] = [];
+    for (const row of giftRows) {
+      const analytics = await tx.get(`giftAnalytics/${row.data.slug}`);
+      gifts.push({
+        giftId: row.id, slug: String(row.data.slug), templateId: typeof row.data.templateId === 'string' ? row.data.templateId : null,
+        status: String(row.data.status), version: Number(row.data.draft?.version ?? 1),
+        publishedRevision: typeof row.data.publishedRevision === 'number' ? row.data.publishedRevision : null,
+        updatedAtMs: millis(row.data.updatedAt, env.nowMs()), publishedAtMs: row.data.publishedAt ? millis(row.data.publishedAt, env.nowMs()) : null,
+        analytics: { totalViews: Number(analytics?.totalViews ?? 0), lastViewedAtMs: analytics?.lastViewedAt ? millis(analytics.lastViewedAt, env.nowMs()) : null },
+      });
+    }
+    const pendingOrders = orders.filter((r) => r.data.status === 'awaiting_payment' || r.data.status === 'proof_submitted').length;
+    const totalViews = gifts.reduce((sum, gift) => sum + gift.analytics.totalViews, 0);
+    const topGift = gifts.filter((gift) => gift.analytics.totalViews > 0).sort((a, b) => b.analytics.totalViews - a.analytics.totalViews)[0] ?? null;
+    return {
+      summary: { total: gifts.length, drafts: gifts.filter((g) => g.status === 'draft').length, published: gifts.filter((g) => g.status === 'published').length, archived: gifts.filter((g) => g.status === 'archived').length, totalViews, pendingOrders },
+      insight: { topGiftId: topGift?.giftId ?? null, topGiftViews: topGift?.analytics.totalViews ?? 0, publicationRate: gifts.length ? Math.round((gifts.filter((g) => g.publishedRevision !== null).length / gifts.length) * 100) : 0 },
+      subscription: entitlement.current ? { packageId: entitlement.current.packageSnapshot.packageId, expiresAtMs: millis(entitlement.current.expiresAt, env.nowMs()) } : null,
+      gifts: gifts.sort((a, b) => b.updatedAtMs - a.updatedAtMs),
+    };
+  }));
+}
+
+/** Owner-only export source. Full draft content stays on this server boundary. */
+export function exportDashboardData(env: Env, actor: Actor) {
+  return guarded(async () => env.store.runTransaction(async (tx) => {
+    const giftRows = await tx.query('gifts', 'ownerUid', actor.uid);
+    const gifts = await Promise.all(giftRows.map(async (row) => {
+      const analytics = await tx.get(`giftAnalytics/${row.data.slug}`);
+      return {
+        giftId: row.id, slug: row.data.slug, status: row.data.status, templateId: row.data.templateId,
+        templateVersion: row.data.templateVersion, draftVersion: row.data.draft?.version ?? 1,
+        draftContent: row.data.draft?.content ?? null, publishedRevision: row.data.publishedRevision ?? null,
+        createdAtMs: millis(row.data.createdAt, env.nowMs()), updatedAtMs: millis(row.data.updatedAt, env.nowMs()),
+        totalViews: Number(analytics?.totalViews ?? 0),
+      };
+    }));
+    return { gifts };
+  }));
+}
+
+/** Public analytics has no identity and only increments an aggregate for a published slug. */
+export function recordPublicGiftView(env: Env, slug: unknown) {
+  return guarded(async () => env.store.runTransaction(async (tx) => {
+    if (!isValidSlug(slug)) throw new ServiceError(404, 'gift_not_found');
+    const pub = await tx.get(`publicGifts/${slug}`);
+    if (!pub || pub.status !== 'published') throw new ServiceError(404, 'gift_not_found');
+    const existing = await tx.get(`giftAnalytics/${slug}`);
+    const now = env.ts(env.nowMs());
+    const day = new Date(env.nowMs()).toISOString().slice(0, 10);
+    const viewsByDay = { ...((existing?.viewsByDay as Record<string, number> | undefined) ?? {}) };
+    viewsByDay[day] = (viewsByDay[day] ?? 0) + 1;
+    const data = { slug, totalViews: Number(existing?.totalViews ?? 0) + 1, firstViewedAt: existing?.firstViewedAt ?? now, lastViewedAt: now, viewsByDay, schemaVersion: 1 };
+    if (existing) tx.update(`giftAnalytics/${slug}`, data); else tx.create(`giftAnalytics/${slug}`, data);
+    return { totalViews: data.totalViews };
+  }));
+}
+
 export function createGift(env: Env, actor: Actor, input: { templateId: unknown; content: unknown }, lookup: TemplateLookup) {
   return guarded(async () => env.store.runTransaction(async (tx) => {
     const template = typeof input.templateId === 'string' ? lookup(input.templateId) : null;

@@ -13,7 +13,8 @@ Diperbarui: 2026-11-01. Status ditulis dari kondisi repository, bukan dari ingat
 | Phase 4 | Katalog dan halaman detail template di atas engine | SELESAI (terverifikasi 2026-11-01) |
 | Phase 5 | Editor dan penyimpanan draft | SELESAI — implementasi dan verifikasi 2026-11-01 |
 | Phase 6 | Publishing dan halaman publik `/g/[slug]` | SELESAI — diverifikasi 2026-11-01 |
-| Phase 7+ | Dashboard, payment proof dan admin, template sampai 43, integrasi Firebase, uji keamanan, deployment | BELUM DIMULAI |
+| Phase 7 | Analytics, Insights & Export / dashboard pemilik | IMPLEMENTASI INTI SELESAI — verifikasi akhir berjalan |
+| Phase 8+ | Payment proof dan admin, template sampai 43, integrasi Firebase, uji keamanan, deployment | BELUM DIMULAI |
 
 Penomoran Phase 4 dan sesudahnya mengikuti urutan prioritas yang Anda tulis. Pembagian nomor setelah Phase 4 adalah usulan saya, belum disepakati.
 
@@ -103,6 +104,14 @@ Kriteria closeout yang tercatat di snapshot awal adalah `pnpm install && pnpm ty
 - Verifikasi: `pnpm typecheck` lulus, `pnpm lint` lulus tanpa warning, `pnpm build` lulus (30/30 halaman), `pnpm test:unit` 66/66 lulus, dan `pnpm check:i18n` lulus (22 section).
 - `pnpm test:catalog` dan `pnpm test:editor` lulus dengan Playwright/Chromium yang dipasang sementara di luar manifest project. Catalog mencakup fallback `/g/demo`, locale, mobile, dan regresi katalog; editor mencakup preview, create, autosave, konflik 409, expiry, media disabled, dan id/en. Public gift nyata dari Firebase/fixture server belum diuji karena Firebase belum terhubung; Firebase/Firestore emulator juga belum dijalankan.
 
+## Checkpoint Phase 7 — implementasi inti 2026-11-01
+
+- Dashboard tidak lagi memakai angka literal: `getDashboardData` menghitung gift total/draf/terbit/arsip, pending order, subscription, expiry, dan public views dari data server milik user.
+- `giftAnalytics/{slug}` menyimpan aggregate view tanpa identitas visitor. Public page hanya mencatat view jika dokumen `publicGifts/{slug}` berstatus `published`; jalur public tidak membaca subscription.
+- Insight menampilkan publication rate, total view, dan gift paling dilihat. Export owner-only tersedia sebagai JSON dan CSV dari `/api/dashboard/export?format=json|csv`; full draft content hanya keluar melalui boundary export yang terautentikasi.
+- UI dashboard menampilkan gift cards, status, tanggal, jumlah view, link editor, link publik, dan state Firebase belum terhubung secara jujur.
+- Verifikasi checkpoint: `pnpm typecheck` lulus, `pnpm test:unit` 67/67 lulus, `pnpm check:i18n` lulus 22 section. Build/lint dan browser regression Phase 7 belum dijalankan pada checkpoint ini.
+
 ## Pekerjaan berikutnya (belum dimulai, menunggu persetujuan)
 
-Rincian per tahap dan kriteria: `docs/ROADMAP.md`. Phase 6 selesai dan diverifikasi pada 2026-11-01. Langkah berikutnya adalah Phase 7 (dashboard), tetapi belum dimulai dan menunggu persetujuan eksplisit pengguna. Payment proof/admin, template sampai 43, integrasi Firebase, uji keamanan, dan deployment tetap sesudahnya.
+Rincian per tahap dan kriteria: `docs/ROADMAP.md`. Phase 6 selesai dan diverifikasi pada 2026-11-01. Phase 7 Analytics, Insights & Export sedang diverifikasi; setelah closeout, langkah berikutnya adalah Phase 8 payment proof/admin dengan persetujuan eksplisit pengguna. Template sampai 43, integrasi Firebase, uji keamanan, dan deployment tetap sesudahnya.

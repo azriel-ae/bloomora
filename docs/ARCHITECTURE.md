@@ -70,6 +70,13 @@ Template adalah data: tema (palet, token font, motion), section berurut (tipe + 
 - Status `published` dirender sebagai pengalaman penerima immersive. `archived`, `removed`, slug invalid, dokumen hilang, dan server belum terkonfigurasi dirender sebagai status card; state nonpublik diberi `noindex` melalui `generateMetadata`.
 - Editor publish memakai `expectedVersion` dari draft yang sudah tersimpan. Kontrol penerima untuk salin link, Web Share/fallback, dan QR berada di `components/public-gift-actions.tsx`. Media tetap tidak menghasilkan `audioSrc` selama upload nonaktif.
 
+## Analytics, Insights & Export (Phase 7)
+
+- `giftAnalytics/{slug}` adalah aggregate server-only: total view, first/last viewed timestamp, dan bucket harian. Tidak ada visitor identity, cookie analytics, atau client-side write.
+- Public page memanggil `recordPublicGiftView` hanya setelah `getPublicGift` menemukan gift `published`; function membaca `publicGifts` dan aggregate lalu menulis kembali melalui `Store` transaction. Subscription tidak pernah dibaca dari public path.
+- `getDashboardData` melakukan query owner-scoped untuk gifts, subscriptions, dan orders, lalu menggabungkan statistik serta insight. Draft content tidak dikirim ke dashboard.
+- `/api/dashboard/export` mengharuskan session owner dan menghasilkan JSON atau CSV dari gift milik user, termasuk draft content hanya pada response download yang private/no-store. Firebase rules tetap default-deny untuk analytics karena seluruh akses melewati server.
+
 ## Katalog dan detail template (Phase 4)
 
 - `components/templates-page.tsx` menggunakan `searchCatalog` dan `CATEGORIES`; pencarian mencakup konten id/en, filter kategori aktif, hasil kosong/reset, serta state pemulihan error. `app/templates/loading.tsx` dan `error.tsx` menyediakan boundary route.
