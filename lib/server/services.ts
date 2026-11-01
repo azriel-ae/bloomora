@@ -3,7 +3,7 @@ import {
   canArchiveOrDeleteGift, planSubscriptionActivation, canTransitionOrder,
   type Decision, type Entitlement, type SubLike,
 } from '../entitlements.ts';
-import { generateSlug, isValidSlug } from '../slug.ts';
+import { generateSlug, isValidPublicSlug } from '../slug.ts';
 import { validateGiftContent } from '../model/content.ts';
 import { planLegacyGiftMigration } from '../model/migrate.ts';
 import { DEFAULT_PACKAGES } from '../packages.ts';
@@ -86,7 +86,7 @@ const requireContent = (input: unknown): GiftContent => {
  */
 export function getPublicGift(env: Env, slug: unknown) {
   return guarded(async () => env.store.runTransaction(async (tx) => {
-    if (!isValidSlug(slug)) throw new ServiceError(404, 'gift_not_found');
+    if (!isValidPublicSlug(slug)) throw new ServiceError(404, 'gift_not_found');
     const raw = await tx.get(`publicGifts/${slug}`);
     if (!raw) throw new ServiceError(404, 'gift_not_found');
     const status = raw.status;
@@ -165,7 +165,7 @@ export function exportDashboardData(env: Env, actor: Actor) {
 /** Public analytics has no identity and only increments an aggregate for a published slug. */
 export function recordPublicGiftView(env: Env, slug: unknown) {
   return guarded(async () => env.store.runTransaction(async (tx) => {
-    if (!isValidSlug(slug)) throw new ServiceError(404, 'gift_not_found');
+    if (!isValidPublicSlug(slug)) throw new ServiceError(404, 'gift_not_found');
     const pub = await tx.get(`publicGifts/${slug}`);
     if (!pub || pub.status !== 'published') throw new ServiceError(404, 'gift_not_found');
     const existing = await tx.get(`giftAnalytics/${slug}`);

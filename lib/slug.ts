@@ -9,7 +9,22 @@ export const SLUG_LENGTH = 12;
 const SLUG_PATTERN = new RegExp(`^[${ALPHABET}]{${SLUG_LENGTH}}$`);
 
 /** Routes that must never be claimed as a slug-like token. */
-export const RESERVED_SLUGS: ReadonlySet<string> = new Set(['demo']);
+export const RESERVED_SLUGS: ReadonlySet<string> = new Set([
+  'demo', 'admin', 'api', 'login', 'register', 'create', 'editor', 'dashboard',
+  'templates', 'pricing', 'payment', 'privacy', 'terms', 'contact', 'faq',
+  'about', 'refunds', 'expiration', 'media-policy', 'id', 'en', 'g',
+]);
+
+export function normalizeCustomSlug(value: unknown): string {
+  return typeof value === 'string'
+    ? value.trim().toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 48)
+    : '';
+}
+
+export function isValidCustomSlug(value: unknown): value is string {
+  return typeof value === 'string' && /^[a-z0-9](?:[a-z0-9-]{1,46}[a-z0-9])?$/.test(value)
+    && !RESERVED_SLUGS.has(value) && !value.includes('--');
+}
 
 export function generateSlug(random: (n: number) => Uint8Array = (n) => globalThis.crypto.getRandomValues(new Uint8Array(n))): string {
   const limit = 256 - (256 % ALPHABET.length);
@@ -26,4 +41,8 @@ export function generateSlug(random: (n: number) => Uint8Array = (n) => globalTh
 
 export function isValidSlug(value: unknown): value is string {
   return typeof value === 'string' && SLUG_PATTERN.test(value) && !RESERVED_SLUGS.has(value);
+}
+
+export function isValidPublicSlug(value: unknown): value is string {
+  return isValidSlug(value) || isValidCustomSlug(value);
 }

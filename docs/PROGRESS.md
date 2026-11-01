@@ -115,3 +115,16 @@ Kriteria closeout yang tercatat di snapshot awal adalah `pnpm install && pnpm ty
 ## Pekerjaan berikutnya (belum dimulai, menunggu persetujuan)
 
 Rincian per tahap dan kriteria: `docs/ROADMAP.md`. Phase 6 selesai dan diverifikasi pada 2026-11-01. Phase 7 Analytics, Insights & Export sedang diverifikasi; setelah closeout, langkah berikutnya adalah Phase 8 payment proof/admin dengan persetujuan eksplisit pengguna. Template sampai 43, integrasi Firebase, uji keamanan, dan deployment tetap sesudahnya.
+
+## Business flow update — 2026-11-01
+
+Implementasi awal requirements baru:
+- Guest draft API tersedia di `/api/guest/gifts` dan secure read/save di `/api/guest/gifts/[giftId]`.
+- Edit token dibuat CSPRNG, disimpan hanya sebagai SHA-256 hash, diverifikasi constant-time, dan diberi expiry 30 hari.
+- Custom slug dinormalisasi, reserved route names ditolak, dan reservation dilakukan server-side melalui `slugs/{slug}`.
+- Model order menerima customer email/WhatsApp, payment method id, dan voucher code untuk fase checkout berikutnya.
+- `lib/commerce.ts` menyediakan validasi voucher percent/fixed, minimum amount, usage limit, date window, serta filter payment method aktif.
+- Public gift QR sekarang memiliki designer warna dan export PNG/SVG; QR hanya menerima public URL.
+- Unit test secure token, custom slug, dan voucher ditambahkan.
+
+Batas penting: guest flow ini baru draft/read/save foundation. Checkout guest, upload media/crop, payment proof, Resend recovery, admin CRUD voucher/payment method, dan approval-to-publish masih harus disambungkan pada phase 8+ dengan Firebase/Storage yang tervalidasi. Tidak ada pembayaran otomatis yang diklaim.

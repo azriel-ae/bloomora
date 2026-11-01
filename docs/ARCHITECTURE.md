@@ -115,3 +115,13 @@ Template adalah data: tema (palet, token font, motion), section berurut (tipe + 
 | Pembayaran | Hanya order dan persetujuan admin di service. Tidak ada bukti bayar, tidak ada UI admin, tidak ada pembayaran sungguhan |
 | Editor, dashboard, halaman publik `/g/[slug]`, admin | Editor/draft Phase 5 menggunakan service dan sandbox dev khusus untuk tes; dashboard/admin masih statis; `/g/[slug]` masih placeholder dan belum memakai service publik |
 | Upload media | Dinonaktifkan |
+
+## Business flow update — guest customer
+
+Customer tidak lagi diwajibkan membuat akun. Draft guest dibuat melalui `app/api/guest/gifts`, lalu server mengembalikan edit token satu kali bersama gift id dan public slug. Token dibuat dengan CSPRNG, hanya hash SHA-256 yang disimpan pada `gifts/{id}`, dan request edit berikutnya wajib mengirimkannya melalui header `x-bloomora-edit-token`. Token tidak pernah masuk ke `publicGifts`, QR code, analytics, atau public URL.
+
+Custom slug dinormalisasi dan divalidasi server-side sebelum reservasi atomik di `slugs/{slug}`. Reserved route names ditolak dan URL yang sudah dipakai tidak dapat direbut kembali.
+
+`lib/commerce.ts` menjadi kontrak murni untuk voucher persentase atau nominal, periode aktif, usage limit, minimum transaksi, serta payment method aktif. Harga final harus dihitung ulang di server; UI tidak boleh menjadi sumber kebenaran harga, diskon, atau status pembayaran.
+
+QR designer pada `components/qr-designer.tsx` hanya menerima URL halaman publik yang sedang dibuka. Ia menyediakan warna titik/latar dan export PNG/SVG, serta tidak memiliki akses ke edit token.

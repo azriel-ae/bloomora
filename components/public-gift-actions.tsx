@@ -1,8 +1,8 @@
 'use client';
 
-import { Check, Copy, QrCode, Share2, X } from 'lucide-react';
+import { Check, Copy, QrCode, Share2 } from 'lucide-react';
 import { useState } from 'react';
-import { QRCodeSVG } from 'qrcode.react';
+import { QrDesigner } from './qr-designer';
 
 export function PublicGiftActions({ labels }: { labels: { copy: string; share: string; qr: string; copied: string; close: string } }) {
   const [copied, setCopied] = useState(false);
@@ -36,10 +36,7 @@ export function PublicGiftActions({ labels }: { labels: { copy: string; share: s
       </div>
       {showQr && (
         <div className="fixed inset-0 z-50 grid place-items-center bg-ink/55 p-5" role="dialog" aria-modal="true" aria-label={labels.qr}>
-          <div className="rounded-3xl bg-paper p-6 text-center shadow-paper">
-            <QRCodeSVG value={typeof window === 'undefined' ? '' : window.location.href} size={220} bgColor="#fffdf8" fgColor="#27352b" includeMargin />
-            <button type="button" className="mt-5 inline-flex items-center gap-2 rounded-full border border-line px-4 py-2 text-sm font-semibold" onClick={() => setShowQr(false)}><X size={15} />{labels.close}</button>
-          </div>
+          <QrDesigner value={typeof window === 'undefined' ? '' : window.location.href} closeLabel={labels.close} onClose={() => setShowQr(false)} />
         </div>
       )}
     </>

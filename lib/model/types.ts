@@ -63,7 +63,11 @@ export interface OrderProof {
 /** orders/{orderId} - owner/admin read, server write only. */
 export interface OrderDoc<T extends TimestampLike = TimestampLike> {
   userId: string;
+  customerEmail: string | null;
+  customerWhatsapp: string | null;
   packageId: PackageId;
+  paymentMethodId: string;
+  voucherCode: string | null;
   packageSnapshot: PackageSnapshot;
   amountIdr: number;
   status: OrderStatus;
@@ -124,6 +128,11 @@ export interface GiftDraft<T extends TimestampLike = TimestampLike> {
  */
 export interface GiftDoc<T extends TimestampLike = TimestampLike> {
   ownerUid: string;
+  /** Guest ownership uses a synthetic owner id; plaintext tokens are never persisted. */
+  editTokenHash: string | null;
+  editTokenExpiresAt: T | null;
+  customerEmail: string | null;
+  customerWhatsapp: string | null;
   /** null only for migrated legacy drafts whose template is unknown. */
   templateId: string | null;
   templateVersion: number;

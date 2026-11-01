@@ -41,3 +41,11 @@ Setiap butir diberi status: DISEPAKATI (pengguna menyatakannya), DIIMPLEMENTASIK
 - Header lama (`components/language-switcher.tsx`) memakai emoji bendera. Itu di luar area desain baru dan belum diubah.
 - Chip kategori `/templates` kini memakai filter kategori dari `CATEGORIES` (Phase 4); hanya status aktif dari registry engine yang ditampilkan.
 - Teks FAQ, `/expiration`, dan `plan.md` lama masih menyiratkan gift kedaluwarsa. Bertentangan dengan Model B dan harus ditulis ulang di fase UI.
+
+## Business flow update — keputusan baru
+
+25. Customer tidak wajib memiliki akun. Draft guest memakai secure edit token yang dibuat CSPRNG; hanya hash token yang disimpan. Login tetap menjadi jalur admin/akun legacy, bukan prasyarat customer.
+26. Public slug dapat dipilih customer, tetapi hanya setelah normalisasi, reserved-name validation, dan atomic reservation server-side. Slug publik tidak boleh berisi edit token.
+27. Voucher dan metode pembayaran adalah konfigurasi server. Harga akhir, diskon, masa berlaku voucher, usage limit, dan status pembayaran tidak boleh dipercaya dari browser.
+28. QR designer hanya mengubah presentasi QR yang mengarah ke public URL. Edit URL/token tidak boleh masuk QR.
+29. Recovery link melalui email/Resend belum diaktifkan sampai provider credential dan rate-limit storage tersedia; sistem tidak boleh menampilkan secure edit URL tanpa verifikasi kepemilikan.
