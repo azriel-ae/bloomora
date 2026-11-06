@@ -5,7 +5,7 @@ import { DEFAULT_PACKAGES } from '@/lib/packages';
 import { getServerEnv } from '@/lib/server/runtime';
 import { listActivePackages } from '@/lib/server/services';
 
-export const metadata: Metadata = { title: 'Checkout', description: 'Complete your Bloomora gift order without creating an account.' };
+export const metadata: Metadata = { title: 'Pembayaran', description: 'Selesaikan pesanan hadiah Bloomora tanpa membuat akun.', robots: { index: false, follow: false } };
 
 export default async function CheckoutPage({ searchParams }: { searchParams: Promise<{ giftId?: string }> }) {
   const [{ giftId }, locale] = await Promise.all([searchParams, getLocale()]);

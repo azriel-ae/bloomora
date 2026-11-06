@@ -105,10 +105,10 @@ test('every template that ships a demo uses only variants the renderer implement
   for (const t of ALL_TEMPLATE_VERSIONS.filter((x) => x.hasDemo)) for (const s of t.sections) assert.ok(IMPLEMENTED_VARIANTS[s.type].includes(s.variant), `${t.id}:${s.id}:${s.variant}`);
 });
 
-test('gift labels: exact same keys in en and id, no empty values, placeholders match, no emoji', () => {
-  const en = JSON.parse(readFileSync('messages/en.json', 'utf8')).gift; const id = JSON.parse(readFileSync('messages/id.json', 'utf8')).gift;
-  for (const m of [en, id]) { assert.deepEqual(Object.keys(m).sort(), [...GIFT_LABEL_KEYS].sort()); for (const v of Object.values(m) as string[]) { assert.ok(v.trim()); assert.equal(EMOJI_LIKE.test(v), false); } }
-  for (const k of GIFT_LABEL_KEYS) assert.deepEqual((en[k].match(/\{\w+\}/g) ?? []).sort(), (id[k].match(/\{\w+\}/g) ?? []).sort(), k);
-  assert.equal(fmt('{open} of {total}', { open: 2, total: 6 }), '2 of 6');
+test('gift experience has one complete Indonesian UI label set with no empty values or emoji', () => {
+  const id = JSON.parse(readFileSync('messages/id.json', 'utf8')).gift;
+  assert.deepEqual(Object.keys(id).sort(), [...GIFT_LABEL_KEYS].sort());
+  for (const value of Object.values(id) as string[]) { assert.ok(value.trim()); assert.equal(EMOJI_LIKE.test(value), false); }
+  assert.equal(fmt('{open} dari {total}', { open: 2, total: 6 }), '2 dari 6');
   assert.equal(fmt('{x}', {}), '{x}');
 });

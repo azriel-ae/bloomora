@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { GiftSuccessActions } from '@/components/gift-success-actions';
+import { SITE_ORIGIN } from '@/lib/site-url';
 
 type OrderView = {
   orderId: string; giftId: string | null; giftSlug: string | null; packageId: string; packageName: string; originalAmountIdr: number; discountIdr: number;
@@ -41,7 +42,7 @@ export function GuestOrderDetail({ orderId, locale, copy }: { orderId: string; l
   const [orderDeleted, setOrderDeleted] = useState(false);
 
   useEffect(() => {
-    try { setAccessToken(window.sessionStorage.getItem(`bloomora_order_access:${orderId}`)); setOrigin(window.location.origin); }
+    try { setAccessToken(window.sessionStorage.getItem(`bloomora_order_access:${orderId}`)); setOrigin(SITE_ORIGIN); }
     catch { setAccessToken(null); }
   }, [orderId]);
 

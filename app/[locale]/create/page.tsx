@@ -6,7 +6,7 @@ import { CATEGORIES } from '@/lib/engine/categories';
 import { getActiveTemplate, listCatalog } from '@/lib/engine/registry';
 import { getLocale, getMessages } from '@/lib/i18n';
 
-export const metadata: Metadata = { title: 'Create a gift', description: 'Start a private Bloomora gift from a considered template.' };
+export const metadata: Metadata = { title: 'Buat hadiah', description: 'Mulai draf hadiah privat dari template Bloomora.', robots: { index: false, follow: false } };
 
 export default async function CreatePage({ searchParams }: { searchParams: Promise<{ template?: string }> }) {
   const locale = await getLocale();

@@ -32,6 +32,7 @@ test('recovery delivery is provider-injected, stores no destination, rotates edi
   assert.deepEqual(issued, { ok: true, deliveryAccepted: true });
   assert.equal(deliveries.length, 1);
   assert.equal(deliveries[0].destination, 'guest@example.com');
+  assert.equal(new URL(deliveries[0].recoveryUrl).origin, 'https://bloomora.my.id');
   const token = new URL(deliveries[0].recoveryUrl).searchParams.get('token');
   assert.ok(token);
   const recoveryDocs = [...h.store.docs.entries()].filter(([path]) => path.startsWith('guestEditRecoveries/'));

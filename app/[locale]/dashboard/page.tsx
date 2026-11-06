@@ -8,7 +8,7 @@ import { getCurrentUser } from '@/lib/session';
 import { getServerEnv } from '@/lib/server/runtime';
 import { getDashboardData, type DashboardData } from '@/lib/server/services';
 
-export const metadata: Metadata = { title: 'Dashboard', description: 'Your private Bloomora workspace.' };
+export const metadata: Metadata = { title: 'Dasbor', description: 'Ruang kerja privat Bloomora.', robots: { index: false, follow: false } };
 const dateLabel = (ms: number | null, locale: 'id' | 'en') => ms ? new Intl.DateTimeFormat(locale === 'id' ? 'id-ID' : 'en-US', { dateStyle: 'medium' }).format(ms) : '—';
 
 function StatCard({ icon: Icon, label, value }: { icon: typeof Gift; label: string; value: number }) {

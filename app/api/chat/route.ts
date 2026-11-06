@@ -35,7 +35,7 @@ ABOUT BLOOMORA
 Bloomora turns memories, messages, and small details into interactive DIGITAL gifts: a private web link (and QR code) the recipient opens on their phone. No code, no blank canvas. It is NOT a physical product: there are no frames, prints, dried flowers, or shipping. Never mention physical items.
 
 TEMPLATES (real, do not invent others)
-${listCatalog().map((template) => `- ${template.name.en} (${template.category}, ${template.tier} tier): ${template.description.en} Sections: ${template.sections.map((section) => section.type).join(', ')}.${template.hasDemo ? ' A real interactive demo is available.' : ' No interactive demo is available yet.'}`).join('\n')}
+  ${listCatalog().map((template) => `- ${template.name.id} (kategori ${template.category}, paket ${template.tier}): ${template.description.id} Bagian: ${template.sections.map((section) => section.type).join(', ')}.${template.hasDemo ? ' Demo interaktif tersedia.' : ' Demo interaktif belum tersedia.'}`).join('\n')}
 
 PLANS (real prices, do not invent others)
 - Basic ${rupiah(19000)}: active 3 days, 1 gift, up to 8 photos, core scenes, private link.
@@ -93,19 +93,18 @@ function normalizeContents(messages: { role: 'user' | 'model'; text: string }[])
 
 export async function POST(request: Request) {
   const parsed = bodySchema.safeParse(await request.json().catch(() => null));
-  if (!parsed.success) return NextResponse.json({ error: 'Please send a short, valid message.' }, { status: 400 });
-  if (!isLocale(parsed.data.locale)) return NextResponse.json({ error: 'Unsupported locale.' }, { status: 400 });
-  const isId = parsed.data.locale === 'id';
+  if (!parsed.success) return NextResponse.json({ error: 'Kirim pesan singkat yang valid.' }, { status: 400 });
+  if (!isLocale(parsed.data.locale)) return NextResponse.json({ error: 'Bahasa aplikasi tidak dikenali.' }, { status: 400 });
   if (!hasGeminiConfig()) {
-    return NextResponse.json({ error: isId ? 'Panduan Bloomora belum terhubung. Tambahkan konfigurasi Gemini server untuk mengaktifkan chat.' : 'The Bloomora guide is not connected yet. Add the Gemini server configuration to enable chat.' }, { status: 503 });
+    return NextResponse.json({ error: 'Panduan Bloomora belum terhubung. Tambahkan konfigurasi Gemini server untuk mengaktifkan chat.' }, { status: 503 });
   }
 
   const contents = normalizeContents(parsed.data.messages.slice(-MAX_HISTORY));
   while (contents.length > 0 && contents[0].role === 'model') contents.shift();
-  if (contents.length === 0) return NextResponse.json({ error: 'Please send a short, valid message.' }, { status: 400 });
+  if (contents.length === 0) return NextResponse.json({ error: 'Kirim pesan singkat yang valid.' }, { status: 400 });
 
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
-  const systemInstruction = `You are Bloomora’s gift guide. Reply in ${isId ? 'Indonesian (casual, friendly, use "kamu")' : 'English'} by default, while following the user’s explicit requested language for generated gift content.
+  const systemInstruction = `Kamu adalah panduan hadiah Bloomora. Selalu jawab dalam Bahasa Indonesia yang santai dan ramah; gunakan sapaan "kamu". Jika diminta membuat isi hadiah dalam bahasa lain, jelaskan bahwa antarmuka dan panduan Bloomora hanya tersedia dalam Bahasa Indonesia.
 ${KNOWLEDGE}
 ${STYLE}`;
 
@@ -123,5 +122,5 @@ ${STYLE}`;
   }
 
   console.error('[chat] All Gemini models failed:', lastError instanceof Error ? lastError.message : lastError);
-  return NextResponse.json({ error: isId ? 'Panduan sedang istirahat sebentar. Coba lagi ya.' : 'The guide is taking a quiet moment. Please try again.' }, { status: 502 });
+  return NextResponse.json({ error: 'Panduan sedang istirahat sebentar. Coba lagi ya.' }, { status: 502 });
 }

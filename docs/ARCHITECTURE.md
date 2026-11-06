@@ -4,6 +4,12 @@
 
 Next.js 15 (App Router), React 19, TypeScript 5.8, Tailwind CSS 3.4, @supabase/ssr and @supabase/supabase-js with server-side PostgreSQL, zod, react-hook-form, framer-motion, lucide-react, qrcode.react, @google/genai (chatbot). Paket manager pnpm 10. Deploy target: Vercel. Supabase is the configured application backend; production Storage provisioning remains environment-specific.
 
+## Bahasa runtime dan origin publik (2026-11-06)
+
+UI produk hanya Bahasa Indonesia. Middleware menerima `/id/...` dan `/en/...` lama sebagai redirect permanen ke path tanpa prefix; route internal tetap di `app/[locale]` dengan locale `id`, dan cookie preferensi bahasa lama dihapus. Locale union pada template engine masih dipertahankan untuk kompatibilitas data, bukan sebagai kontrol UI. `messages/id.json` adalah satu-satunya kamus UI aktif.
+
+Origin publik `https://bloomora.my.id` berasal dari `NEXT_PUBLIC_SITE_URL` hanya bila nilainya tepat sama dengan domain resmi; nilai lain jatuh kembali ke domain resmi. `lib/site-url.ts` membentuk canonical/metadata, sitemap, recovery, QR, dan share URLs; host preview tidak digunakan. DNS/domain binding dan Project Settings Vercel adalah langkah deployment eksternal.
+
 ## Struktur folder penting
 
 ```
@@ -11,7 +17,7 @@ app/                     route Next (halaman, API)
   demo/chapter-of-us/    Featured Demo (server component memanggil GiftView)
   api/gifts, api/orders, api/admin/orders   route tipis ke service
 components/gift/         renderer bersama (client)
-components/              komponen situs lama + chrome-gate, featured-demo-band, demo-language-toggle
+components/              komponen situs, chrome-gate, featured-demo-band, chatbot
 lib/model/               tipe skema v2, validasi konten, planner migrasi
 lib/engine/              template engine (tipe, registry, resolve, interaction, plates, tema)
 lib/engine/templates/    konfigurasi template (data)
@@ -19,7 +25,7 @@ lib/entitlements.ts      aturan akses murni (tanpa I/O dan tanpa jam)
 lib/server/              service transaksional, interface Store, adapter PostgreSQL, helper HTTP
 lib/packages.ts          seed paket     lib/slug.ts   lib/features.ts
 supabase/                rules dan indeks (belum dideploy)
-messages/                en.json dan id.json (namespace gift dan featuredDemo ditambah)
+messages/                id.json (kamus UI Bahasa Indonesia)
 tests/unit, tests/browser, tests/rules
 docs/
 ```
@@ -37,7 +43,7 @@ browser -> route handler (lib/server/http.ts: cek origin, sesi, claim admin dari
 
 - Semua tulis ke PostgreSQL melalui server. Rules menolak semua tulis dari client.
 - Service membaca subscription pengguna, memanggil fungsi murni di `lib/entitlements.ts`, lalu menulis. Identitas selalu dari sesi, bukan dari body request.
-- `ServiceError` menjadi respons `{ ok:false, code }`. Kode editor dipetakan ke teks dua bahasa; konflik 409 tidak di-retry secara buta.
+- `ServiceError` menjadi respons `{ ok:false, code }`. Kode editor dipetakan ke teks Bahasa Indonesia; konflik 409 tidak di-retry secara buta.
 - Fake Store meniru aturan PostgreSQL (semua baca sebelum tulis, `create` gagal bila ada, rollback atomik).
 
 ## Entitlement dan subscription
@@ -50,7 +56,7 @@ Subscription dibuat hanya oleh `approveOrder` (admin, order `proof_submitted`, i
 
 ## Template engine (Phase 2)
 
-Template adalah data: tema (palet, token font, motion), section berurut (tipe + varian), field dan list yang bisa diedit, dan konten contoh dua bahasa. `resolveRenderModel(config, content, { fillEmptyFrom })` menghasilkan apa yang digambar: section opsional yang dimatikan, section tanpa konten, dan section audio tanpa audio dilewati. `fillEmptyFrom` hanya untuk demo dan pratinjau, TIDAK PERNAH untuk gift asli. Konten disimpan berdasarkan key stabil sehingga revisi layout tidak menimpa teks pengguna. Gerbang kualitas `validateTemplateConfig` wajib lulus untuk setiap template. Detail: `docs/template-engine.md`.
+Template adalah data: tema (palet, token font, motion), section berurut (tipe + varian), field dan list yang bisa diedit, dan konten contoh yang dapat memuat varian legacy id/en. Renderer aplikasi selalu diberi locale `id`. `resolveRenderModel(config, content, { fillEmptyFrom })` menghasilkan apa yang digambar: section opsional yang dimatikan, section tanpa konten, dan section audio tanpa audio dilewati. `fillEmptyFrom` hanya untuk demo dan pratinjau, TIDAK PERNAH untuk gift asli. Konten disimpan berdasarkan key stabil sehingga revisi layout tidak menimpa teks pengguna. Gerbang kualitas `validateTemplateConfig` wajib lulus untuk setiap template. Detail: `docs/template-engine.md`.
 
 ## React renderer dan Featured Demo (Phase 3)
 
@@ -79,11 +85,11 @@ Template adalah data: tema (palet, token font, motion), section berurut (tipe + 
 
 ## Katalog dan detail template (Phase 4)
 
-- `components/templates-page.tsx` menggunakan `searchCatalog` dan `CATEGORIES`; pencarian mencakup konten id/en, filter kategori aktif, hasil kosong/reset, serta state pemulihan error. `app/templates/loading.tsx` dan `error.tsx` menyediakan boundary route.
+- `components/templates-page.tsx` menggunakan `searchCatalog` dan `CATEGORIES`; UI hasil dan filter hanya berbahasa Indonesia, sementara beberapa field katalog legacy masih dapat memuat istilah id/en. Ada state kosong/reset dan pemulihan error. Route loading/error menyediakan boundary.
 - `components/template-art.tsx` menyusun preview SVG/CSS tanpa aset eksternal dari palet, varian section, dan sample masing-masing template. Preview bukan gift demo dan tidak mengklaim interaksi penerima.
 - `app/templates/[slug]/page.tsx` menerima hanya template aktif dari `getActiveTemplate`, menampilkan sections dan paket yang `allowedTemplateTiers`-nya mencakup tier. Ini informasi; pemeriksaan entitlement tetap di service/server saat alur berikutnya.
 - `/create?template=<id>` mempertahankan pilihan engine; Featured Demo tetap satu (`chapter-of-us`) dan tautan demo kartu muncul hanya bila `hasDemo`.
-- Middleware menyetel locale prefiks pada request yang sedang dirender serta cookie response agar render pertama `/en/...` tidak mewarisi locale lama.
+- Middleware me-redirect path `/id/...` atau `/en/...` ke URL tunggal tanpa prefix, menulis ulang route internal ke `/id/...`, dan membersihkan cookie `bloomora_locale` legacy. Tidak ada cookie locale baru.
 
 ## Editor dan draft (Phase 5)
 
@@ -92,8 +98,8 @@ Template adalah data: tema (palet, token font, motion), section berurut (tipe + 
 - `GET /api/gifts/[giftId]` mengembalikan draft hanya setelah pemeriksaan pemilik. Expired/archived draft dapat dibaca sesuai kebijakan, tetapi API menandai `editable=false`; penulisan tetap lewat `saveDraft` dan pemeriksaan entitlement.
 - Autosave di `lib/editor/autosave.ts` debounce, single-flight, mengirim `expectedVersion`, dan berhenti pada konflik. Pemilik memilih reload server untuk rekonsiliasi; perubahan lokal dipertahankan saat kegagalan/expiry.
 - `lib/server/dev-editor-env.ts` menyediakan adapter volatile khusus test/dev yang hanya aktif jika `NODE_ENV=development` dan `BLOOMORA_DEV_EDITOR=true`. State process-global dibutuhkan lintas bundle route Next; tidak ada localStorage/file, dan fungsi menolak production.
-- Auth return path menggunakan `safeInternalRedirect`; middleware mempertahankan query string pada rewrite locale agar `template` tetap ada setelah `/id` atau `/en` dihapus untuk routing internal.
-- Browser test `pnpm test:editor` meliputi create, autosave+reload, konflik 409, expiry, media disabled dan id/en; `pnpm test:catalog` menjaga regresi katalog.
+- Auth return path menggunakan `safeInternalRedirect`; middleware mempertahankan query string pada redirect route locale legacy.
+- Browser test `pnpm test:editor` meliputi create, autosave+reload, konflik 409, expiry, media disabled, dan canonical route Indonesia; `pnpm test:catalog` menjaga regresi katalog, domain, dan chatbot.
 
 ## Rencana integrasi Supabase dan status validasi
 

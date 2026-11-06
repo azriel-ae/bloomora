@@ -50,6 +50,8 @@ try {
   });
 
   const landing = await page.goto(`${base}/id/editor/new?template=chapter-of-us`, { waitUntil: 'networkidle' });
+  assert.equal(new URL(page.url()).pathname, '/editor/new', 'legacy Indonesian-prefixed editor links redirect to the canonical unprefixed route');
+  assert.equal(await page.locator('html').getAttribute('lang'), 'id', 'editor is rendered in Indonesian');
   const warningVisible = await page.locator('[data-dev-warning]').isVisible();
   assert.equal(warningVisible, true, `volatile development storage is clearly disclosed (status=${landing?.status()}, url=${page.url()}, body=${(await page.locator('body').innerText()).slice(0, 300)})`);
   assert.equal(await page.locator('[data-editor-section="opening"]').count(), 1, 'form sections come from the selected template');
@@ -107,12 +109,8 @@ try {
   assert.equal(await page.locator('label[data-field-key="title"] input').inputValue(), 'Perubahan lokal tetap dijaga', 'expired save rejection does not discard local edits');
   assert.equal(await page.locator('label[data-field-key="title"] input').isDisabled(), true, 'controls become read-only after expiry');
 
-  const englishPage = await context.newPage();
-  await englishPage.goto(`${base}/en/editor/new?template=pressed-garden`, { waitUntil: 'networkidle' });
-  assert.equal(await englishPage.locator('[data-create-draft]').isVisible(), true, 'editor controls are localized in English');
-  assert.equal(await englishPage.locator('[data-dev-warning]').textContent().then((text) => text?.includes('Local development sandbox')), true);
   assert.equal(problems.length, 0, `browser has no page/console errors: ${problems.join('; ')}\n${output}`);
-  console.log('PASS editor browser tests: dynamic schema, GiftView preview, optional sections, media disabled, create, autosave/reload, 409 reconciliation, expired entitlement, en/id copy.');
+  console.log('PASS editor browser tests: dynamic schema, Indonesian GiftView preview, optional sections, media disabled, create, autosave/reload, canonical route, 409 reconciliation, expired entitlement.');
 } finally {
   if (browser) await browser.close();
   if (child && child.exitCode === null) {

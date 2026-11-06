@@ -17,11 +17,11 @@ export const dynamic = 'force-dynamic';
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const locale = await getLocale();
   const template = getActiveTemplate((await params).slug);
-  if (!template) return { title: getMessages(locale).templateDetail.notFound };
-  return { title: template.name[locale], description: template.description[locale] };
+  if (!template) return { title: getMessages(locale).templateDetail.notFound, robots: { index: false, follow: false } };
+  return { title: template.name.id, description: template.description.id, alternates: { canonical: `/templates/${encodeURIComponent(template.id)}` } };
 }
 
-const sectionMessageKey: Record<SectionType, keyof typeof import('@/messages/en.json').gift> = {
+const sectionMessageKey: Record<SectionType, keyof typeof import('@/messages/id.json').gift> = {
   opening: 'sectionOpening', hero: 'sectionHero', letter: 'sectionLetter', gallery: 'sectionGallery',
   timeline: 'sectionTimeline', message: 'sectionMessage', appreciation: 'sectionAppreciation',
   music: 'sectionMusic', closing: 'sectionClosing',

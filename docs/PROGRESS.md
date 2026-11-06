@@ -1,6 +1,13 @@
 # Bloomora: progres pengerjaan
 
-Diperbarui: 2026-11-05. Supabase masih menjadi backend aktif; migrasi ke Supabase dimulai pada checkpoint skema PostgreSQL reproducible. Belum ada runtime cutover atau konfigurasi project Supabase. Lihat `docs/SUPABASE_MIGRATION.md` untuk status dan langkah berikutnya. Bukti pengujian dicatat hanya setelah dijalankan.
+Diperbarui: 2026-11-06. Catatan terbaru berada di checkpoint Indonesian-only/domain/chat di bawah; checkpoint historis tetap dipertahankan. Supabase masih menjadi backend aktif; migrasi PostgreSQL belum cutover ke runtime. Bukti tes continuation terbaru dicatat hanya setelah dijalankan.
+
+## Checkpoint 2026-11-06: UI Bahasa Indonesia, domain resmi, dan bunyi balasan chat
+
+- Seluruh UI aplikasi disederhanakan ke Bahasa Indonesia: locale provider, kamus aktif, header/admin, metadata SEO, demo, editor, dan tes tidak lagi menawarkan English. Cookie pilihan bahasa lama dibersihkan; URL legacy `/id/...` dan `/en/...` dialihkan ke route tanpa prefix, sementara render internal tetap memakai Bahasa Indonesia.
+- `https://bloomora.my.id` menjadi origin resmi untuk metadata, canonical URL, Open Graph, sitemap/robots, tautan hadiah/QR/edit/recovery. `NEXT_PUBLIC_SITE_URL` dicatat pada `.env.example` dan README; utilitas menolak origin selain domain resmi. Inspeksi Vercel hanya-baca menemukan variabel `NEXT_PUBLIC_SITE_URL` belum tersedia; domain apex berstatus valid tetapi redirect 308 ke `www.bloomora.my.id`, sementara `www` terpasang ke Production. Tidak ada pengaturan project yang diubah; sesi browser Vercel sudah logout sesuai instruksi pengguna.
+- Chatbot memiliki toggle suara lokal yang default mati; bunyi Web Audio ringan hanya dipicu setelah balasan berhasil selesai, tidak pada balasan gagal atau saat mute. Tidak ada asset audio eksternal.
+- Validasi akhir lulus: `pnpm typecheck`, `pnpm lint`, `pnpm test:unit` (111/111), `pnpm check:i18n` (26 bagian), `pnpm build` (46 halaman statis), dan `git diff --check`. Lint hanya memberi warning non-blocking yang sudah ada untuk `<img>` serta dependency `useEffect`. Browser suite tidak dijalankan pada continuation ini; regresi baru tetap tercakup pada source tests.
 
 ## Checkpoint 2026-11-05: editor media, Payment Method, dan responsive renderer
 

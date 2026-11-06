@@ -3,6 +3,7 @@
 import { Check, ExternalLink, Send, X } from 'lucide-react';
 import { useState } from 'react';
 import { useLocale } from './locale-provider';
+import { siteUrl } from '@/lib/site-url';
 
 export function PublishDialog({ giftId, expectedVersion, disabled }: { giftId: string; expectedVersion: number; disabled: boolean }) {
   const { t } = useLocale();
@@ -16,7 +17,7 @@ export function PublishDialog({ giftId, expectedVersion, disabled }: { giftId: s
       const response = await fetch(`/api/gifts/${encodeURIComponent(giftId)}/publish`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ expectedVersion }) });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.ok || typeof data.slug !== 'string') { setError(true); return; }
-      setUrl(`${window.location.origin}/g/${data.slug}`);
+      setUrl(siteUrl(`/g/${encodeURIComponent(data.slug)}`));
     } catch { setError(true); } finally { setBusy(false); }
   };
   return <>

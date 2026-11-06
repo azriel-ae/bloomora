@@ -1,12 +1,12 @@
 # Handover Bloomora (untuk AI atau developer baru)
 
-Baca dulu `docs/SUPABASE_MIGRATION.md`, `docs/DECISIONS.md`, `docs/PROGRESS.md`, dan `docs/ROADMAP.md`. Dokumen ini diperbarui dari kode aktual per 2026-11-05.
+Baca dulu `docs/SUPABASE_MIGRATION.md`, `docs/DECISIONS.md`, `docs/PROGRESS.md`, dan `docs/ROADMAP.md`. Checkpoint terbaru diperbarui dari kode aktual per 2026-11-06; catatan Phase sebelumnya di bawah adalah riwayat dan tidak mengalahkan checkpoint ini.
 
-Checkpoint terbaru mencakup custom public slug, private Edit URL, QR/share pada order success, private photo/audio upload, penghapusan media guest yang aman, soft-delete admin/owner, checkout satu-kanal kontak, payment methods admin-only tanpa status `Confirmed By`, dan snapshot QR/rekening per order. Commit terbaru: `f49ac713465146e24f919e56fa735c82a5b86b42`; checkpoint media sebelumnya: `b8b5cfff7cc21d1b1e5c7adca26752eb9271d127`. Validasi terbaru: typecheck, lint, build (40 routes), unit 102/102, dan diff check; belum ada Supabase live credentials/smoke atau visual device nyata. Jalankan migration manual yang tercantum di `docs/SUPABASE_MANUAL_SQL.md` sebelum deploy; media production tetap memerlukan bucket private/config/service-role env. File QR lama sengaja dipertahankan untuk order lama.
+Continuation 2026-11-06 menambahkan antarmuka Bahasa Indonesia saja, redirect URL locale legacy, metadata/canonical/sitemap dan tautan berbasis `https://bloomora.my.id`, serta notifikasi suara chatbot opt-in dan mute lokal. Inspeksi Vercel read-only menemukan `NEXT_PUBLIC_SITE_URL` belum ada, apex `bloomora.my.id` masih 308 redirect ke `www.bloomora.my.id`, dan `www` yang terpasang ke Production. Tidak ada perubahan akun/project Vercel; browser sudah logout sesuai permintaan. Perubahan kerja harus di-commit lalu langsung di-push ke `https://github.com/azriel-ae/bloomora.git`; setelah push, catat hash dan pastikan working tree bersih.
 
 ## Proyek
 
-Bloomora adalah platform hadiah digital: pengguna memilih template, menulis hadiah, menerbitkannya, dan membagikan lewat URL publik unik. Dua bahasa (id, en). Stack dan struktur: `docs/ARCHITECTURE.md`. Target deploy: Vercel. Repositori tujuan: https://github.com/azriel-ae/bloomora.git
+Bloomora adalah platform hadiah digital: pengguna memilih template, menulis hadiah, menerbitkannya, dan membagikan lewat URL publik unik. Antarmuka aplikasi hanya Bahasa Indonesia; data template lama yang menyimpan copy en/id bukan pilihan bahasa UI. Domain resmi: `https://bloomora.my.id`. Stack dan struktur: `docs/ARCHITECTURE.md`. Target deploy: Vercel. Repositori tujuan: https://github.com/azriel-ae/bloomora.git
 
 Kondisi awal (zip `bloomora-fixed.zip`) adalah scaffold UI: 3 template statis, editor tanpa penyimpanan, halaman publik placeholder, dashboard angka "-", paket hardcoded, halaman pembayaran/admin deskriptif. Klaim "sudah ada payment/QRIS/editor" di brief awal TIDAK sesuai kenyataan. Semua yang bukan tampilan di dokumen ini dibangun selama pengerjaan.
 
@@ -29,7 +29,7 @@ TIDAK ADA koneksi. Tidak ada data produksi. Storage belum disediakan karena bill
 
 ## Keputusan yang tidak boleh dilanggar
 
-Model B (gift terbit tidak pernah kedaluwarsa karena paket habis), semua tulis lewat server, `gifts` privat terpisah dari `publicGifts`, draft tidak menimpa versi terbit, subscription hanya dari persetujuan admin, upload media nonaktif, tanpa emoji, satu Featured Demo. Daftar lengkap dan DUA DIVERGENSI (stacking perpanjangan belum diimplementasikan; kuota `maxGifts: 1` hanya asumsi): `docs/DECISIONS.md`.
+Model B (gift terbit tidak pernah kedaluwarsa karena paket habis), semua tulis lewat server, `gifts` privat terpisah dari `publicGifts`, draft tidak menimpa versi terbit, subscription hanya dari persetujuan admin, tanpa emoji, satu Featured Demo, dan UI Bahasa Indonesia saja. Stacking perpanjangan sudah diimplementasikan; `maxGifts: 1` masih asumsi yang memerlukan keputusan bisnis. Daftar lengkap: `docs/DECISIONS.md`.
 
 ## File penting
 

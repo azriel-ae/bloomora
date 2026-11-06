@@ -10,6 +10,7 @@ import { useLocale } from './locale-provider';
 import { DraftAutosaver, type AutosaveStatus } from '@/lib/editor/autosave';
 import { blankContent } from '@/lib/engine/resolve';
 import { getActiveTemplate, getTemplateForRender, listCatalog } from '@/lib/engine/registry';
+import { siteUrl } from '@/lib/site-url';
 import type { FieldDef, ListDef, SectionDef, TemplateConfig } from '@/lib/engine/types';
 import type { GiftContent } from '@/lib/model/types';
 
@@ -300,7 +301,7 @@ export function GiftEditor({ giftId, initialTemplateId, initialEditToken, devMod
     if (!activeGiftId) return;
     const token = window.sessionStorage.getItem(`bloomora_edit_token:${activeGiftId}`) ?? window.sessionStorage.getItem('bloomora_edit_token');
     if (!token) { setErrorCode('network_error'); return; }
-    const url = `${window.location.origin}/edit/${token}`;
+    const url = siteUrl(`/edit/${encodeURIComponent(token)}`);
     try { await navigator.clipboard.writeText(url); }
     catch {
       const input = document.createElement('input'); input.value = url; input.select(); document.execCommand('copy'); input.remove();

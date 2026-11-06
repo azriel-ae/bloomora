@@ -6,28 +6,37 @@ import { Chatbot } from '@/components/chatbot';
 import { LocaleProvider } from '@/components/locale-provider';
 import { ChromeGate } from '@/components/chrome-gate';
 import { AdminChromeGate } from '@/components/admin-chrome-gate';
-import { locales, resolveLocale } from '@/lib/i18n-core';
+import { locales } from '@/lib/i18n-core';
+import { SITE_ORIGIN } from '@/lib/site-url';
 
 export const metadata: Metadata = {
-  title: { default: 'Bloomora — Digital gifts with a little more feeling', template: '%s · Bloomora' },
-  description: 'Create a small, beautiful world for someone you love — no code required.',
-  keywords: ['digital gifts', 'online greeting card', 'personalized gift', 'memory scrapbook'],
+  metadataBase: new URL(SITE_ORIGIN),
+  title: { default: 'Bloomora — Hadiah digital penuh cerita', template: '%s · Bloomora' },
+  description: 'Buat hadiah digital yang personal dan indah untuk orang tersayang, tanpa perlu menulis kode.',
+  keywords: ['hadiah digital', 'kartu ucapan online', 'hadiah personal', 'album kenangan'],
   icons: { icon: '/favicon.svg' },
+  openGraph: {
+    type: 'website',
+    locale: 'id_ID',
+    siteName: 'Bloomora',
+    url: SITE_ORIGIN,
+    title: 'Bloomora — Hadiah digital penuh cerita',
+    description: 'Buat hadiah digital yang personal dan indah untuk orang tersayang.',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Bloomora — Hadiah digital penuh cerita',
+    description: 'Buat hadiah digital yang personal dan indah untuk orang tersayang.',
+  },
 };
 
-/**
- * The locale comes from the route segment (the middleware rewrites every page request to
- * /{locale}/...), not from cookies(). Reading cookies here would make every page render
- * on the server per visitor; with the param, informational pages are prerendered per locale.
- */
 export function generateStaticParams() { return locales.map((locale) => ({ locale })); }
 
-export default async function RootLayout({ children, params }: Readonly<{ children: React.ReactNode; params: Promise<{ locale: string }> }>) {
-  const locale = resolveLocale((await params).locale);
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode; params: Promise<{ locale: string }> }>) {
   return (
-    <html lang={locale}>
+    <html lang="id">
       <body>
-        <LocaleProvider initialLocale={locale}>
+        <LocaleProvider>
           <AdminChromeGate><ChromeGate><SiteHeader /></ChromeGate></AdminChromeGate>
           <main>{children}</main>
           <AdminChromeGate><ChromeGate><Chatbot /></ChromeGate></AdminChromeGate>

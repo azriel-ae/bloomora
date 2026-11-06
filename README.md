@@ -20,6 +20,8 @@ Configure these variables in local development and Vercel Project Settings:
 - `GEMINI_MODEL`
 - `NEXT_PUBLIC_SITE_URL=https://bloomora.my.id`
 
+The product interface is Indonesian-only. Legacy `/id/...` and `/en/...` links redirect to unprefixed routes. `NEXT_PUBLIC_SITE_URL` must be set to the exact official HTTPS origin in Vercel; public links, QR codes, canonical metadata, and sitemap entries never use a Vercel preview hostname. Domain/DNS binding itself must be verified in the Vercel project.
+
 Run the committed SQL migration in `supabase/migrations/` against the owner-controlled Supabase project. Keep service-role and database credentials out of Git and out of all `NEXT_PUBLIC_` variables. Provision owner/admin users out of band in Supabase Auth and insert their server-controlled rows in `admin_profiles`. Disable public signup in Supabase Auth.
 
 The `payment-proofs` Storage bucket is private. Guest proof uploads and administrator previews must go through the server routes, which validate the order token, ownership, file type, size, and admin role. `payment-method-images` is public for owner-managed payment instructions. The `gift-media` bucket is private and reserved for customer photos/audio; its metadata is recorded in `gift_media` and its objects must be served through authorized server routes. Do not expose service-role credentials to browser code. For an idempotent SQL setup, use `supabase/setup_storage.sql`.

@@ -30,19 +30,20 @@ async function readPublicGift(giftSlug: string) {
 
 export async function generateMetadata({ params }: { params: Promise<{ giftSlug: string }> }): Promise<Metadata> {
   const { giftSlug } = await params;
-  if (giftSlug === 'demo') return { title: 'Bloomora gift demo', robots: { index: false, follow: false } };
+  if (giftSlug === 'demo') return { title: 'Demo hadiah Bloomora', robots: { index: false, follow: false } };
   const result = await readPublicGift(giftSlug);
   const published = result?.publicGift;
   const template = published ? getTemplateForRender(published.templateId, published.templateVersion) : null;
   return {
-    title: template ? `${template.name.en} · Bloomora` : 'Bloomora gift',
-    description: 'A digital gift made with care.',
+    title: template ? `${template.name.id} · Bloomora` : 'Hadiah Bloomora',
+    description: 'Hadiah digital yang dibuat dengan sepenuh hati.',
     robots: published ? { index: true, follow: true } : { index: false, follow: false },
+    ...(published ? { alternates: { canonical: `/g/${encodeURIComponent(giftSlug)}` } } : {}),
   };
 }
 
 function StatusCard({ title, body, explore }: { title: string; body: string; explore: string }) {
-  return <div className="min-h-[70vh] bg-[#eee9df] px-5 py-14 lg:py-24"><div className="mx-auto max-w-2xl rounded-[2rem] border border-line bg-paper p-8 text-center shadow-soft sm:p-12"><p className="text-xs font-bold uppercase tracking-[.18em] text-moss">Bloomora gift</p><h1 className="mt-4 font-display text-4xl">{title}</h1><p className="mt-4 text-sm leading-6 text-ink/60">{body}</p><Link href="/templates" className="mt-7 inline-flex items-center rounded-full bg-moss px-5 py-3 text-sm font-semibold text-ivory">{explore}<ArrowUpRight className="ml-2" size={16} /></Link></div></div>;
+  return <div className="min-h-[70vh] bg-[#eee9df] px-5 py-14 lg:py-24"><div className="mx-auto max-w-2xl rounded-[2rem] border border-line bg-paper p-8 text-center shadow-soft sm:p-12"><p className="text-xs font-bold uppercase tracking-[.18em] text-moss">Hadiah Bloomora</p><h1 className="mt-4 font-display text-4xl">{title}</h1><p className="mt-4 text-sm leading-6 text-ink/60">{body}</p><Link href="/templates" className="mt-7 inline-flex items-center rounded-full bg-moss px-5 py-3 text-sm font-semibold text-ivory">{explore}<ArrowUpRight className="ml-2" size={16} /></Link></div></div>;
 }
 
 export default async function GiftPage({ params }: { params: Promise<{ giftSlug: string }> }) {

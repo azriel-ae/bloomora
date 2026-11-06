@@ -44,6 +44,22 @@ try {
   const page = await browser.newPage({ viewport: { width: 1280, height: 850 } });
   page.on('pageerror', (error) => problems.push(error.message));
   page.on('console', (message) => { if (message.type() === 'error') problems.push(message.text()); });
+  await page.addInitScript(() => {
+    window.__bloomoraSoundCount = 0;
+    class MockAudioContext {
+      state = 'running'; currentTime = 0; destination = {};
+      createOscillator() { return { type: 'sine', frequency: { setValueAtTime() {} }, connect() {}, start() { window.__bloomoraSoundCount++; }, stop() {} }; }
+      createGain() { return { gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} }, connect() {} }; }
+      resume() { return Promise.resolve(); }
+    }
+    Object.defineProperty(window, 'AudioContext', { configurable: true, value: MockAudioContext });
+  });
+  await page.route('**/api/chat', async (route) => {
+    const body = route.request().postDataJSON();
+    const latest = body?.messages?.at(-1)?.text;
+    if (latest === 'uji gagal') return route.fulfill({ status: 502, contentType: 'application/json', body: JSON.stringify({ error: 'Panduan sedang istirahat sebentar.' }) });
+    return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ text: 'Balasan uji selesai.' }) });
+  });
 
   await page.goto(`${base}/id/templates`, { waitUntil: 'networkidle' });
   assert.equal(await page.locator('[data-template-card]').count(), 4, 'catalog lists all active engine templates');
@@ -82,6 +98,24 @@ try {
   await page.goto(`${base}/create?template=chapter-of-us`, { waitUntil: 'networkidle' });
   assert.equal(await page.getByText('Bab Tentang Kita', { exact: true }).count() >= 1, true, 'create page keeps the selected template from its query string');
 
+  await page.goto(`${base}/`, { waitUntil: 'networkidle' });
+  await page.getByRole('button', { name: 'Panduan Bloomora' }).click();
+  assert.equal(await page.evaluate(() => window.__bloomoraSoundCount), 0, 'opening chat does not autoplay sound');
+  await page.getByRole('button', { name: 'Aktifkan suara balasan' }).click();
+  await page.getByPlaceholder('Tulis pesan…').fill('uji sukses');
+  await page.getByRole('button', { name: 'Kirim' }).click();
+  await page.getByText('Balasan uji selesai.', { exact: true }).waitFor();
+  assert.equal(await page.evaluate(() => window.__bloomoraSoundCount), 1, 'one completed reply produces one soft sound');
+  await page.getByPlaceholder('Tulis pesan…').fill('uji gagal');
+  await page.getByRole('button', { name: 'Kirim' }).click();
+  await page.getByText('Panduan sedang istirahat sebentar.', { exact: true }).waitFor();
+  assert.equal(await page.evaluate(() => window.__bloomoraSoundCount), 1, 'failed replies do not produce a sound');
+  await page.getByRole('button', { name: 'Matikan suara balasan' }).click();
+  await page.getByPlaceholder('Tulis pesan…').fill('uji bisu');
+  await page.getByRole('button', { name: 'Kirim' }).click();
+  await page.getByText('Balasan uji selesai.', { exact: true }).last().waitFor();
+  assert.equal(await page.evaluate(() => window.__bloomoraSoundCount), 1, 'muted replies remain silent');
+
   await page.goto(`${base}/id`, { waitUntil: 'networkidle' });
   assert.equal(await page.locator('[data-template-art][data-template-id="chapter-of-us"]').count() >= 1, true, 'homepage preview uses an active featured engine template');
   assert.equal(await page.locator('a[href="/templates/chapter-of-us"]').count() >= 1, true, 'homepage collection links to engine template ids');
@@ -94,8 +128,16 @@ try {
   assert.equal(await page.locator('.bl-root[data-mode="demo"]').count(), 1, 'legacy editor demo alias never presents fake editing controls');
 
   await page.goto(`${base}/en/templates/pressed-garden`, { waitUntil: 'networkidle' });
-  assert.equal(await page.getByRole('heading', { name: 'Pressed Garden' }).count(), 1, 'English detail copy is localized');
-  assert.equal(await page.getByRole('heading', { name: 'Eligible packages' }).count(), 1, 'package eligibility is localized in English');
+  assert.equal(new URL(page.url()).pathname, '/templates/pressed-garden', 'legacy English-prefixed links redirect to the canonical unprefixed route');
+  assert.equal(await page.locator('html').getAttribute('lang'), 'id', 'all routes declare Indonesian as their language');
+  assert.equal(await page.getByRole('button', { name: /bahasa|language/i }).count(), 0, 'no language selector remains');
+  const cookies = await page.context().cookies(base);
+  assert.equal(cookies.some((cookie) => cookie.name === 'bloomora_locale'), false, 'the app does not set a language-preference cookie');
+
+  const robots = await (await page.request.get(`${base}/robots.txt`)).text();
+  const sitemap = await (await page.request.get(`${base}/sitemap.xml`)).text();
+  assert.ok(robots.includes('https://bloomora.my.id/sitemap.xml'), 'robots references the official sitemap');
+  assert.ok(sitemap.includes('https://bloomora.my.id/templates'), 'sitemap URLs use the official domain');
 
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${base}/id/templates`, { waitUntil: 'networkidle' });
@@ -103,7 +145,7 @@ try {
   assert.ok(overflow <= 1, `mobile catalog has no horizontal overflow (got ${overflow}px)`);
   assert.equal(problems.length, 0, `browser has no page/console errors: ${problems.join('; ')}`);
 
-  console.log('PASS catalog browser tests: search, category filter, empty/reset, badges/demo, detail/package eligibility, locale, create selection, mobile layout.');
+  console.log('PASS catalog browser tests: search, category filter, empty/reset, badges/demo, detail/package eligibility, Indonesian-only routing, canonical domain, create selection, mobile layout.');
 } finally {
   if (browser) await browser.close();
   if (child && child.exitCode === null) {

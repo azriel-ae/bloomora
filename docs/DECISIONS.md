@@ -86,3 +86,10 @@ Checkout hanya mewajibkan satu kanal kontak pelanggan (email atau WhatsApp); kan
 ## Payment destination administration boundary — 2026-11-05
 
 Payment methods (bank details, wallet details, QRIS images) are privileged payment destinations and can only be managed by provisioned `admin`/`owner` profiles. Existing broad authenticated-user policies are replaced by migration `20261105000100_payment_method_admin_only.sql`; the server APIs apply the same check, and storage image writes are UID-folder scoped. Public checkout retains active-method reads only. Live SQL must be applied manually before deployment.
+
+
+## Locale, domain resmi, dan notifikasi chat — 2026-11-06
+
+35. **Bahasa antarmuka.** Seluruh UI Bloomora hanya Bahasa Indonesia; tidak ada language switcher, cookie preferensi bahasa, atau preferensi bahasa server. Route `/id/...` dan `/en/...` tetap diterima sementara sebagai redirect kompatibilitas ke route tanpa prefix; cookie `bloomora_locale` legacy dibersihkan. Copy data lama dapat tetap tersimpan untuk kompatibilitas engine, tetapi tidak mengaktifkan UI English. Status: DISEPAKATI pengguna; DIIMPLEMENTASIKAN.
+36. **Origin resmi.** URL canonical dan tautan publik memakai `https://bloomora.my.id`, bukan host preview atau Vercel. `NEXT_PUBLIC_SITE_URL` hanya diterima bila persis cocok dengan origin resmi; selain itu helper fallback ke domain resmi. Status: DISEPAKATI pengguna; kode DIIMPLEMENTASIKAN. Inspeksi Vercel read-only menemukan variabel belum ada dan konfigurasi apex saat ini redirect 308 ke `www.bloomora.my.id`; tidak ada perubahan project Vercel dilakukan. Penyesuaian Production env/routing/domain masih pending.
+37. **Bunyi balasan chatbot.** Mainkan bunyi pendek dan lembut hanya setelah balasan baru berhasil selesai, maksimum satu kali per jawaban; jangan bunyikan saat error atau memuat riwayat. Autoplay tidak dipaksa: suara default mati dan pengguna dapat mengaktifkannya lewat interaksi di UI, dengan mute yang disimpan lokal tanpa cookie. Status: DISEPAKATI pengguna; DIIMPLEMENTASIKAN.

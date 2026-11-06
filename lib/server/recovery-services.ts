@@ -2,6 +2,7 @@ import { createEditToken, hashEditToken } from '../security/edit-token.ts';
 import { consumeRateLimit, type RateLimitPolicy } from '../security/rate-limit.ts';
 import { createRecoveryToken, hashRecoveryDestination, hashRecoveryToken, normalizeRecoveryDestination } from '../security/recovery.ts';
 import { ServiceError, guarded, type Doc, type Env } from './store.ts';
+import { siteUrl } from '../site-url.ts';
 
 const RECOVERY_TTL_MS = 30 * 60_000;
 const GUEST_EDIT_DAYS = 30;
@@ -27,7 +28,7 @@ function destination(gift: Doc, selected: RecoveryChannel, raw: unknown): string
 export async function issueGuestEditRecovery(
   env: Env,
   input: { giftId: unknown; channel: unknown; destination: unknown },
-  siteOrigin: string,
+  _siteOrigin: string,
   provider: RecoveryDeliveryProvider | null,
 ) {
   const selected = channel(input.channel);
@@ -51,7 +52,7 @@ export async function issueGuestEditRecovery(
     return { recoveryHash, token, destination: supplied, channel: selected };
   }));
   if (!pending.ok) return pending;
-  const recoveryUrl = `${siteOrigin.replace(/\/$/, '')}/recover/edit?token=${encodeURIComponent(pending.token)}`;
+  const recoveryUrl = siteUrl(`/recover/edit?token=${encodeURIComponent(pending.token)}`);
   try {
     await provider.send({ channel: pending.channel, destination: pending.destination, recoveryUrl });
     await env.store.runTransaction(async (tx) => {

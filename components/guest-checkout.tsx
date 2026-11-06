@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import type { PackageDoc, PackageId } from '@/lib/model/types';
+import { SITE_ORIGIN } from '@/lib/site-url';
 
 type Method = { id: string; name: string; instructions: string; active: boolean; sortOrder: number; imageUrl?: string | null };
 type Copy = Record<string, string>;
@@ -93,7 +94,7 @@ export function GuestCheckout({ giftId, locale, copy, packages }: { giftId: stri
 
   useEffect(() => {
     let active = true;
-    setOrigin(window.location.origin);
+    setOrigin(SITE_ORIGIN);
     const token = giftEditToken(giftId);
     if (!token) { setSlugStatus('invalid'); return () => { active = false; }; }
     fetch(`/api/guest/gifts/${encodeURIComponent(giftId)}`, { cache: 'no-store', headers: { 'x-bloomora-edit-token': token } })

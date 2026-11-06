@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-06 — UI Bahasa Indonesia, domain canonical, dan bunyi balasan chat
+
+- Menghapus kamus English serta language switcher; UI, metadata, demo, admin, chatbot, dan test harness kini menggunakan Bahasa Indonesia. Middleware mengarahkan route `/id/...` dan `/en/...` lama ke route tanpa prefix serta menghapus cookie locale lama.
+- Menambahkan canonical domain `https://bloomora.my.id` untuk metadata, robots/sitemap, QR/share, tautan hadiah/edit, dan secure recovery. `.env.example` serta README memuat `NEXT_PUBLIC_SITE_URL` yang tepat; Vercel Project Settings/DNS masih memerlukan penyesuaian produksi.
+- Inspeksi Vercel read-only menemukan `NEXT_PUBLIC_SITE_URL` belum ada dan domain apex saat ini redirect 308 ke `www`; tidak ada pengaturan project/account yang diubah. Sesi browser Vercel di-logout atas permintaan pengguna; pembaruan Production env/domain routing tetap tindakan deployment terpisah.
+- Menambahkan suara chatbot opt-in yang default mute, memakai Web Audio ringan setelah balasan sukses selesai, serta menghormati mute lokal. Tidak ada asset audio eksternal.
+- Menambahkan regression test untuk redirect locale legacy, canonical domain, suara chat sukses/gagal/mute, dan pengecekan kamus satu bahasa. Status hasil verifikasi continuation dicatat di `docs/PROGRESS.md` setelah test dijalankan.
+
 ## 2026-11-06 — Locale dari route segment, halaman statis per bahasa
 
 - Semua route halaman dipindahkan ke `app/[locale]/` (`/id`, `/en`). `middleware.ts` selalu me-*rewrite* ke `/{locale}/...` (URL di browser tidak berubah); locale diambil dari prefix, lalu cookie `bloomora_locale`, lalu default `id`.

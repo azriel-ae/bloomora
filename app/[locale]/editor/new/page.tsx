@@ -4,7 +4,7 @@ import { getActiveTemplate } from '@/lib/engine/registry';
 import { isEditorDevMode } from '@/lib/server/dev-editor-env';
 import { notFound } from 'next/navigation';
 
-export const metadata: Metadata = { title: 'New gift draft', description: 'Start a private gift draft from a Bloomora template.' };
+export const metadata: Metadata = { title: 'Draf hadiah baru', description: 'Mulai draf hadiah privat dari template Bloomora.', robots: { index: false, follow: false } };
 
 export default async function NewGiftEditorPage({ searchParams }: { searchParams: Promise<{ template?: string }> }) {
   const { template: templateId } = await searchParams;

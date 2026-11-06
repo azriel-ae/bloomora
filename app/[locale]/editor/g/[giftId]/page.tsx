@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { GiftEditor } from '@/components/gift-editor';
 import { isEditorDevMode } from '@/lib/server/dev-editor-env';
 
-export const metadata: Metadata = { title: 'Edit gift draft', description: 'Edit a private Bloomora gift draft.' };
+export const metadata: Metadata = { title: 'Edit draf hadiah', description: 'Edit draf hadiah Bloomora yang privat.', robots: { index: false, follow: false } };
 
 export default async function SavedGiftEditorPage({ params }: { params: Promise<{ giftId: string }> }) {
   const { giftId } = await params;

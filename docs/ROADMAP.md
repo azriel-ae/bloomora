@@ -8,9 +8,15 @@ Penomoran Phase 4 sampai 9 mengikuti urutan prioritas yang ditulis pengguna (kat
 
 - Mulai hanya setelah pengguna menyetujui tahap itu. Kerjakan satu tahap, verifikasi, laporkan, lalu berhenti.
 - Jangan menghubungkan Supabase atau mengaktifkan Supabase Storage provisioning sebelum Tahap 10 dan persetujuan eksplisit.
-- Model B tidak boleh berubah. Semua tulis data lewat `lib/server/services.ts`. Tanpa emoji. Dua bahasa (id dan en) untuk setiap teks baru, lalu `pnpm check:i18n`.
+- Model B tidak boleh berubah. Semua tulis data lewat `lib/server/services.ts`. Tanpa emoji. Antarmuka produk hanya Bahasa Indonesia; teks UI baru ditambahkan pada `messages/id.json` dan diverifikasi dengan `pnpm check:i18n`.
 - Jangan klaim PASS untuk pengujian yang tidak dijalankan. Tulis "tidak dijalankan" beserta alasannya.
 - Setiap tahap memperbarui `docs/PROGRESS.md`, `docs/CHANGELOG.md`, dan `docs/DECISIONS.md` bila ada keputusan baru.
+
+## Maintenance 2026-11-06: locale, domain, dan chatbot
+
+**Status implementasi: selesai; pengujian continuation dan push dicatat setelah dijalankan.** UI kini hanya Bahasa Indonesia; prefiks `/id` dan `/en` menjadi redirect kompatibilitas ke route tanpa prefix, dan cookie locale legacy dibersihkan. Metadata, robots/sitemap, serta tautan publik diarahkan ke `https://bloomora.my.id`. Chatbot memberi bunyi ringan hanya setelah balasan sukses selesai dan suara diaktifkan pengguna.
+
+**Tindakan deployment tersisa:** inspeksi read-only Vercel pada 2026-11-06 menemukan `NEXT_PUBLIC_SITE_URL` belum disetel. Domain apex berstatus valid tetapi Vercel mengarahkannya dengan 308 ke `www.bloomora.my.id`; `www` saat ini ditetapkan ke Production. Untuk memenuhi canonical apex yang diminta, set `NEXT_PUBLIC_SITE_URL=https://bloomora.my.id` pada Production, arahkan apex ke deployment Production dan redirect `www` ke apex, lalu verifikasi ulang domain/DNS. Tidak ada pengaturan Vercel yang diubah dalam task ini; jangan mengklaim konfigurasi live sesuai canonical sampai tindakan tersebut selesai.
 
 ## Tahap 0: sebelum Phase 4
 

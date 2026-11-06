@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { GuestOrderDetail } from '@/components/guest-order-detail';
 import { getLocale, getMessages } from '@/lib/i18n';
 
-export const metadata: Metadata = { title: 'Order payment details | Bloomora', robots: { index: false, follow: false } };
+export const metadata: Metadata = { title: 'Detail pembayaran pesanan', robots: { index: false, follow: false } };
 
 export default async function GuestOrderPaymentPage({ params }: { params: Promise<{ orderId: string }> }) {
   const [{ orderId }, locale] = await Promise.all([params, getLocale()]);

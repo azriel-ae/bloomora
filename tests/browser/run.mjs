@@ -191,7 +191,7 @@ group('Mobile 390x844 / id');
   check('tap opens the letter', await p.locator('.bl-story').isVisible());
   await shot(p, 'mobile-id-hero');
   check('mobile: every top-bar control is fully inside the viewport', await p.$$eval('.bl-nav-row button, .bl-nav-row a', (els) => els.every((e) => { const r = e.getBoundingClientRect(); return r.left >= 0 && r.right <= innerWidth && r.width > 0; })));
-  check('mobile: language toggle visible and exposes pressed state', await p.getByRole('button', { name: 'ID' }).isVisible() && (await p.getByRole('button', { name: 'ID' }).getAttribute('aria-pressed')) === 'true' && (await p.getByRole('button', { name: 'EN', exact: true }).getAttribute('aria-pressed')) === 'false');
+  check('mobile: tidak ada kontrol pergantian bahasa', await p.getByRole('button', { name: 'ID' }).count() === 0 && await p.getByRole('button', { name: 'EN', exact: true }).count() === 0);
   check('mobile: icon-only menu button keeps an accessible name', (await p.locator('.bl-nav-btn[aria-controls="bl-menu"]').getAttribute('aria-label')) === 'Isi cerita');
   check('hero title fits width', await inViewport(p, '.bl-hero-title') || (await p.locator('.bl-hero-title').evaluate((e) => e.getBoundingClientRect().right <= innerWidth)));
   await goTo(p, '#bl-timeline'); await p.waitForTimeout(600); await shot(p, 'mobile-id-timeline');
@@ -216,20 +216,6 @@ group('Mobile 390x844 / id');
   check('mobile: no horizontal overflow', (await overflowX(p)) <= 0);
   check('mobile: no console errors', problems.length === 0, problems);
   await ctx.close();
-}
-
-/* ============ C. English ============ */
-group('Desktop / en');
-{
-  const { p, ctx, problems } = await page(DESKTOP, 'locale=en');
-  check('English opening labels', (await text(p, '.bl-open-from')) === 'From Arga' && await p.getByRole('button', { name: 'Open the letter' }).isVisible() && (await text(p, '.bl-eyebrow')) === 'FOR');
-  await open(p, 'Open the letter');
-  check('English cover content', (await text(p, 'h1')) === 'Three Years, One Story' && (await text(p, '.bl-nav-title')) === 'Chapter of Us');
-  await goTo(p, '#bl-letter'); check('English chapter label and letter', (await text(p, '.bl-eyebrow >> nth=1')).toLowerCase().includes('chapter i') && (await text(p, '.bl-letter-greeting')) === 'Dear Maya,');
-  await goTo(p, '#bl-gallery'); await p.locator('.bl-plate').first().click();
-  check('English lightbox labels', (await text(p, '.bl-lb-count')) === '1 of 6' && await p.getByRole('button', { name: 'Close gallery' }).isVisible()); await shot(p, 'desktop-en-lightbox'); await p.keyboard.press('Escape');
-  await goTo(p, '#bl-message'); check('English deck status', (await text(p, '.bl-deck-status')) === '0 of 6 open');
-  check('English: no console errors', problems.length === 0, problems); await ctx.close();
 }
 
 /* ============ D. Reduced motion ============ */
@@ -328,11 +314,9 @@ group('Audio recorded but URL unavailable');
 group('Server render + hydration (what Next does)');
 {
   const fs = await import('node:fs');
-  for (const locale of ['id', 'en']) {
-    const html = fs.readFileSync(path.join(here, `dist/ssr-${locale}.html`), 'utf8');
-    check(`${locale}: server HTML contains the sealed opening, hidden story and no browser-only crash`, html.includes('bl-opening') && /class="bl-story"[^>]*hidden/.test(html) && html.includes(locale === 'id' ? 'Buka surat' : 'Open the letter'));
-    check(`${locale}: server HTML has no emoji and no script injection from content`, !EMOJI.test(html) && !/<script(?![^>]*src=)/i.test(html.replace(/<script src="hydrate.js"><\/script>/, '')));
-  }
+  const html = fs.readFileSync(path.join(here, 'dist/ssr-id.html'), 'utf8');
+  check('server HTML contains the Indonesian sealed opening, hidden story and no browser-only crash', html.includes('bl-opening') && /class="bl-story"[^>]*hidden/.test(html) && html.includes('Buka surat'));
+  check('server HTML has no emoji and no script injection from content', !EMOJI.test(html) && !/<script(?![^>]*src=)/i.test(html.replace(/<script src="hydrate.js"><\/script>/, '')));
   const ctx = await browser.newContext(DESKTOP); const p = await ctx.newPage(); const problems = [];
   p.on('console', (m) => { if (['error', 'warning'].includes(m.type())) problems.push(`${m.type()}: ${m.text()}`); });
   p.on('pageerror', (e) => problems.push(`pageerror: ${e.message}`));
