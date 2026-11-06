@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useLocale } from '../locale-provider';
 
 type Proof = { available: true; contentType: string; sizeBytes: number; submittedAtMs: number } | null;
 type AiReview = {
@@ -26,13 +27,18 @@ const statusLabel: Record<string, string> = { awaiting_payment: 'Menunggu pembay
 const checkLabel: Record<string, string> = { match: 'SESUAI', mismatch: 'TIDAK SESUAI', unknown: 'PERLU DIPERIKSA' };
 const checkClass: Record<string, string> = { match: 'bg-[#e4efe3] text-moss', mismatch: 'bg-[#f2dfd8] text-rose', unknown: 'bg-ivory text-ink/60' };
 const proofAiStateLabel: Record<string, string> = { analyzed: 'SUDAH DIANALISIS', unavailable_manual_review: 'PERLU TINJAUAN MANUAL', manual_review: 'PERLU TINJAUAN MANUAL', failed: 'GAGAL' };
-const auditActionLabel: Record<string, string> = { 'qris_display.update': 'Pembaruan tampilan QRIS', 'voucher.delete': 'Penghapusan voucher', 'order.delete': 'Penghapusan pesanan', 'order.approve': 'Persetujuan pesanan', 'order.payment_reference_duplicate': 'Referensi pembayaran duplikat terdeteksi', 'order.auto_approve_gemini': 'Persetujuan otomatis oleh Gemini', 'order.reject': 'Penolakan pesanan', 'order.proof_submitted': 'Bukti pembayaran dikirim' };
+const auditActionLabel: Record<string, string> = { 'qris_display.update': 'Pembaruan tampilan QRIS', 'voucher.delete': 'Penghapusan voucher', 'order.delete': 'Penghapusan pesanan', 'order.approve': 'Persetujuan pesanan', 'order.payment_reference_duplicate': 'Referensi pembayaran duplikat terdeteksi', 'order.auto_approve_gemini': 'Persetujuan otomatis oleh Gemini', 'order.reject': 'Penolakan pesanan', 'order.proof_submitted': 'Bukti pembayaran dikirim', 'order.customer_editor_link_issued': 'Tautan editor pelanggan dibuat' };
 
 export function AdminOrderReview({ order, audit }: { order: Order; audit: Audit[] }) {
+  const { t } = useLocale();
   const [reason, setReason] = useState('');
   const [busy, setBusy] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
   const [message, setMessage] = useState('');
+  const [editorLink, setEditorLink] = useState('');
+  const [editorLinkExpiresAtMs, setEditorLinkExpiresAtMs] = useState<number | null>(null);
+  const [editorLinkBusy, setEditorLinkBusy] = useState(false);
+  const [editorLinkMessage, setEditorLinkMessage] = useState('');
   const [proofPreviewUrl, setProofPreviewUrl] = useState<string | null>(null);
   const [proofPreviewMessage, setProofPreviewMessage] = useState('');
 
@@ -78,6 +84,35 @@ export function AdminOrderReview({ order, audit }: { order: Order; audit: Audit[
     finally { setDeleteBusy(false); }
   }
 
+  async function createEditorLink() {
+    if (!order.giftId || editorLinkBusy || order.deletedAtMs) return;
+    setEditorLinkBusy(true); setEditorLinkMessage(''); setEditorLink(''); setEditorLinkExpiresAtMs(null);
+    try {
+      const response = await fetch(`/api/admin/orders/${encodeURIComponent(order.orderId)}/editor-link`, { method: 'POST' });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.ok || typeof data.editorUrl !== 'string' || typeof data.expiresAtMs !== 'number') {
+        setEditorLinkMessage(t('admin', 'customerEditorLinkFailed'));
+        return;
+      }
+      setEditorLink(data.editorUrl);
+      setEditorLinkExpiresAtMs(data.expiresAtMs);
+    } catch {
+      setEditorLinkMessage(t('admin', 'customerEditorLinkFailed'));
+    } finally {
+      setEditorLinkBusy(false);
+    }
+  }
+
+  async function copyEditorLink() {
+    if (!editorLink) return;
+    try {
+      await navigator.clipboard.writeText(editorLink);
+      setEditorLinkMessage(t('admin', 'customerEditorLinkCopied'));
+    } catch {
+      setEditorLinkMessage(t('admin', 'customerEditorLinkCopyFallback'));
+    }
+  }
+
   return <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_.8fr]">
     <section className="space-y-5 rounded-3xl border border-line bg-paper p-6 sm:p-8">
       <div className="flex flex-wrap items-start justify-between gap-4"><div><p className="text-xs font-bold uppercase tracking-[.18em] text-moss">Transaksi / detail</p><h1 className="mt-2 break-all font-mono text-2xl">{order.orderId}</h1></div><span className="rounded-full bg-ivory px-4 py-2 text-sm font-semibold">{statusLabel[order.status] ?? order.status}</span></div>
@@ -91,6 +126,26 @@ export function AdminOrderReview({ order, audit }: { order: Order; audit: Audit[
       <div className="flex flex-wrap gap-4 text-sm">{order.publicSlug && <Link className="text-moss underline" href={`/g/${order.publicSlug}`}>Buka hadiah yang telah diterbitkan</Link>}{order.giftId && <span className="font-mono text-xs text-ink/45">Hadiah {order.giftId}</span>}</div>
     </section>
     <aside className="space-y-6">
+      <section className="rounded-3xl border border-line bg-paper p-6">
+        <h2 className="font-display text-2xl">{t('admin', 'customerEditorLinkTitle')}</h2>
+        <p className="mt-2 text-sm leading-6 text-ink/60">{t('admin', 'customerEditorLinkHelp')}</p>
+        {order.giftId ? <>
+          <button type="button" disabled={editorLinkBusy || Boolean(order.deletedAtMs)} onClick={() => void createEditorLink()} className="mt-4 rounded-full bg-ink px-5 py-3 text-sm font-semibold text-ivory disabled:opacity-45">
+            {editorLinkBusy ? t('admin', 'customerEditorLinkCreating') : t('admin', 'customerEditorLinkCreate')}
+          </button>
+          {editorLink && <div className="mt-4 space-y-3">
+            <label className="block text-xs font-semibold text-ink/65">{t('admin', 'customerEditorLinkLabel')}
+              <input readOnly value={editorLink} onFocus={(event) => event.currentTarget.select()} className="mt-2 w-full rounded-xl border border-line bg-ivory px-3 py-3 text-xs text-ink" />
+            </label>
+            <div className="flex flex-wrap gap-2">
+              <a href={editorLink} target="_blank" rel="noreferrer" className="rounded-full border border-line px-4 py-2 text-sm font-semibold">{t('admin', 'customerEditorLinkOpen')}</a>
+              <button type="button" onClick={() => void copyEditorLink()} className="rounded-full border border-line px-4 py-2 text-sm font-semibold">{t('admin', 'customerEditorLinkCopy')}</button>
+            </div>
+            {editorLinkExpiresAtMs !== null && <p className="text-xs text-ink/55">{t('admin', 'customerEditorLinkExpires')}: {new Date(editorLinkExpiresAtMs).toLocaleString('id-ID')}</p>}
+          </div>}
+          {editorLinkMessage && <p aria-live="polite" className="mt-3 text-sm text-ink/70">{editorLinkMessage}</p>}
+        </> : <p className="mt-4 text-sm text-ink/60">{t('admin', 'customerEditorLinkNotLinked')}</p>}
+      </section>
       <section className="rounded-3xl border border-line bg-paper p-6"><h2 className="font-display text-2xl">Verifikasi admin</h2><p className="mt-2 text-sm leading-6 text-ink/60">Persetujuan mengaktifkan langganan. Jangan menyetujui sebelum bukti privat dapat diperiksa.</p>
         {!order.canReview && <p className="mt-4 rounded-xl bg-ivory p-4 text-sm leading-6 text-ink/60">Tindakan menyetujui atau menolak terkunci sampai status bukti terkirim memiliki metadata bukti yang valid. Berkas pratinjau penyimpanan belum tersedia.</p>}
         <label className="mt-5 block text-sm font-semibold">Alasan penolakan<textarea value={reason} onChange={(event) => setReason(event.target.value)} maxLength={300} rows={3} className="mt-2 w-full rounded-xl border border-line bg-ivory px-4 py-3 text-sm" placeholder="Jelaskan alasan yang dapat ditindaklanjuti" /></label>

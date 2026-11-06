@@ -123,6 +123,18 @@ export interface GuestOrderIdempotencyDoc<T extends TimestampLike = TimestampLik
   schemaVersion: 1;
 }
 
+/** guestEditLinks/{tokenHash} - server-only, hashed, admin-issued customer editor access. */
+export interface GuestEditLinkDoc<T extends TimestampLike = TimestampLike> {
+  giftId: string;
+  ownerUid: string;
+  orderId: string;
+  issuedByAdminUid: string;
+  createdAt: T;
+  expiresAt: T;
+  revokedAt: T | null;
+  schemaVersion: 1;
+}
+
 /** guestEditRecoveries/{sha256(token)} - server-only, one-time delivery record. */
 export type GuestEditRecoveryStatus = 'pending' | 'sent' | 'delivery_failed' | 'redeemed';
 export interface GuestEditRecoveryDoc<T extends TimestampLike = TimestampLike> {

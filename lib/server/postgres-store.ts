@@ -33,6 +33,7 @@ const COLLECTIONS: Record<string, { table: string; keyColumn: string; fields: Re
   subscriptionSchedules: { table: 'subscription_schedules', keyColumn: 'user_id', fields: {} },
   guestOrderIdempotency: { table: 'guest_order_idempotency', keyColumn: 'key_hash', fields: {} },
   guestEditRecoveries: { table: 'guest_edit_recoveries', keyColumn: 'token_hash', fields: {} },
+  guestEditLinks: { table: 'guest_edit_links', keyColumn: 'token_hash', fields: { giftId: 'gift_id', orderId: 'order_id' } },
   giftMedia: { table: 'gift_media', keyColumn: 'id', fields: { giftId: 'gift_id', ownerUid: 'owner_uid', storagePath: 'storage_path' } },
   rateLimits: { table: 'rate_limits', keyColumn: 'bucket_hash', fields: {} },
   adminAuditLogs: { table: 'admin_audit_logs', keyColumn: 'id', fields: { orderId: 'order_id' } },
@@ -194,6 +195,9 @@ function encode(info: PathInfo, data: Doc): Row {
     case 'guestEditRecoveries':
       for (const [domain, column] of Object.entries({ giftId: 'gift_id', ownerUid: 'owner_uid', channel: 'channel', destinationHash: 'destination_hash', status: 'status', createdAt: 'created_at', expiresAt: 'expires_at', sentAt: 'sent_at', failedAt: 'failed_at', usedAt: 'used_at', schemaVersion: 'schema_version' })) field(domain, column);
       break;
+    case 'guestEditLinks':
+      for (const [domain, column] of Object.entries({ giftId: 'gift_id', ownerUid: 'owner_uid', orderId: 'order_id', issuedByAdminUid: 'issued_by_admin_uid', createdAt: 'created_at', expiresAt: 'expires_at', revokedAt: 'revoked_at', schemaVersion: 'schema_version' })) field(domain, column);
+      break;
     case 'giftMedia':
       for (const [domain, column] of Object.entries({ giftId: 'gift_id', ownerUid: 'owner_uid', kind: 'kind', storagePath: 'storage_path', contentType: 'content_type', sizeBytes: 'size_bytes', createdAt: 'created_at', deletedAt: 'deleted_at', schemaVersion: 'schema_version' })) field(domain, column);
       break;
@@ -264,6 +268,7 @@ function decode(info: PathInfo, row: Row): Doc {
     case 'subscriptionSchedules': return { userId: d('user_id'), lastSubscriptionId: d('last_subscription_id'), lastStartedAt: fromDate(d('last_started_at')), lastExpiresAt: fromDate(d('last_expires_at')), updatedAt: fromDate(d('updated_at')), schemaVersion: d('schema_version') };
     case 'guestOrderIdempotency': return { ownerUid: d('owner_uid'), giftId: d('gift_id'), orderId: d('order_id'), createdAt: fromDate(d('created_at')), expiresAt: fromDate(d('expires_at')), schemaVersion: d('schema_version') };
     case 'guestEditRecoveries': return { giftId: d('gift_id'), ownerUid: d('owner_uid'), channel: d('channel'), destinationHash: d('destination_hash'), status: d('status'), createdAt: fromDate(d('created_at')), expiresAt: fromDate(d('expires_at')), sentAt: fromDate(d('sent_at')), failedAt: fromDate(d('failed_at')), usedAt: fromDate(d('used_at')), schemaVersion: d('schema_version') };
+    case 'guestEditLinks': return { giftId: d('gift_id'), ownerUid: d('owner_uid'), orderId: d('order_id'), issuedByAdminUid: d('issued_by_admin_uid'), createdAt: fromDate(d('created_at')), expiresAt: fromDate(d('expires_at')), revokedAt: fromDate(d('revoked_at')), schemaVersion: d('schema_version') };
     case 'giftMedia': return { giftId: d('gift_id'), ownerUid: d('owner_uid'), kind: d('kind'), storagePath: d('storage_path'), contentType: d('content_type'), sizeBytes: Number(d('size_bytes')), createdAt: fromDate(d('created_at')), deletedAt: fromDate(d('deleted_at')), schemaVersion: d('schema_version') };
     case 'rateLimits': return { scope: d('scope'), count: Number(d('count')), windowStartedAtMs: toMillis(d('window_started_at')), resetAtMs: toMillis(d('reset_at')), updatedAtMs: toMillis(d('updated_at')), schemaVersion: d('schema_version') };
     case 'adminAuditLogs': return { ...(d('details') as Record<string, unknown>), action: d('action'), actorUid: d('actor_uid'), orderId: d('order_id'), reason: d('reason'), at: fromDate(d('created_at')) };

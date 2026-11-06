@@ -24,6 +24,7 @@
     { "path": "/dashboard", "title": "Dashboard — Bloomora" },
     { "path": "/create", "title": "Create a gift — Bloomora" },
     { "path": "/editor/:giftId", "title": "Gift editor — Bloomora" },
+    { "path": "/editor/link/:token", "title": "Editor pelanggan — Bloomora" },
     { "path": "/admin", "title": "Admin dashboard — Bloomora" },
     { "path": "/admin/:section", "title": "Admin management — Bloomora" },
     { "path": "/g/:giftSlug", "title": "A gift from Bloomora" }

@@ -133,11 +133,20 @@ export function checkGuestSlugAvailability(env: Env, giftId: string, token: unkn
 
 async function loadGuest(tx: Tx, env: Env, giftId: string, token: unknown): Promise<Doc> {
   const gift = await tx.get(`gifts/${giftId}`);
-  if (!gift || !verifyEditToken(token, gift.editTokenHash)) throw new ServiceError(404, 'edit_link_invalid');
-  const expiresAt = gift.editTokenExpiresAt?.toMillis?.();
+  if (!gift) throw new ServiceError(404, 'edit_link_invalid');
+  let tokenMatched = verifyEditToken(token, gift.editTokenHash);
+  let expiresAt = tokenMatched ? gift.editTokenExpiresAt?.toMillis?.() : null;
+  if (!tokenMatched && typeof token === 'string' && /^[A-Za-z0-9_-]{43}$/.test(token)) {
+    const link = await tx.get(`guestEditLinks/${hashEditToken(token)}`);
+    if (link && link.giftId === giftId && link.ownerUid === gift.ownerUid && link.revokedAt == null && verifyEditToken(token, hashEditToken(token))) {
+      tokenMatched = true;
+      expiresAt = link.expiresAt?.toMillis?.();
+    }
+  }
+  if (!tokenMatched) throw new ServiceError(404, 'edit_link_invalid');
   if (typeof expiresAt !== 'number' || env.nowMs() >= expiresAt) throw new ServiceError(403, 'edit_link_expired');
   if (gift.status === 'deleted') throw new ServiceError(404, 'gift_deleted');
-  return gift;
+  return { ...gift, authorizedEditExpiresAtMs: expiresAt };
 }
 
 /** Shared strictly token-authorized loader for server-side media operations. */
@@ -152,12 +161,26 @@ export function resolveGuestEditToken(env: Env, token: unknown) {
     const tokenHash = hashEditToken(token);
     const matches = await tx.query('gifts', 'editTokenHash', tokenHash);
     const row = matches.find(({ data }) => verifyEditToken(token, data.editTokenHash));
-    if (!row) throw new ServiceError(404, 'edit_link_invalid');
-    const expiresAt = row.data.editTokenExpiresAt?.toMillis?.();
+    let giftId: string;
+    let ownerUid: string;
+    let expiresAt: number | null;
+    if (row) {
+      giftId = row.id;
+      ownerUid = String(row.data.ownerUid);
+      expiresAt = row.data.editTokenExpiresAt?.toMillis?.() ?? null;
+    } else {
+      const link = await tx.get(`guestEditLinks/${tokenHash}`);
+      if (!link || link.revokedAt != null || !verifyEditToken(token, tokenHash) || typeof link.giftId !== 'string' || typeof link.ownerUid !== 'string') throw new ServiceError(404, 'edit_link_invalid');
+      giftId = link.giftId;
+      ownerUid = link.ownerUid;
+      expiresAt = link.expiresAt?.toMillis?.() ?? null;
+    }
+    const gift = await tx.get(`gifts/${giftId}`);
+    if (!gift || gift.ownerUid !== ownerUid) throw new ServiceError(404, 'edit_link_invalid');
     if (typeof expiresAt !== 'number' || env.nowMs() >= expiresAt) throw new ServiceError(403, 'edit_link_expired');
-    if (row.data.status === 'deleted') throw new ServiceError(404, 'gift_deleted');
-    await enforceGuestRateLimit(tx, env, 'guest-edit-link-open', row.data.ownerUid, GUEST_READ_POLICY);
-    return { giftId: row.id };
+    if (gift.status === 'deleted') throw new ServiceError(404, 'gift_deleted');
+    await enforceGuestRateLimit(tx, env, 'guest-edit-link-open', ownerUid, GUEST_READ_POLICY);
+    return { giftId };
   }));
 }
 
@@ -181,7 +204,7 @@ export function getGuestGiftDraft(env: Env, giftId: string, token: unknown) {
       publishedRevision: Number.isInteger(gift.publishedRevision) ? gift.publishedRevision : null,
       publication: { canPublish, waitingForSubscription },
       draft: { content: contentOf(gift.draft.content, true), version: gift.draft.version, updatedAtMs: gift.draft.updatedAt?.toMillis?.() ?? nowMs }, editable: true,
-      entitlement: { state: 'guest_draft' as const, expiresAtMs: gift.editTokenExpiresAt.toMillis() } };
+      entitlement: { state: 'guest_draft' as const, expiresAtMs: Number(gift.authorizedEditExpiresAtMs ?? gift.editTokenExpiresAt.toMillis()) } };
   }));
 }
 

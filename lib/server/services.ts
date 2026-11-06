@@ -5,12 +5,14 @@ import {
   type Decision, type Entitlement, type SubLike,
 } from '../entitlements.ts';
 import { generateSlug, isValidPublicSlug } from '../slug.ts';
+import { createEditToken, hashEditToken } from '../security/edit-token.ts';
 import { validateGiftContent } from '../model/content.ts';
 import { planLegacyGiftMigration } from '../model/migrate.ts';
 import { DEFAULT_PACKAGES } from '../packages.ts';
 import { DEFAULT_QRIS_DISPLAY, isVerifiedQrisImagePath, normalizeVoucherCode, publicPaymentMethods, validateQrisDisplay, validateVoucherDefinition, type PaymentMethodDoc, type PaymentMethodType, type QrisDetectionStatus, type QrisDisplayConfig, type VoucherDiscount, type VoucherDoc } from '../commerce.ts';
 import type { GiftContent, PackageDoc, PackageId, PackageLimits, PublicGiftDoc, TemplateTier } from '../model/types.ts';
 import { ServiceError, guarded, type Doc, type Env, type Tx } from './store.ts';
+import { siteUrl } from '../site-url.ts';
 
 /**
  * Server-side authorization and state changes. Every function runs inside one
@@ -814,6 +816,33 @@ export function getAdminOrderDetail(env: Env, actor: Actor, orderId: string) {
       publicSlug: gift?.slug ?? null, publicationStatus: gift?.status === 'published' ? 'published' : 'not_published',
       canReview: hasStoredPaymentProof(order),
     }, audit };
+  }));
+}
+
+/** Issues a separate 30-day customer editor link; existing guest links are not rotated or revoked. */
+export function createAdminCustomerEditorLink(env: Env, actor: Actor, orderId: string) {
+  return guarded(async () => env.store.runTransaction(async (tx) => {
+    requireAdmin(actor);
+    if (!/^[A-Za-z0-9_-]{1,120}$/.test(orderId)) throw new ServiceError(404, 'order_not_found');
+    const order = await tx.get(`orders/${orderId}`);
+    if (!order || order.deletedAt) throw new ServiceError(404, 'order_not_found');
+    const giftId = typeof order.giftId === 'string' ? order.giftId : '';
+    if (!giftId) throw new ServiceError(409, 'gift_not_linked');
+    const gift = await tx.get(`gifts/${giftId}`);
+    if (!gift || gift.status === 'deleted' || gift.ownerUid !== order.userId) throw new ServiceError(404, 'order_not_found');
+
+    const token = createEditToken();
+    const nowMs = env.nowMs();
+    const expiresAtMs = nowMs + 30 * 24 * 60 * 60 * 1000;
+    const createdAt = env.ts(nowMs);
+    tx.create(`guestEditLinks/${hashEditToken(token)}`, {
+      giftId, ownerUid: gift.ownerUid, orderId, issuedByAdminUid: actor.uid,
+      createdAt, expiresAt: env.ts(expiresAtMs), revokedAt: null, schemaVersion: 1,
+    });
+    tx.create(`adminAuditLogs/${env.newId()}`, {
+      action: 'order.customer_editor_link_issued', actorUid: actor.uid, orderId, at: createdAt,
+    });
+    return { editorUrl: siteUrl(`/editor/link/${encodeURIComponent(token)}`), expiresAtMs };
   }));
 }
 
