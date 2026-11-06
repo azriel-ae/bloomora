@@ -296,10 +296,12 @@ group('Audio available');
   await goTo(p, '#bl-music');
   check('player shows title, artist and a play control', (await text(p, '.bl-player-title')) === 'Quiet Hours' && (await text(p, '.bl-player-artist')) === 'Test Tone' && await p.getByRole('button', { name: 'Putar musik' }).isVisible());
   check('audio never autoplays', await p.locator('audio').evaluate((a) => a.paused && a.currentTime === 0 && !a.autoplay));
-  await p.getByRole('button', { name: 'Putar musik' }).click(); await p.waitForTimeout(300);
-  check('play button starts playback and reflects it', (await p.locator('.bl-player-btn').getAttribute('aria-pressed')) === 'true' && await p.locator('audio').evaluate((a) => !a.paused || a.ended));
+  await p.getByRole('button', { name: 'Putar musik' }).click();
+  await p.waitForFunction(() => { const audio = document.querySelector('audio'); return audio && (!audio.paused || audio.ended); }, { timeout: 3000 });
+  const audioState = await p.locator('audio').evaluate((a) => ({ paused: a.paused, ended: a.ended, readyState: a.readyState, networkState: a.networkState, currentTime: a.currentTime, duration: a.duration, errorCode: a.error?.code ?? null }));
+  check('play button starts playback and reflects it', (await p.locator('.bl-player-btn').getAttribute('aria-pressed')) === 'true' && (!audioState.paused || audioState.ended), JSON.stringify(audioState));
   await shot(p, 'desktop-id-music');
-  await p.waitForTimeout(700);
+  await p.waitForFunction(() => document.querySelector('audio')?.ended, { timeout: 3000 });
   check('player returns to idle when the track ends', (await p.locator('.bl-player-btn').getAttribute('aria-pressed')) === 'false');
   check('audio: no console errors', problems.length === 0, problems); await ctx.close();
 }
@@ -316,7 +318,10 @@ group('Server render + hydration (what Next does)');
   const fs = await import('node:fs');
   const html = fs.readFileSync(path.join(here, 'dist/ssr-id.html'), 'utf8');
   check('server HTML contains the Indonesian sealed opening, hidden story and no browser-only crash', html.includes('bl-opening') && /class="bl-story"[^>]*hidden/.test(html) && html.includes('Buka surat'));
-  check('server HTML has no emoji and no script injection from content', !EMOJI.test(html) && !/<script(?![^>]*src=)/i.test(html.replace(/<script src="hydrate.js"><\/script>/, '')));
+  const htmlWithoutHarnessBootstrap = html
+    .replace(/<script>window\.process=\{env:\{[^<]*\}\};<\/script>/, '')
+    .replace(/<script src="hydrate.js"><\/script>/, '');
+  check('server HTML has no emoji and no script injection from content', !EMOJI.test(html) && !/<script(?![^>]*src=)/i.test(htmlWithoutHarnessBootstrap));
   const ctx = await browser.newContext(DESKTOP); const p = await ctx.newPage(); const problems = [];
   p.on('console', (m) => { if (['error', 'warning'].includes(m.type())) problems.push(`${m.type()}: ${m.text()}`); });
   p.on('pageerror', (e) => problems.push(`pageerror: ${e.message}`));

@@ -7,7 +7,7 @@ import type { GiftContent, ProofAiAnalysis } from '../model/types.ts';
 import type { TemplateLookup } from './services.ts';
 import { canPublishGift, isSubscriptionActive, resolveEntitlement, type SubLike } from '../entitlements.ts';
 import { DEFAULT_PACKAGES } from '../packages.ts';
-import { DEFAULT_QRIS_DISPLAY, normalizeVoucherCode, validateQrisDisplay, validateVoucher, validateVoucherDefinition, type PaymentMethodDoc, type VoucherDoc } from '../commerce.ts';
+import { DEFAULT_QRIS_DISPLAY, isVerifiedQrisImagePath, normalizeVoucherCode, validateQrisDisplay, validateVoucher, validateVoucherDefinition, type PaymentMethodDoc, type VoucherDoc } from '../commerce.ts';
 
 const GUEST_EDIT_DAYS = 30;
 const GUEST_SLUG_HOLD_MS = 48 * 60 * 60 * 1000;
@@ -349,6 +349,9 @@ export function createGuestOrder(env: Env, input: { giftId: unknown; editToken: 
     if (!paymentMethodId) throw new ServiceError(400, 'payment_method_required');
     const storedMethod = await tx.get(`paymentMethods/${paymentMethodId}`) as PaymentMethodDoc | null;
     if (!storedMethod || !storedMethod.active) throw new ServiceError(400, 'payment_method_unavailable');
+    if (storedMethod.paymentType === 'qris' && (storedMethod.qrisDetectionStatus !== 'confirmed' || !isVerifiedQrisImagePath(storedMethod.imagePath) || !storedMethod.imageUrl)) {
+      throw new ServiceError(400, 'payment_method_unavailable');
+    }
     const email = contactEmail(input.email);
     const whatsapp = contactWhatsapp(input.whatsapp);
     if (!email && !whatsapp) throw new ServiceError(400, 'contact_required');
@@ -399,6 +402,7 @@ export function createGuestOrder(env: Env, input: { giftId: unknown; editToken: 
         accountHolder: typeof storedMethod.accountHolder === 'string' ? storedMethod.accountHolder : null,
         imageUrl: typeof storedMethod.imageUrl === 'string' ? storedMethod.imageUrl : null,
         imagePath: typeof storedMethod.imagePath === 'string' ? storedMethod.imagePath : null,
+        qrisDetectionStatus: storedMethod.qrisDetectionStatus,
         ...(storedMethod.paymentType === 'qris' ? { qrisDisplay } : {}),
       },
       orderAccessTokenHash: hashEditToken(orderAccessToken), orderAccessTokenPreviousHashes: [],
@@ -424,6 +428,7 @@ export function getGuestOrderDetail(env: Env, rawOrderId: string, accessToken: u
     if (!order || !tokenMatches) throw new ServiceError(404, 'order_not_found');
     const method = order.paymentMethodSnapshot;
     if (!method || typeof method.name !== 'string' || typeof method.instructions !== 'string') throw new ServiceError(409, 'payment_instructions_unavailable');
+    const qrisVerified = method.paymentType === 'qris' && method.qrisDetectionStatus === 'confirmed' && isVerifiedQrisImagePath(method.imagePath);
     let publishedGiftSlug: string | null = null;
     if (order.status === 'approved' && typeof order.giftId === 'string') {
       const gift = await tx.get(`gifts/${order.giftId}`);
@@ -450,13 +455,30 @@ export function getGuestOrderDetail(env: Env, rawOrderId: string, accessToken: u
         providerName: typeof method.providerName === 'string' ? method.providerName : null,
         accountNumber: typeof method.accountNumber === 'string' ? method.accountNumber : null,
         accountHolder: typeof method.accountHolder === 'string' ? method.accountHolder : null,
-        imageUrl: typeof method.imageUrl === 'string' ? method.imageUrl : null,
+        imageUrl: method.paymentType === 'qris' && !qrisVerified ? null : typeof method.imageUrl === 'string' ? method.imageUrl : null,
+        qrisDetectionStatus: typeof method.qrisDetectionStatus === 'string' ? method.qrisDetectionStatus : 'not_checked',
         qrisDisplay: method.qrisDisplay,
       },
       status: String(order.status), deletedAtMs: order.deletedAt ? order.deletedAt.toMillis?.() ?? null : null,
       createdAtMs: order.createdAt?.toMillis?.() ?? env.nowMs(),
       updatedAtMs: order.updatedAt?.toMillis?.() ?? env.nowMs(),
     } };
+  }));
+}
+
+/** Order-token protected image path for a verified QRIS crop; never accepts a path from the client. */
+export function getGuestOrderQrisImagePath(env: Env, rawOrderId: string, accessToken: unknown) {
+  return guarded(async () => env.store.runTransaction(async (tx) => {
+    if (!/^[A-Za-z0-9_-]{1,120}$/.test(rawOrderId)) throw new ServiceError(404, 'order_not_found');
+    const order = await tx.get(`orders/${rawOrderId}`);
+    const previousHashes = Array.isArray(order?.orderAccessTokenPreviousHashes) ? order.orderAccessTokenPreviousHashes : [];
+    const tokenMatches = Boolean(order && (verifyEditToken(accessToken, order.orderAccessTokenHash) || previousHashes.some((hash: unknown) => verifyEditToken(accessToken, hash))));
+    if (!order || !tokenMatches) throw new ServiceError(404, 'order_not_found');
+    const method = order.paymentMethodSnapshot;
+    if (method?.paymentType !== 'qris' || method.qrisDetectionStatus !== 'confirmed' || !isVerifiedQrisImagePath(method.imagePath)) {
+      throw new ServiceError(404, 'qris_image_unavailable');
+    }
+    return { imagePath: method.imagePath };
   }));
 }
 

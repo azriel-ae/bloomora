@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { hashEditToken } from '../../lib/security/edit-token.ts';
-import { createGuestGift, createGuestOrder, deleteGuestOrder, getGuestOrderDetail, getGuestOrderOwnerForProof, submitGuestPaymentProof } from '../../lib/server/guest-services.ts';
+import { createGuestGift, createGuestOrder, deleteGuestOrder, getGuestOrderDetail, getGuestOrderOwnerForProof, getGuestOrderQrisImagePath, submitGuestPaymentProof } from '../../lib/server/guest-services.ts';
 import * as services from '../../lib/server/services.ts';
 import { makeEnv } from './helpers/fake-store.ts';
 
@@ -11,7 +11,7 @@ const content = { fields: { title: 'A small gift', message: 'For you' }, section
 
 test('guest order detail requires secret token, exposes no contact data, and freezes payment instructions', async () => {
   const h = makeEnv(1_800_000_000_000);
-  assert.ok((await services.savePaymentMethod(h.env, admin, { id: 'qris', name: 'QRIS Static', instructions: 'Transfer to merchant 123.', active: true, sortOrder: 1, paymentType: 'qris', providerName: 'Merchant QRIS', accountNumber: null, accountHolder: null, imageUrl: 'https://cdn.example/qr-before.png', imagePath: 'payment-methods/owner/qr-before.png' })).ok);
+  assert.ok((await services.savePaymentMethod(h.env, admin, { id: 'qris', name: 'QRIS Static', instructions: 'Transfer to merchant 123.', active: true, sortOrder: 1, paymentType: 'qris', providerName: 'Merchant QRIS', accountNumber: null, accountHolder: null, imageUrl: 'https://cdn.example/qr-before.png', imagePath: 'payment-methods/owner/qris/00000000-0000-4000-8000-000000000001.png', qrisDetectionStatus: 'confirmed' })).ok);
   assert.ok((await services.saveVoucher(h.env, admin, { code: 'SAVE10', active: true, discount: { kind: 'percent', value: 10 }, startsAtMs: null, expiresAtMs: null, maxUses: 5, minimumAmountIdr: 0 })).ok);
   const gift = await createGuestGift(h.env, { templateId: 'pressed-garden', content }, lookup);
   assert.ok(gift.ok);
@@ -27,7 +27,7 @@ test('guest order detail requires secret token, exposes no contact data, and fre
   assert.deepEqual(saved.paymentMethodSnapshot, {
     id: 'qris', name: 'QRIS Static', instructions: 'Transfer to merchant 123.', paymentType: 'qris',
     providerName: 'Merchant QRIS', accountNumber: null, accountHolder: null,
-    imageUrl: 'https://cdn.example/qr-before.png', imagePath: 'payment-methods/owner/qr-before.png',
+    imageUrl: 'https://cdn.example/qr-before.png', imagePath: 'payment-methods/owner/qris/00000000-0000-4000-8000-000000000001.png', qrisDetectionStatus: 'confirmed',
     qrisDisplay: { title: 'Scan untuk membayar', description: 'Gunakan aplikasi pembayaran pilihanmu.', backgroundColor: '#fffaf3', accentColor: '#66745d', borderColor: '#d9d1c5', footer: 'Bloomora · pembayaran aman', logoUrl: null, frameStyle: 'card', decoration: 'none' },
   });
 
@@ -47,6 +47,11 @@ test('guest order detail requires secret token, exposes no contact data, and fre
   assert.equal('customerEmail' in detail.order, false);
   assert.equal('customerWhatsapp' in detail.order, false);
 
+  const deniedQrisPath = await getGuestOrderQrisImagePath(h.env, created.orderId, 'wrong-token');
+  assert.deepEqual([deniedQrisPath.ok, !deniedQrisPath.ok && deniedQrisPath.status, !deniedQrisPath.ok && deniedQrisPath.code], [false, 404, 'order_not_found']);
+  assert.deepEqual(await getGuestOrderQrisImagePath(h.env, created.orderId, created.orderAccessToken), { ok: true, imagePath: 'payment-methods/owner/qris/00000000-0000-4000-8000-000000000001.png' });
+
+  assert.ok((await services.saveQrisDisplay(h.env, admin, { title: 'Judul baru', description: 'Konfigurasi baru.', backgroundColor: '#102030', accentColor: '#405060', borderColor: '#708090', footer: 'Footer baru', frameStyle: 'minimal', decoration: 'ribbon', logoUrl: '/favicon.svg' })).ok);
   assert.ok((await services.savePaymentMethod(h.env, admin, { id: 'qris', name: 'New QRIS Name', instructions: 'New instructions.', active: false, sortOrder: 1 })).ok);
   const afterEdit = await getGuestOrderDetail(h.env, created.orderId, created.orderAccessToken);
   assert.ok(afterEdit.ok);
@@ -54,8 +59,18 @@ test('guest order detail requires secret token, exposes no contact data, and fre
     assert.equal(afterEdit.order.paymentMethod.name, 'QRIS Static');
     assert.equal(afterEdit.order.paymentMethod.instructions, 'Transfer to merchant 123.');
     assert.equal(afterEdit.order.paymentMethod.imageUrl, 'https://cdn.example/qr-before.png');
+    assert.equal(afterEdit.order.paymentMethod.qrisDisplay?.title, 'Scan untuk membayar', 'new design settings apply to later orders, not this frozen customer snapshot');
+    assert.equal(afterEdit.order.paymentMethod.qrisDisplay?.footer, 'Bloomora · pembayaran aman');
     assert.equal(afterEdit.order.status, 'awaiting_payment');
   }
+
+  const legacyOrder = h.store.docs.get(`orders/${created.orderId}`)!;
+  h.store.docs.set(`orders/${created.orderId}`, { ...legacyOrder, paymentMethodSnapshot: { ...legacyOrder.paymentMethodSnapshot, qrisDetectionStatus: 'needs_confirmation' } });
+  const legacy = await getGuestOrderDetail(h.env, created.orderId, created.orderAccessToken);
+  assert.ok(legacy.ok);
+  if (legacy.ok) assert.equal(legacy.order.paymentMethod.imageUrl, null);
+  const legacyQrisPath = await getGuestOrderQrisImagePath(h.env, created.orderId, created.orderAccessToken);
+  assert.deepEqual([legacyQrisPath.ok, !legacyQrisPath.ok && legacyQrisPath.status, !legacyQrisPath.ok && legacyQrisPath.code], [false, 404, 'qris_image_unavailable']);
 });
 
 test('guest proof submission requires the order token, validates private owner path and is one-way', async () => {

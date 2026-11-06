@@ -2,7 +2,7 @@
 
 Baca dulu `docs/SUPABASE_MIGRATION.md`, `docs/DECISIONS.md`, `docs/PROGRESS.md`, dan `docs/ROADMAP.md`. Checkpoint terbaru diperbarui dari kode aktual per 2026-11-06; catatan Phase sebelumnya di bawah adalah riwayat dan tidak mengalahkan checkpoint ini.
 
-Continuation 2026-11-06 menambahkan antarmuka Bahasa Indonesia saja, redirect URL locale legacy, metadata/canonical/sitemap dan tautan berbasis `https://bloomora.my.id`, serta notifikasi suara chatbot opt-in dan mute lokal. Inspeksi Vercel read-only menemukan `NEXT_PUBLIC_SITE_URL` belum ada, apex `bloomora.my.id` masih 308 redirect ke `www.bloomora.my.id`, dan `www` yang terpasang ke Production. Tidak ada perubahan akun/project Vercel; browser sudah logout sesuai permintaan. Perubahan kerja harus di-commit lalu langsung di-push ke `https://github.com/azriel-ae/bloomora.git`; setelah push, catat hash dan pastikan working tree bersih.
+Continuation 2026-11-06 mempertahankan UI Indonesia-only/domain/chat, lalu menambahkan upload QRIS yang hanya mengaktifkan crop yang tervalidasi (auto + manual fallback), renderer QRIS bersama admin/customer, desain beku per order, unduhan PNG final, dan endpoint gambar ber-token. Cleanup menghapus `components/publish-dialog.tsx`, `lib/brand.ts`, `react-hook-form`, dan `@hookform/resolvers` setelah dipastikan tidak dirujuk; `@zxing/library` tinggal sebagai dev fixture. CTA “Buat hadiah” di desktop/mobile dan CTA template beranda memakai `https://bloomora.my.id/templates` (apex, tanpa `www`). Pengguna melaporkan aturan domain Vercel sudah diperbarui; dashboard tidak diperiksa ulang setelah laporan itu. Seluruh perubahan kerja harus di-commit lalu langsung di-push ke `https://github.com/azriel-ae/bloomora.git`; setelah push, catat hash dan pastikan working tree bersih.
 
 ## Proyek
 
@@ -44,7 +44,7 @@ Dibuat dan diubah dalam pengerjaan: lihat daftar per phase di `docs/CHANGELOG.md
 
 ## Hasil pengujian terakhir
 
-Terbaru untuk Phase 7 checkpoint: `pnpm typecheck`, `pnpm test:unit` (67/67), dan parity i18n (22 section) lulus. `pnpm lint`, `pnpm build`, dan browser regression Phase 7 belum dijalankan pada checkpoint ini. Supabase rules/emulator dan public gift nyata dari Supabase/fixture server belum dijalankan. Rincian ada di `docs/PROGRESS.md`.
+Terbaru untuk continuation 2026-11-06: `pnpm typecheck`, `pnpm lint`, `pnpm test:unit` (115/115), `pnpm test:supabase` (3/3), `pnpm check:i18n` (26 bagian), `pnpm build`, renderer browser (111/111), `pnpm test:catalog`, dan `pnpm test:editor` lulus. Lint masih memberi warning non-blocking existing untuk `<img>` upload/checkout dan dependency satu `useEffect`. Supabase tests memakai fixture/local SQL, bukan Supabase live; Storage live, RLS production, dan domain Vercel tidak diuji ulang. Rincian ada di `docs/PROGRESS.md`.
 
 ## Bug yang sudah diperbaiki
 

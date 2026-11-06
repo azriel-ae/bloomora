@@ -11,11 +11,12 @@ const scenario = q.get('scenario') ?? 'full';
 const mode = (q.get('mode') ?? 'demo') as 'demo' | 'public' | 'preview';
 
 function silentWav(): string {
-  const n = 4000; const bytes = new Uint8Array(44 + n); const v = new DataView(bytes.buffer);
-  const w = (o: number, s: string) => [...s].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(i)));
+  const sampleRate = 22050; const sampleCount = sampleRate; const n = sampleCount * 2; const bytes = new Uint8Array(44 + n); const v = new DataView(bytes.buffer);
+  const w = (o: number, s: string) => [...s].forEach((c, i) => v.setUint8(o + i, c.charCodeAt(0)));
   w(0, 'RIFF'); v.setUint32(4, 36 + n, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true);
-  v.setUint16(22, 1, true); v.setUint32(24, 8000, true); v.setUint32(28, 8000, true); v.setUint16(32, 1, true); v.setUint16(34, 8, true);
-  w(36, 'data'); v.setUint32(40, n, true); bytes.fill(128, 44);
+  v.setUint16(22, 1, true); v.setUint32(24, sampleRate, true); v.setUint32(28, sampleRate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  w(36, 'data'); v.setUint32(40, n, true);
+  for (let i = 0; i < sampleCount; i += 1) v.setInt16(44 + i * 2, 0, true);
   let bin = ''; bytes.forEach((b) => { bin += String.fromCharCode(b); });
   return `data:audio/wav;base64,${btoa(bin)}`;
 }

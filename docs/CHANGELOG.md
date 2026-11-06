@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-06 — QRIS crop tervalidasi, cleanup, dan CTA template apex
+
+- Upload admin kini mendeteksi QR secara dinamis, menyediakan manual-crop fallback, memvalidasi payload QRIS/CRC, quiet zone, bentuk persegi, re-decode PNG, dan kesamaan payload sumber/crop. Gambar mentah tidak menjadi QRIS aktif; hanya hasil crop yang dikonfirmasi.
+- Preview admin dan halaman order pelanggan memakai `QrisPaymentCard` yang sama. QR dipisahkan pada bidang putih, dekorasi/brand berada di luar area scan, logo memakai aset lokal, dan pelanggan dapat mengunduh kartu PNG final. QRIS display tersimpan dibekukan ke snapshot order.
+- Menambahkan route gambar QRIS order-token; `jsqr` dan `html-to-image` menjadi dependency runtime sedangkan ZXing hanya dev fixture. Menghapus `components/publish-dialog.tsx`, `lib/brand.ts`, `react-hook-form`, dan `@hookform/resolvers` setelah referensi aktif tidak ditemukan. Tidak ada migration, RLS, konfigurasi penting, atau fitur aktif yang dihapus.
+- Header “Buat hadiah” desktop/mobile serta CTA “Mulai dari template” beranda mengarah ke `https://bloomora.my.id/templates` tanpa `www`. Pengguna melaporkan aturan domain Vercel sudah diubah ke apex; tidak ada perubahan dashboard oleh agent pada checkpoint ini.
+- Verifikasi: typecheck, lint (warning non-blocking existing), 115 unit tests, 3 Supabase/PostgreSQL tests, i18n check (26 bagian), production build, 111/111 renderer browser checks, catalog/QRIS browser test, dan editor browser test lulus.
+
 ## 2026-11-06 — UI Bahasa Indonesia, domain canonical, dan bunyi balasan chat
 
 - Menghapus kamus English serta language switcher; UI, metadata, demo, admin, chatbot, dan test harness kini menggunakan Bahasa Indonesia. Middleware mengarahkan route `/id/...` dan `/en/...` lama ke route tanpa prefix serta menghapus cookie locale lama.

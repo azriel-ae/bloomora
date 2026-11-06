@@ -1,6 +1,14 @@
 # Bloomora: progres pengerjaan
 
-Diperbarui: 2026-11-06. Catatan terbaru berada di checkpoint Indonesian-only/domain/chat di bawah; checkpoint historis tetap dipertahankan. Supabase masih menjadi backend aktif; migrasi PostgreSQL belum cutover ke runtime. Bukti tes continuation terbaru dicatat hanya setelah dijalankan.
+Diperbarui: 2026-11-06. Checkpoint QRIS/cleanup/CTA paling baru di bawah; checkpoint Indonesian-only/domain/chat dan checkpoint historis tetap dipertahankan. Supabase masih menjadi backend aktif; migrasi PostgreSQL belum cutover ke runtime.
+
+## Checkpoint 2026-11-06: QRIS, cleanup, dan CTA homepage
+
+- Upload QRIS admin kini menyiapkan preview crop otomatis atau pilihan area manual tanpa mengaktifkan gambar sumber. Crop hanya disimpan setelah dikonfirmasi; server memeriksa payload EMVCo/CRC, quiet zone, rasio, decode dari gambar sumber dan hasil PNG, lalu mewajibkan payload keduanya sama. QRIS aktif harus memiliki path crop dan status `confirmed`; QR legacy/unverified ditolak.
+- `QrisPaymentCard` adalah renderer yang sama untuk preview admin dan detail order pelanggan. QR tetap utuh pada area putih, dekorasi Bloomora berada di luar area scan, logo opsional hanya aset lokal, pelanggan dapat mengunduh kartu PNG, dan tiap order mempertahankan snapshot desainnya sendiri. Endpoint gambar pelanggan memerlukan token akses order.
+- Cleanup berbasis referensi menghapus `components/publish-dialog.tsx` dan `lib/brand.ts` yang tidak digunakan, serta dependency `react-hook-form`/`@hookform/resolvers`; `@zxing/library` hanya dev dependency untuk fixture test. Tidak ada migration/schema/RLS yang dihapus.
+- Tombol header **Buat hadiah** (desktop/mobile) dan dua CTA template di beranda kini menuju eksplisit `https://bloomora.my.id/templates`. Pengguna melaporkan aturan Vercel telah disesuaikan agar domain apex tanpa `www` digunakan; dashboard tidak diperiksa ulang di checkpoint ini.
+- Verifikasi lulus: `pnpm typecheck`, `pnpm lint` (warning non-blocking existing `no-img-element` dan satu dependency `useEffect`), `pnpm test:unit` (115/115), `pnpm test:supabase` (3/3), `pnpm check:i18n` (26 bagian), `pnpm build`, renderer browser (111/111), `pnpm test:catalog`, dan `pnpm test:editor`. Playwright, esbuild, dan Chromium untuk suite browser disediakan sementara di luar dependency proyek.
 
 ## Checkpoint 2026-11-06: UI Bahasa Indonesia, domain resmi, dan bunyi balasan chat
 

@@ -71,8 +71,13 @@ test('only admins can save bank, e-wallet, and QRIS without cross-type fields', 
     id: 'dana', name: 'DANA', paymentType: 'e_wallet', providerName: 'DANA', accountNumber: '08123456789',
   }));
   assert.equal(wallet.ok, true);
+  const unverifiedQris = await services.savePaymentMethod(h.env, admin, method({
+    id: 'qris', name: 'QRIS', paymentType: 'qris', providerName: null, accountNumber: null, accountHolder: null, instructions: '',
+  }));
+  assert.deepEqual([unverifiedQris.ok, !unverifiedQris.ok && unverifiedQris.code], [false, 'qris_image_not_confirmed']);
   const qris = await services.savePaymentMethod(h.env, admin, method({
     id: 'qris', name: 'QRIS', paymentType: 'qris', providerName: null, accountNumber: null, accountHolder: null, instructions: '',
+    imageUrl: 'https://cdn.example/verified-qris.png', imagePath: 'payment-methods/owner/qris/00000000-0000-4000-8000-000000000001.png', qrisDetectionStatus: 'confirmed',
   }));
   assert.equal(qris.ok, true);
 

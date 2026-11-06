@@ -2,13 +2,15 @@
 
 ## Stack (dari `package.json`)
 
-Next.js 15 (App Router), React 19, TypeScript 5.8, Tailwind CSS 3.4, @supabase/ssr and @supabase/supabase-js with server-side PostgreSQL, zod, react-hook-form, framer-motion, lucide-react, qrcode.react, @google/genai (chatbot). Paket manager pnpm 10. Deploy target: Vercel. Supabase is the configured application backend; production Storage provisioning remains environment-specific.
+Next.js 15 (App Router), React 19, TypeScript 5.8, Tailwind CSS 3.4, `@supabase/ssr` and `@supabase/supabase-js` with server-side PostgreSQL, zod, framer-motion, lucide-react, `qrcode.react`, `jsqr`, Sharp, `html-to-image`, and `@google/genai` (chatbot). `@zxing/library` is dev-only for QR fixtures in tests. Paket manager pnpm 10. Deploy target: Vercel. Supabase is the configured application backend; production Storage provisioning remains environment-specific.
 
 ## Bahasa runtime dan origin publik (2026-11-06)
 
 UI produk hanya Bahasa Indonesia. Middleware menerima `/id/...` dan `/en/...` lama sebagai redirect permanen ke path tanpa prefix; route internal tetap di `app/[locale]` dengan locale `id`, dan cookie preferensi bahasa lama dihapus. Locale union pada template engine masih dipertahankan untuk kompatibilitas data, bukan sebagai kontrol UI. `messages/id.json` adalah satu-satunya kamus UI aktif.
 
 Origin publik `https://bloomora.my.id` berasal dari `NEXT_PUBLIC_SITE_URL` hanya bila nilainya tepat sama dengan domain resmi; nilai lain jatuh kembali ke domain resmi. `lib/site-url.ts` membentuk canonical/metadata, sitemap, recovery, QR, dan share URLs; host preview tidak digunakan. DNS/domain binding dan Project Settings Vercel adalah langkah deployment eksternal.
+
+Tombol “Buat hadiah” di header desktop/mobile dan CTA template di beranda menggunakan URL apex eksplisit `https://bloomora.my.id/templates`. Pengguna melaporkan aturan domain Vercel telah diperbarui setelah inspeksi sebelumnya; dashboard tidak diperiksa ulang pada task ini.
 
 ## Struktur folder penting
 
@@ -188,3 +190,9 @@ Important status boundary: the existing production adapter, Auth session, APIs, 
 ## Payment destination authorization
 
 All payment-method configuration (including merchant accounts and QR images) is limited to server-verified admin/owner actors. RLS uses `admin_profiles`; payment-method image Storage policies also require an admin/owner role and the caller's UID path. Checkout can still read active payment methods; customer roles cannot mutate destinations. Apply migration `20261105000100_payment_method_admin_only.sql` before deploying this change.
+
+## QRIS image extraction, design, and display — 2026-11-06
+
+`POST /api/admin/payment-methods/image` uses Sharp and jsQR for local server-side image processing. Admin upload is staged as an in-memory source, then automatic detection or manual normalized selection crops only the QR and its source quiet zone. The original module pixels are preserved in a lossless PNG; the crop must remain square, retain a clear quiet zone, contain a valid EMVCo QRIS TLV/CRC payload, decode successfully, and match the source payload byte-for-byte at the decoded-text level. No external paid API is used. Unconfirmed/legacy full-frame QR images cannot be enabled as an active QRIS method.
+
+`components/qris-payment-card.tsx` is the shared renderer used by the admin preview and customer order detail. Styling, frame, and decoration stay outside the separate white QR image area; the optional Bloomora mark is restricted to the local `/favicon.svg`. `html-to-image` exports the final styled card as PNG without cache-busting the unique `blob:` QR URL. Customer image bytes are served through `app/api/guest/orders/[orderId]/qris-image`, which requires the order access token. `paymentMethodSnapshot.qrisDisplay` freezes the chosen design with each order, so later admin settings affect new orders only.

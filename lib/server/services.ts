@@ -8,7 +8,7 @@ import { generateSlug, isValidPublicSlug } from '../slug.ts';
 import { validateGiftContent } from '../model/content.ts';
 import { planLegacyGiftMigration } from '../model/migrate.ts';
 import { DEFAULT_PACKAGES } from '../packages.ts';
-import { DEFAULT_QRIS_DISPLAY, normalizeVoucherCode, validateQrisDisplay, validateVoucherDefinition, type PaymentMethodDoc, type PaymentMethodType, type QrisDisplayConfig, type VoucherDiscount, type VoucherDoc } from '../commerce.ts';
+import { DEFAULT_QRIS_DISPLAY, isVerifiedQrisImagePath, normalizeVoucherCode, publicPaymentMethods, validateQrisDisplay, validateVoucherDefinition, type PaymentMethodDoc, type PaymentMethodType, type QrisDetectionStatus, type QrisDisplayConfig, type VoucherDiscount, type VoucherDoc } from '../commerce.ts';
 import type { GiftContent, PackageDoc, PackageId, PackageLimits, PublicGiftDoc, TemplateTier } from '../model/types.ts';
 import { ServiceError, guarded, type Doc, type Env, type Tx } from './store.ts';
 
@@ -477,6 +477,7 @@ function paymentMethodFromRow(id: string, data: Doc): AdminPaymentMethod {
     accountHolder: typeof data.accountHolder === 'string' ? data.accountHolder : null,
     imageUrl: typeof data.imageUrl === 'string' ? data.imageUrl : null,
     imagePath: typeof data.imagePath === 'string' ? data.imagePath : null,
+    qrisDetectionStatus: (['not_checked', 'needs_confirmation', 'confirmed'] as const).includes(data.qrisDetectionStatus as QrisDetectionStatus) ? data.qrisDetectionStatus as QrisDetectionStatus : 'not_checked',
   };
 }
 
@@ -486,8 +487,7 @@ export function listActivePaymentMethods(env: Env) {
     const result = await env.store.runTransaction(async (tx) => {
     const rows = await tx.query('paymentMethods', 'active', true);
     const methods = rows.map((row) => paymentMethodFromRow(row.id, row.data));
-    methods.sort((a, b) => a.sortOrder - b.sortOrder || a.id.localeCompare(b.id));
-    return { methods };
+    return { methods: publicPaymentMethods(methods) };
     });
     return { ...result, qrisDisplay: await readQrisDisplaySafe(env) };
   });
@@ -503,8 +503,7 @@ export function listAdminPaymentMethods(env: Env, actor: Actor) {
     methods.sort((a, b) => a.sortOrder - b.sortOrder || a.id.localeCompare(b.id));
     return { methods };
     });
-    // Do not make the core admin payment-method page depend on the additive QRIS table.
-    return { ...result, qrisDisplay: DEFAULT_QRIS_DISPLAY };
+    return { ...result, qrisDisplay: await readQrisDisplaySafe(env) };
   });
 }
 
@@ -525,12 +524,15 @@ export function savePaymentMethod(env: Env, actor: Actor, input: Record<string, 
     const accountHolder = typeof input.accountHolder === 'string' ? input.accountHolder.trim() : '';
     const imageUrl = input.imageUrl === null || input.imageUrl === undefined ? null : typeof input.imageUrl === 'string' ? input.imageUrl.trim() : '';
     const imagePath = input.imagePath === null || input.imagePath === undefined ? null : typeof input.imagePath === 'string' ? input.imagePath.trim() : '';
+    const qrisDetectionStatus: QrisDetectionStatus = paymentType !== 'qris' ? 'not_checked'
+      : isVerifiedQrisImagePath(imagePath) && typeof imageUrl === 'string' && imageUrl.startsWith('https://') ? 'confirmed' : 'needs_confirmation';
     if (!name || name.length > 80 || /[\u0000-\u001f\u007f]/.test(name)) throw new ServiceError(400, 'invalid_payment_method_name');
     if (instructions.length > 2000 || /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/.test(instructions)) throw new ServiceError(400, 'invalid_payment_instructions');
     if (typeof active !== 'boolean') throw new ServiceError(400, 'invalid_payment_method_status');
     if (providerName.length > 120 || accountNumber.length > 120 || accountHolder.length > 120) throw new ServiceError(400, 'invalid_payment_method_details');
     if (paymentType === 'bank_transfer' && (!providerName || !accountNumber || !accountHolder)) throw new ServiceError(400, 'bank_payment_details_required');
     if (paymentType === 'e_wallet' && (!providerName || !accountNumber)) throw new ServiceError(400, 'ewallet_payment_details_required');
+    if (paymentType === 'qris' && active === true && qrisDetectionStatus !== 'confirmed') throw new ServiceError(400, 'qris_image_not_confirmed');
     if (requestedSortOrder !== undefined && (!Number.isInteger(requestedSortOrder) || Number(requestedSortOrder) < 0 || Number(requestedSortOrder) > 9999)) throw new ServiceError(400, 'invalid_payment_method_order');
 
     if (requestedId && !/^[a-z0-9][a-z0-9_-]{1,79}$/.test(requestedId)) throw new ServiceError(400, 'invalid_payment_method_id');
@@ -547,7 +549,7 @@ export function savePaymentMethod(env: Env, actor: Actor, input: Record<string, 
       ? existing ? Number(existing.sortOrder ?? 0) : (await tx.query('paymentMethods')).reduce((max, row) => Math.max(max, Number(row.data.sortOrder ?? -1)), -1) + 1
       : Number(requestedSortOrder);
     const now = env.ts(env.nowMs());
-    const method: Doc = { name, instructions, active, sortOrder: Number(sortOrder), paymentType, providerName: providerName || null, accountNumber: accountNumber || null, accountHolder: accountHolder || null, imageUrl: imageUrl || null, imagePath: imagePath || null, createdAt: existing?.createdAt ?? now, updatedAt: now, updatedBy: actor.uid, schemaVersion: 1 };
+    const method: Doc = { name, instructions, active, sortOrder: Number(sortOrder), paymentType, providerName: providerName || null, accountNumber: accountNumber || null, accountHolder: accountHolder || null, imageUrl: imageUrl || null, imagePath: imagePath || null, qrisDetectionStatus, createdAt: existing?.createdAt ?? now, updatedAt: now, updatedBy: actor.uid, schemaVersion: 1 };
     tx.set(path, method);
     tx.create(`adminAuditLogs/${env.newId()}`, { action: existing ? 'payment_method.update' : 'payment_method.create', actorUid: actor.uid, paymentMethodId: id, at: now });
         return { method: paymentMethodFromRow(id, method) };

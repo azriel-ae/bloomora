@@ -88,6 +88,7 @@ export interface OrderDoc<T extends TimestampLike = TimestampLike> {
     paymentType?: 'bank_transfer' | 'e_wallet' | 'qris' | 'other';
     providerName?: string | null; accountNumber?: string | null; accountHolder?: string | null;
     imageUrl?: string | null; imagePath?: string | null;
+    qrisDetectionStatus?: 'not_checked' | 'needs_confirmation' | 'confirmed';
     qrisDisplay?: QrisDisplayConfig;
   };
   /** Present only for guest orders; plaintext token is returned once and never stored. */

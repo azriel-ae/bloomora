@@ -16,7 +16,13 @@ Penomoran Phase 4 sampai 9 mengikuti urutan prioritas yang ditulis pengguna (kat
 
 **Status implementasi: selesai; pengujian continuation dan push dicatat setelah dijalankan.** UI kini hanya Bahasa Indonesia; prefiks `/id` dan `/en` menjadi redirect kompatibilitas ke route tanpa prefix, dan cookie locale legacy dibersihkan. Metadata, robots/sitemap, serta tautan publik diarahkan ke `https://bloomora.my.id`. Chatbot memberi bunyi ringan hanya setelah balasan sukses selesai dan suara diaktifkan pengguna.
 
-**Tindakan deployment tersisa:** inspeksi read-only Vercel pada 2026-11-06 menemukan `NEXT_PUBLIC_SITE_URL` belum disetel. Domain apex berstatus valid tetapi Vercel mengarahkannya dengan 308 ke `www.bloomora.my.id`; `www` saat ini ditetapkan ke Production. Untuk memenuhi canonical apex yang diminta, set `NEXT_PUBLIC_SITE_URL=https://bloomora.my.id` pada Production, arahkan apex ke deployment Production dan redirect `www` ke apex, lalu verifikasi ulang domain/DNS. Tidak ada pengaturan Vercel yang diubah dalam task ini; jangan mengklaim konfigurasi live sesuai canonical sampai tindakan tersebut selesai.
+**Temuan deployment historis:** inspeksi read-only Vercel pada 2026-11-06 menemukan `NEXT_PUBLIC_SITE_URL` belum disetel, apex berstatus valid tetapi redirect 308 ke `www.bloomora.my.id`, dan `www` ditetapkan ke Production. Pengguna kemudian melaporkan bahwa aturan domain di Vercel telah diperbarui untuk memakai apex tanpa `www`. Dashboard dan status Production `NEXT_PUBLIC_SITE_URL` tidak diperiksa ulang setelah laporan itu; verifikasi final tetap mengikuti pemilik deployment.
+
+## Maintenance 2026-11-06: QRIS tervalidasi, cleanup, dan CTA homepage
+
+**Status implementasi: selesai.** QRIS upload admin menjalankan auto-detection dan manual crop fallback, validasi payload/CRC/quiet zone dan re-decode, preview card admin/customer memakai renderer bersama, order membekukan desain pada snapshot, dan QR final dapat diunduh sebagai PNG. Cleanup menghapus hanya file/dependency yang referensinya terbukti tidak ada. Tombol “Buat hadiah” dan CTA template beranda memakai `https://bloomora.my.id/templates` tanpa `www`.
+
+**Status deployment:** setelah inspeksi read-only yang dicatat di atas, pengguna melaporkan sendiri bahwa aturan domain Vercel telah diperbarui untuk memakai apex. Dashboard tidak diperiksa ulang pada task ini; hasil tetap mengikuti pengaturan live yang ditetapkan pemilik project.
 
 ## Tahap 0: sebelum Phase 4
 

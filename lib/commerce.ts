@@ -17,6 +17,11 @@ export interface VoucherDoc {
 }
 
 export type PaymentMethodType = 'bank_transfer' | 'e_wallet' | 'qris' | 'other';
+export type QrisDetectionStatus = 'not_checked' | 'needs_confirmation' | 'confirmed';
+
+export function isVerifiedQrisImagePath(path: unknown): path is string {
+  return typeof path === 'string' && /^payment-methods\/[A-Za-z0-9_-]{1,128}\/qris\/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}\.png$/i.test(path);
+}
 
 export type QrisFrameStyle = 'card' | 'minimal';
 export type QrisDecoration = 'none' | 'petals' | 'ribbon';
@@ -50,6 +55,7 @@ export interface PaymentMethodDoc {
   accountHolder?: string | null;
   imageUrl?: string | null;
   imagePath?: string | null;
+  qrisDetectionStatus?: QrisDetectionStatus;
   qrisDisplay?: QrisDisplayConfig;
 }
 
@@ -63,7 +69,7 @@ export function validateQrisDisplay(input: unknown): QrisDisplayConfig {
     title: text('title', DEFAULT_QRIS_DISPLAY.title, 100), description: text('description', DEFAULT_QRIS_DISPLAY.description, 300),
     backgroundColor: color('backgroundColor', DEFAULT_QRIS_DISPLAY.backgroundColor), accentColor: color('accentColor', DEFAULT_QRIS_DISPLAY.accentColor),
     borderColor: color('borderColor', DEFAULT_QRIS_DISPLAY.borderColor), footer: text('footer', DEFAULT_QRIS_DISPLAY.footer, 160),
-    logoUrl: typeof value.logoUrl === 'string' && /^https?:\/\//i.test(value.logoUrl) ? value.logoUrl.slice(0, 500) : null,
+    logoUrl: value.logoUrl === '/favicon.svg' ? '/favicon.svg' : null,
     frameStyle, decoration,
   };
 }
@@ -105,7 +111,9 @@ export function validateVoucherDefinition(voucher: VoucherDoc): string[] {
 }
 
 export function publicPaymentMethods(methods: readonly PaymentMethodDoc[]): PaymentMethodDoc[] {
-  return methods.filter((method) => method.active).sort((a, b) => a.sortOrder - b.sortOrder).map((method) => ({ ...method }));
+  return methods.filter((method) => method.active && (method.paymentType !== 'qris'
+    || (method.qrisDetectionStatus === 'confirmed' && isVerifiedQrisImagePath(method.imagePath) && typeof method.imageUrl === 'string' && method.imageUrl.startsWith('https://'))))
+    .sort((a, b) => a.sortOrder - b.sortOrder).map((method) => ({ ...method }));
 }
 
 export function packageAmount(pkg: PackageDoc): number {

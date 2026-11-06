@@ -24,7 +24,7 @@ export function SiteHeader() {
           <Link href="/faq" className="transition-colors hover:text-ink">{t('navigation', 'faq')}</Link>
         </nav>
         <div className="hidden items-center gap-3 md:flex">
-          <Link href="/create" className="rounded-full bg-moss px-5 py-2.5 text-sm font-semibold text-ivory shadow-soft transition hover:-translate-y-0.5 hover:bg-ink">{t('navigation', 'createGift')}</Link>
+          <Link href="https://bloomora.my.id/templates" className="rounded-full bg-moss px-5 py-2.5 text-sm font-semibold text-ivory shadow-soft transition hover:-translate-y-0.5 hover:bg-ink">{t('navigation', 'createGift')}</Link>
         </div>
         <div className="flex items-center gap-2 md:hidden">
           <button type="button" aria-label={open ? t('common', 'close') : 'Buka menu'} className="rounded-full p-2 text-ink" onClick={() => setOpen(!open)}>{open ? <X size={21} /> : <Menu size={21} />}</button>
@@ -36,7 +36,7 @@ export function SiteHeader() {
         <Link className="rounded-xl px-3 py-3 hover:bg-ivory" href="/about" onClick={close}>{t('navigation', 'story')}</Link>
         <Link className="rounded-xl px-3 py-3 font-semibold text-moss hover:bg-ivory" href="/demo/chapter-of-us" onClick={close}>{t('navigation', 'demo')}</Link>
         <Link className="rounded-xl px-3 py-3 hover:bg-ivory" href="/faq" onClick={close}>{t('navigation', 'faq')}</Link>
-        <Link className="mt-3 rounded-full bg-moss px-4 py-3 text-center font-semibold text-ivory" href="/create" onClick={close}>{t('navigation', 'createGift')}</Link>
+        <Link className="mt-3 rounded-full bg-moss px-4 py-3 text-center font-semibold text-ivory" href="https://bloomora.my.id/templates" onClick={close}>{t('navigation', 'createGift')}</Link>
       </nav></div>}
     </header>
   );

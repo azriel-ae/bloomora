@@ -39,7 +39,7 @@ export function HomePage() {
             <h1 className="max-w-2xl font-display text-5xl leading-[.98] tracking-[-.045em] sm:text-7xl">{t('home', 'headline')}</h1>
             <p className="mt-7 max-w-lg text-base leading-7 text-ink/65 sm:text-lg">{t('home', 'description')}</p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link href="/create" className="rounded-full bg-moss px-6 py-3.5 text-sm font-semibold text-ivory shadow-soft transition hover:-translate-y-0.5 hover:bg-ink">{t('home', 'start')} <ArrowUpRight className="ml-2 inline" size={16} /></Link>
+              <Link href="https://bloomora.my.id/templates" className="rounded-full bg-moss px-6 py-3.5 text-sm font-semibold text-ivory shadow-soft transition hover:-translate-y-0.5 hover:bg-ink">{t('home', 'start')} <ArrowUpRight className="ml-2 inline" size={16} /></Link>
               <Link href="/templates" className="rounded-full border border-line bg-paper/60 px-6 py-3.5 text-sm font-semibold transition hover:border-moss">{t('home', 'explore')}</Link>
             </div>
             <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-xs text-ink/55">
@@ -102,7 +102,7 @@ export function HomePage() {
       </section>
 
       <section className="px-5 pb-20 lg:pb-28">
-        <div className="mx-auto max-w-5xl overflow-hidden rounded-[2rem] bg-[#ead8d0] px-6 py-14 text-center sm:px-10"><p className="text-xs font-bold uppercase tracking-[.18em] text-[#8f5c55]">{t('home', 'ctaEyebrow')}</p><h2 className="mx-auto mt-4 max-w-2xl font-display text-4xl leading-tight sm:text-5xl">{t('home', 'ctaHeading')}</h2><Link href="/create" className="mt-8 inline-flex rounded-full bg-ink px-6 py-3.5 text-sm font-semibold text-ivory transition hover:bg-moss">{t('home', 'start')} <ArrowUpRight className="ml-2" size={16} /></Link></div>
+        <div className="mx-auto max-w-5xl overflow-hidden rounded-[2rem] bg-[#ead8d0] px-6 py-14 text-center sm:px-10"><p className="text-xs font-bold uppercase tracking-[.18em] text-[#8f5c55]">{t('home', 'ctaEyebrow')}</p><h2 className="mx-auto mt-4 max-w-2xl font-display text-4xl leading-tight sm:text-5xl">{t('home', 'ctaHeading')}</h2><Link href="https://bloomora.my.id/templates" className="mt-8 inline-flex rounded-full bg-ink px-6 py-3.5 text-sm font-semibold text-ivory transition hover:bg-moss">{t('home', 'start')} <ArrowUpRight className="ml-2" size={16} /></Link></div>
       </section>
     </>
   );

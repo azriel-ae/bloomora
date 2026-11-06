@@ -3,25 +3,39 @@
 import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { createRequire } from 'node:module';
+import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
+import ZXing from '@zxing/library';
+import sharp from 'sharp';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(here, '../..');
 const req = createRequire(import.meta.url);
 const { chromium } = req(process.env.PLAYWRIGHT_PATH ?? 'playwright');
+const { BarcodeFormat, EncodeHintType, QRCodeWriter } = ZXing;
 const nextBin = path.join(root, 'node_modules/next/dist/bin/next');
 const port = Number(process.env.BLOOMORA_CATALOG_PORT ?? 3187);
-const base = `http://127.0.0.1:${port}`;
+const base = `http://localhost:${port}`;
 
 let child;
 let browser;
 let output = '';
 const problems = [];
 
+async function qrisFixturePng() {
+  const matrix = new QRCodeWriter().encode('BLOOMORA QRIS CUSTOMER CARD TEST', BarcodeFormat.QR_CODE, 280, 280, new Map([[EncodeHintType.MARGIN, 4]]));
+  const width = matrix.getWidth(); const height = matrix.getHeight(); const pixels = Buffer.alloc(width * height * 4, 255);
+  for (let y = 0; y < height; y += 1) for (let x = 0; x < width; x += 1) {
+    if (!matrix.get(x, y)) continue;
+    const offset = (y * width + x) * 4; pixels[offset] = 0; pixels[offset + 1] = 0; pixels[offset + 2] = 0; pixels[offset + 3] = 255;
+  }
+  return sharp(pixels, { raw: { width, height, channels: 4 } }).png().toBuffer();
+}
+
 try {
-  child = spawn(process.execPath, [nextBin, 'start', '--hostname', '127.0.0.1', '--port', String(port)], {
+  child = spawn(process.execPath, [nextBin, 'start', '--hostname', 'localhost', '--port', String(port)], {
     cwd: root,
     env: { ...process.env, NEXT_TELEMETRY_DISABLED: '1' },
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -33,7 +47,7 @@ try {
   for (let attempt = 0; attempt < 180; attempt++) {
     if (child.exitCode !== null) throw new Error(`Next.js server exited early (code ${child.exitCode}).\n${output}`);
     try {
-      const response = await fetch(`${base}/id/templates`);
+      const response = await fetch(`${base}/robots.txt`);
       if (response.status === 200) { ready = true; break; }
     } catch { /* Next is still starting. */ }
     await delay(250);
@@ -43,7 +57,13 @@ try {
   browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 1280, height: 850 } });
   page.on('pageerror', (error) => problems.push(error.message));
-  page.on('console', (message) => { if (message.type() === 'error') problems.push(message.text()); });
+  page.on('console', (message) => {
+    if (message.type() !== 'error') return;
+    const location = message.location();
+    // The test deliberately returns 502 for one chat request to verify silent failure handling.
+    if (location.url.endsWith('/api/chat') && message.text().includes('502')) return;
+    problems.push(`${message.text()} (${location.url}:${location.lineNumber})`);
+  });
   await page.addInitScript(() => {
     window.__bloomoraSoundCount = 0;
     class MockAudioContext {
@@ -61,24 +81,41 @@ try {
     return route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ text: 'Balasan uji selesai.' }) });
   });
 
+  await page.goto(`${base}/`, { waitUntil: 'networkidle' });
+  const homepageCreateLinks = page.getByRole('link', { name: 'Buat hadiah' });
+  assert.equal(await homepageCreateLinks.count(), 1, 'desktop header has one Buat hadiah CTA');
+  assert.equal(await homepageCreateLinks.first().getAttribute('href'), 'https://bloomora.my.id/templates', 'desktop Buat hadiah CTA goes to the requested apex templates URL');
+  const templateStartLinks = page.getByRole('link', { name: 'Mulai dari template' });
+  assert.equal(await templateStartLinks.count(), 2, 'hero and lower homepage template CTAs are present');
+  assert.deepEqual(await templateStartLinks.evaluateAll((links) => links.map((link) => link.getAttribute('href'))), [
+    'https://bloomora.my.id/templates', 'https://bloomora.my.id/templates',
+  ], 'homepage template CTAs go to the requested apex templates URL');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.goto(`${base}/`, { waitUntil: 'networkidle' });
+  await page.getByRole('button', { name: 'Buka menu' }).click();
+  assert.equal(await page.getByRole('link', { name: 'Buat hadiah' }).getAttribute('href'), 'https://bloomora.my.id/templates', 'mobile menu Buat hadiah CTA uses the requested URL');
+  await page.setViewportSize({ width: 1280, height: 850 });
+
   await page.goto(`${base}/id/templates`, { waitUntil: 'networkidle' });
-  assert.equal(await page.locator('[data-template-card]').count(), 4, 'catalog lists all active engine templates');
+  const initialTemplateIds = await page.locator('[data-template-card]').evaluateAll((elements) => elements.map((element) => element.getAttribute('data-template-card')));
+  assert.ok(initialTemplateIds.length >= 4 && new Set(initialTemplateIds).size === initialTemplateIds.length, 'catalog lists each active engine template exactly once');
   const layouts = await page.locator('[data-template-art]').evaluateAll((elements) => [...new Set(elements.map((element) => element.getAttribute('data-layout')))]);
-  assert.equal(layouts.length, 4, 'every catalog template has a distinct data-driven art composition');
+  assert.equal(layouts.length, 4, 'catalog includes each implemented data-driven art composition');
 
   const search = page.getByRole('searchbox', { name: 'Cari template' });
   await search.fill('minimalis');
-  assert.deepEqual(await page.locator('[data-template-card]').evaluateAll((elements) => elements.map((element) => element.getAttribute('data-template-card'))), ['just-a-letter'], 'search matches localized template content');
+  assert.deepEqual(await page.locator('[data-template-card]').evaluateAll((elements) => elements.map((element) => element.getAttribute('data-template-card'))), ['just-a-letter', 'wedding-quiet-ivory'], 'search matches localized template content');
 
   await search.fill('');
   await page.locator('[data-category-filter="friendship"]').click();
   assert.deepEqual(await page.locator('[data-template-card]').evaluateAll((elements) => elements.map((element) => element.getAttribute('data-template-card'))), ['our-little-archive'], 'category filtering uses the engine category');
 
-  await page.locator('[data-category-filter="wedding"]').click();
+  await page.locator('[data-category-filter="birthday"]').click();
   assert.equal(await page.locator('[data-template-card]').count(), 0, 'categories without active templates return a real empty state');
   assert.equal(await page.locator('[data-empty-catalog]').isVisible(), true);
   await page.getByRole('button', { name: 'Hapus filter' }).click();
-  assert.equal(await page.locator('[data-template-card]').count(), 4, 'clear filters restores the active catalog');
+  assert.equal(await page.locator('[data-template-card]').count(), initialTemplateIds.length, 'clear filters restores the active catalog');
 
   assert.equal(await page.locator('[data-template-card] [data-demo-link]').count(), 1, 'only the real demo template exposes a card demo link');
   const chapterCard = page.locator('[data-template-card="chapter-of-us"]');
@@ -139,13 +176,48 @@ try {
   assert.ok(robots.includes('https://bloomora.my.id/sitemap.xml'), 'robots references the official sitemap');
   assert.ok(sitemap.includes('https://bloomora.my.id/templates'), 'sitemap URLs use the official domain');
 
+  await page.addInitScript(() => sessionStorage.setItem('bloomora_order_access:qr-test', 'fixture-order-token'));
+  await page.route('**/api/guest/orders/qr-test', async (route) => route.fulfill({
+    status: 200, contentType: 'application/json', body: JSON.stringify({ ok: true, order: {
+      orderId: 'qr-test', giftId: null, giftSlug: null, packageId: 'basic', packageName: 'Basic', originalAmountIdr: 39000,
+      discountIdr: 0, amountIdr: 39000, voucherCode: null,
+      paymentMethod: { name: 'QRIS Demo', instructions: 'Pindai kode untuk membayar.', paymentType: 'qris', providerName: null,
+        accountNumber: null, accountHolder: null, imageUrl: 'https://storage.example/verified-crop.png', qrisDetectionStatus: 'confirmed',
+        qrisDisplay: { title: 'Bayar dengan tenang', description: 'Pindai kode QRIS asli.', backgroundColor: '#fffaf3', accentColor: '#66745d', borderColor: '#d9d1c5', footer: 'Bloomora · pembayaran aman', logoUrl: '/favicon.svg', frameStyle: 'card', decoration: 'petals' } },
+      status: 'awaiting_payment', createdAtMs: 1_800_000_000_000, updatedAtMs: 1_800_000_000_000,
+    } }),
+  }));
+  const qrisFixture = await qrisFixturePng();
+  await page.route('**/api/guest/orders/qr-test/qris-image', async (route) => route.fulfill({ status: 200, contentType: 'image/png', body: qrisFixture }));
+  await page.goto(`${base}/payment/orders/qr-test`, { waitUntil: 'networkidle' });
+  const paymentCard = page.locator('[data-qris-payment-card="true"]');
+  await paymentCard.waitFor({ state: 'visible' });
+  assert.equal(await paymentCard.getByRole('heading', { name: 'Bayar dengan tenang' }).count(), 1, 'customer QR card uses the saved admin title');
+  assert.equal(await paymentCard.getByText('Bloomora · pembayaran aman', { exact: true }).count(), 1, 'customer QR card preserves the configured footer');
+  const qrBox = await paymentCard.locator('img[alt="QRIS Demo QRIS"]').boundingBox();
+  const cardBox = await paymentCard.boundingBox();
+  assert.ok(qrBox && cardBox && qrBox.x >= cardBox.x && qrBox.y > cardBox.y, 'QR remains inside its dedicated white area and below the header decorations');
+  const downloadPromise = page.waitForEvent('download', { timeout: 10_000 });
+  await page.getByRole('button', { name: 'Unduh gambar QRIS' }).click();
+  const qrisDownload = await downloadPromise.catch(async (error) => {
+    const alerts = await page.getByRole('alert').allTextContents();
+    const disabled = await page.getByRole('button', { name: 'Unduh gambar QRIS' }).isDisabled();
+    const images = await paymentCard.locator('img').evaluateAll((elements) => elements.map((image) => ({ src: image.getAttribute('src'), currentSrc: image.currentSrc, width: image.naturalWidth, height: image.naturalHeight })));
+    throw new Error(`QRIS card download did not start (button disabled: ${disabled}; alerts: ${alerts.join(' | ')}; images: ${JSON.stringify(images)}; console: ${problems.join(' | ')}): ${error.message}`);
+  });
+  assert.equal(qrisDownload.suggestedFilename(), 'bloomora-qris-qr-test.png', 'download exports the final Bloomora card as PNG');
+  const downloadedPath = await qrisDownload.path();
+  assert.ok(downloadedPath, 'browser produced a downloadable PNG file');
+  const downloadedMetadata = await sharp(await readFile(downloadedPath)).metadata();
+  assert.ok(downloadedMetadata.format === 'png' && (downloadedMetadata.width ?? 0) >= 500, 'download is a high-resolution raster of the final styled card');
+
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(`${base}/id/templates`, { waitUntil: 'networkidle' });
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   assert.ok(overflow <= 1, `mobile catalog has no horizontal overflow (got ${overflow}px)`);
   assert.equal(problems.length, 0, `browser has no page/console errors: ${problems.join('; ')}`);
 
-  console.log('PASS catalog browser tests: search, category filter, empty/reset, badges/demo, detail/package eligibility, Indonesian-only routing, canonical domain, create selection, mobile layout.');
+  console.log('PASS catalog browser tests: homepage apex CTAs, search/category/empty/reset, badges/demo, detail/package eligibility, Indonesian-only routing, canonical domain, customer QRIS card and PNG download, create selection, mobile layout.');
 } finally {
   if (browser) await browser.close();
   if (child && child.exitCode === null) {

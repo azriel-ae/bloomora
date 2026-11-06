@@ -125,7 +125,7 @@ function encode(info: PathInfo, data: Doc): Row {
       for (const [domain, column] of Object.entries({ name: 'name', priceIdr: 'price_idr', durationDays: 'duration_days', active: 'active', sortOrder: 'sort_order', limits: 'limits', createdAt: 'created_at', updatedAt: 'updated_at', updatedBy: 'updated_by', schemaVersion: 'schema_version' })) field(domain, column);
       break;
     case 'paymentMethods':
-      for (const [domain, column] of Object.entries({ name: 'name', instructions: 'instructions', active: 'active', sortOrder: 'sort_order', paymentType: 'payment_type', providerName: 'provider_name', accountNumber: 'account_number', accountHolder: 'account_holder', imageUrl: 'image_url', imagePath: 'image_path', createdAt: 'created_at', updatedAt: 'updated_at', updatedBy: 'updated_by', schemaVersion: 'schema_version' })) field(domain, column);
+      for (const [domain, column] of Object.entries({ name: 'name', instructions: 'instructions', active: 'active', sortOrder: 'sort_order', paymentType: 'payment_type', providerName: 'provider_name', accountNumber: 'account_number', accountHolder: 'account_holder', imageUrl: 'image_url', imagePath: 'image_path', qrisDetectionStatus: 'qris_detection_status', createdAt: 'created_at', updatedAt: 'updated_at', updatedBy: 'updated_by', schemaVersion: 'schema_version' })) field(domain, column);
       break;
     case 'qrisDisplaySettings':
       field('config', 'config'); field('updatedAt', 'updated_at'); field('updatedBy', 'updated_by'); field('schemaVersion', 'schema_version');
@@ -242,7 +242,7 @@ function decode(info: PathInfo, row: Row): Doc {
   const d = (key: string) => row[key];
   switch (info.collection) {
     case 'packages': return { name: d('name'), priceIdr: Number(d('price_idr')), durationDays: Number(d('duration_days')), active: d('active'), sortOrder: Number(d('sort_order')), limits: d('limits'), createdAt: fromDate(d('created_at')), updatedAt: fromDate(d('updated_at')), updatedBy: d('updated_by'), schemaVersion: d('schema_version') };
-    case 'paymentMethods': return { name: d('name'), instructions: d('instructions'), active: d('active'), sortOrder: Number(d('sort_order')), paymentType: d('payment_type'), providerName: d('provider_name'), accountNumber: d('account_number'), accountHolder: d('account_holder'), imageUrl: d('image_url'), imagePath: d('image_path'), createdAt: fromDate(d('created_at')), updatedAt: fromDate(d('updated_at')), updatedBy: d('updated_by'), schemaVersion: d('schema_version') };
+    case 'paymentMethods': return { name: d('name'), instructions: d('instructions'), active: d('active'), sortOrder: Number(d('sort_order')), paymentType: d('payment_type'), providerName: d('provider_name'), accountNumber: d('account_number'), accountHolder: d('account_holder'), imageUrl: d('image_url'), imagePath: d('image_path'), qrisDetectionStatus: d('qris_detection_status'), createdAt: fromDate(d('created_at')), updatedAt: fromDate(d('updated_at')), updatedBy: d('updated_by'), schemaVersion: d('schema_version') };
     case 'qrisDisplaySettings': return { config: d('config'), updatedAt: fromDate(d('updated_at')), updatedBy: d('updated_by'), schemaVersion: Number(d('schema_version')) };
     case 'vouchers': {
       const kind = d('discount_type');

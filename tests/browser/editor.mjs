@@ -13,14 +13,14 @@ const req = createRequire(import.meta.url);
 const { chromium } = req(process.env.PLAYWRIGHT_PATH ?? 'playwright');
 const nextBin = path.join(root, 'node_modules/next/dist/bin/next');
 const port = Number(process.env.BLOOMORA_EDITOR_PORT ?? 3188);
-const base = `http://127.0.0.1:${port}`;
+const base = `http://localhost:${port}`;
 let child;
 let browser;
 let output = '';
 const problems = [];
 
 try {
-  child = spawn(process.execPath, [nextBin, 'dev', '--hostname', '127.0.0.1', '--port', String(port)], {
+  child = spawn(process.execPath, [nextBin, 'dev', '--hostname', 'localhost', '--port', String(port)], {
     cwd: root,
     env: { ...process.env, BLOOMORA_DEV_EDITOR: 'true', NEXT_TELEMETRY_DISABLED: '1' },
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -32,7 +32,7 @@ try {
   for (let attempt = 0; attempt < 240; attempt++) {
     if (child.exitCode !== null) throw new Error(`Next.js dev server exited early (code ${child.exitCode}).\n${output}`);
     try {
-      const response = await fetch(`${base}/id/editor/new?template=chapter-of-us`);
+      const response = await fetch(`${base}/editor/new?template=chapter-of-us`);
       if (response.status === 200) { ready = true; break; }
     } catch { /* Next is compiling the route. */ }
     await delay(250);
