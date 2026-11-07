@@ -1,9 +1,15 @@
 import { validateGiftContent } from '../model/content.ts';
 import { loadGuestForMedia } from './guest-services.ts';
 import { ServiceError, guarded, type Env } from './store.ts';
+import { consumeRateLimit, type RateLimitPolicy } from '../security/rate-limit.ts';
 
 export const MEDIA_BUCKET = 'gift-media';
 export const MAX_MEDIA_BYTES = 25 * 1024 * 1024;
+/** Guest drafts may exceed a paid package temporarily; checkout remains the entitlement gate. */
+export const MAX_GUEST_PHOTOS = 100;
+export const MAX_GUEST_AUDIO = 1;
+const MEDIA_WRITE_POLICY: RateLimitPolicy = { max: 30, windowMs: 60_000 };
+const MEDIA_READ_POLICY: RateLimitPolicy = { max: 120, windowMs: 60_000 };
 type MediaStorage = { storage: { from(bucket: string): unknown } };
 type MediaBucket = {
   upload(path: string, body: Uint8Array, options: { contentType: string; upsert: boolean }): Promise<{ error: unknown }>;
@@ -36,10 +42,15 @@ export function validateMediaFile(kind: unknown, mime: unknown, bytes: Uint8Arra
 async function checkUpload(env: Env, giftId: string, token: unknown, kind: MediaKind, expectedVersion: unknown) {
   return env.store.runTransaction(async tx => {
     const gift = await loadGuestForMedia(tx, env, giftId, token);
+    const rate = await consumeRateLimit(tx, 'guest-media-upload', gift.ownerUid, env.nowMs(), MEDIA_WRITE_POLICY);
+    if (!rate.ok) throw new ServiceError(429, 'rate_limited', String(Math.ceil(rate.retryAfterMs / 1000)));
     if (gift.status === 'archived') throw new ServiceError(403, 'gift_archived');
     if (!Number.isInteger(expectedVersion) || gift.draft.version !== expectedVersion) throw new ServiceError(409, 'version_conflict', String(gift.draft.version));
     const valid = validateGiftContent(gift.draft.content, { mediaEnabled: true });
     if (!valid.ok) throw new ServiceError(400, 'invalid_content');
+    const existingCount = valid.content.media.filter((media) => media.kind === kind).length;
+    if (kind === 'image' && existingCount >= MAX_GUEST_PHOTOS) throw new ServiceError(400, 'guest_media_limit');
+    if (kind === 'audio' && existingCount >= MAX_GUEST_AUDIO) throw new ServiceError(400, 'guest_audio_limit');
     return { gift, content: valid.content };
   });
 }
@@ -85,6 +96,8 @@ export function getGuestMediaUrls(env: Env, storage: MediaStorage, giftId: strin
   return guarded(async () => {
     const media = await env.store.runTransaction(async tx => {
       const gift = await loadGuestForMedia(tx, env, giftId, token);
+      const rate = await consumeRateLimit(tx, 'guest-media-read', gift.ownerUid, env.nowMs(), MEDIA_READ_POLICY);
+      if (!rate.ok) throw new ServiceError(429, 'rate_limited', String(Math.ceil(rate.retryAfterMs / 1000)));
       const content = validateGiftContent(gift.draft.content, { mediaEnabled: true });
       if (!content.ok) throw new ServiceError(400, 'invalid_content');
       return content.content.media;
@@ -123,6 +136,8 @@ export function deleteGuestMedia(env: Env, storage: MediaStorage, giftId: string
       const metadata = await tx.get(`giftMedia/${mediaId}`);
       const refs = await tx.query('giftMedia', 'storagePath', media.path);
       const stillReferenced = refs.some((row) => row.id !== mediaId && !row.data.deletedAt);
+      const rate = await consumeRateLimit(tx, 'guest-media-delete', gift.ownerUid, env.nowMs(), MEDIA_WRITE_POLICY);
+      if (!rate.ok) throw new ServiceError(429, 'rate_limited', String(Math.ceil(rate.retryAfterMs / 1000)));
       const now = env.ts(env.nowMs());
       const version = gift.draft.version + 1;
       tx.update(`gifts/${giftId}`, { draft: { content: checked.content, version, updatedAt: now }, updatedAt: now });

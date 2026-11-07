@@ -2,6 +2,8 @@
 
 Baca dulu `docs/SUPABASE_MIGRATION.md`, `docs/DECISIONS.md`, `docs/PROGRESS.md`, dan `docs/ROADMAP.md`. Checkpoint terbaru diperbarui dari kode aktual per 2026-11-06; catatan Phase sebelumnya di bawah adalah riwayat dan tidak mengalahkan checkpoint ini.
 
+Checkpoint 2026-11-07 menegaskan alur guest media: edit-token yang valid cukup untuk upload foto/audio ke bucket privat sebelum checkout. Upload memiliki validasi signature/type/size, signed URL, rate limit, batas sementara abuse, dan cleanup object saat commit draft gagal. Batas paket tidak dipakai untuk menolak eksperimen di editor; server memeriksa jumlah foto dan musik terhadap konfigurasi paket saat checkout. Storage live, RLS production, dan deployment env tetap belum diuji pada koneksi Supabase nyata.
+
 Continuation 2026-11-06 mempertahankan UI Indonesia-only/domain/chat, lalu menambahkan upload QRIS yang hanya mengaktifkan crop yang tervalidasi (auto + manual fallback), renderer QRIS bersama admin/customer, desain beku per order, unduhan PNG final, dan endpoint gambar ber-token. Cleanup menghapus `components/publish-dialog.tsx`, `lib/brand.ts`, `react-hook-form`, dan `@hookform/resolvers` setelah dipastikan tidak dirujuk; `@zxing/library` tinggal sebagai dev fixture. CTA “Buat hadiah” di desktop/mobile dan CTA template beranda memakai `https://bloomora.my.id/templates` (apex, tanpa `www`). Pengguna melaporkan aturan domain Vercel sudah diperbarui; dashboard tidak diperiksa ulang setelah laporan itu. Seluruh perubahan kerja harus di-commit lalu langsung di-push ke `https://github.com/azriel-ae/bloomora.git`; setelah push, catat hash dan pastikan working tree bersih.
 
 ## Proyek

@@ -32,6 +32,27 @@ test('upload rejects a bad edit token but allows an authorized guest draft befor
   assert.equal(guestUpload.ok, true); assert.equal(uploadCalls, 1);
 });
 
+test('an unpaid guest can upload one audio file without a subscription', async () => {
+  const h = makeEnv(Date.UTC(2026, 10, 1));
+  const created = await guest.createGuestGift(h.env, { templateId: 'chapter-of-us', content: sampleContent(chapterOfUs, 'en') }, lookupTemplate);
+  assert.ok(created.ok); if (!created.ok) return;
+  const storage = { storage: { from: () => ({
+    upload: async () => ({ error: null }),
+    createSignedUrl: async (path: string) => ({ data: { signedUrl: `signed:${path}` }, error: null }),
+    remove: async () => ({ error: null }),
+  }) } };
+  const result = await uploadGuestMedia(h.env, storage, created.giftId, created.editToken, {
+    kind: 'audio', expectedVersion: 1, bytes: new Uint8Array([0x49, 0x44, 0x33, 0x04, 0x00, 0x00]), mime: 'audio/mpeg',
+  });
+  assert.equal(result.ok, true);
+  if (result.ok) assert.equal(result.media.kind, 'audio');
+  const second = await uploadGuestMedia(h.env, storage, created.giftId, created.editToken, {
+    kind: 'audio', expectedVersion: result.ok ? result.version : 1, bytes: new Uint8Array([0x49, 0x44, 0x33, 0x04, 0x00, 0x00]), mime: 'audio/mpeg',
+  });
+  assert.equal(second.ok, false);
+  if (!second.ok) assert.equal(second.code, 'guest_audio_limit');
+});
+
 test('guest photo upload persists the private ref, metadata, draft version and a renewable signed URL', async () => {
   const h = makeEnv(Date.UTC(2026, 10, 1));
   const created = await guest.createGuestGift(h.env, { templateId: 'chapter-of-us', content: sampleContent(chapterOfUs, 'en') }, lookupTemplate);

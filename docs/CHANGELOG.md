@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-11-07 — guest media sebelum checkout
+
+- Guest dengan edit-token yang valid kini dapat mengunggah foto dan satu audio sebelum membayar; status order atau subscription tidak menjadi syarat upload.
+- Menambahkan rate limit upload/hapus/signed URL, batas file 25 MB, validasi MIME dan file signature, batas abuse sementara per draf, dan cleanup object Storage ketika transaksi optimistic gagal.
+- Checkout tetap memvalidasi jumlah foto dan ketersediaan musik terhadap konfigurasi paket server-side, tanpa menghapus media yang melebihi paket.
+- Editor menampilkan media dari signed URL draft tersimpan setelah refresh dan memberikan pesan error yang membedakan format, ukuran, link akses, rate limit, dan batas audio.
+- Verifikasi: typecheck, unit test 118/118, lint dengan warning existing, dan `git diff --check` lulus. Supabase Storage/RLS production belum diuji live.
+
 ## 2026-11-06 — QRIS crop tervalidasi, cleanup, dan CTA template apex
 
 - Upload admin kini mendeteksi QR secara dinamis, menyediakan manual-crop fallback, memvalidasi payload QRIS/CRC, quiet zone, bentuk persegi, re-decode PNG, dan kesamaan payload sumber/crop. Gambar mentah tidak menjadi QRIS aktif; hanya hasil crop yang dikonfirmasi.

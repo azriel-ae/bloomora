@@ -342,6 +342,13 @@
     "giftNotFound": "Draf ini tidak ditemukan.",
     "giftArchived": "Draf yang diarsipkan hanya bisa dibaca. Pulihkan hadiah dari ruang kerjamu sebelum mengedit.",
     "templateUnavailable": "Versi template untuk draf ini tidak tersedia untuk diedit.",
+    "invalidMediaType": "Format file tidak didukung atau isi file tidak sesuai dengan formatnya.",
+    "invalidMediaSize": "Ukuran file terlalu besar. Maksimal 25 MB per file.",
+    "audioLimitReached": "Draf ini sudah memiliki musik. Hapus musik lama sebelum menggantinya.",
+    "mediaLimitReached": "Jumlah media pada draf ini sudah mencapai batas sementara. Hapus media yang tidak diperlukan lalu coba lagi.",
+    "editLinkInvalid": "Tautan edit tidak valid atau bukan milik draf ini.",
+    "editLinkExpired": "Tautan edit sudah kedaluwarsa. Minta tautan edit baru untuk melanjutkan.",
+    "uploadRateLimited": "Terlalu banyak percobaan upload. Tunggu sebentar lalu coba lagi.",
     "networkError": "Server tidak dapat dijangkau. Perubahanmu masih ada di halaman ini; coba lagi saat siap.",
     "saveFailed": "Draf belum bisa disimpan. Perubahanmu masih ada di halaman ini; silakan coba lagi."
   },

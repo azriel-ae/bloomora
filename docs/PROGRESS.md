@@ -2,6 +2,14 @@
 
 Diperbarui: 2026-11-06. Checkpoint QRIS/cleanup/CTA paling baru di bawah; checkpoint Indonesian-only/domain/chat dan checkpoint historis tetap dipertahankan. Supabase masih menjadi backend aktif; migrasi PostgreSQL belum cutover ke runtime.
 
+## Checkpoint 2026-11-07: guest media sebelum pembayaran
+
+- Guest yang memiliki edit-token valid dapat mengunggah foto dan satu musik ke bucket `gift-media` privat sebelum checkout atau pembayaran. Status order/subscription tidak dipakai sebagai satu-satunya izin; ownership draft tetap diverifikasi server-side.
+- Ditambahkan rate limit terpisah untuk upload, hapus, dan pembuatan signed URL media, batas file 25 MB, signature/type validation, batas sementara 100 foto dan satu audio per draf, serta cleanup object saat transaksi optimistic gagal.
+- Validasi entitlement paket tetap dilakukan di server saat checkout: jumlah foto dan ketersediaan musik pada `packageSnapshot` menentukan paket yang boleh dipilih. Media tidak dihapus otomatis ketika paket tidak cocok; pelanggan kembali ke editor untuk menyesuaikan.
+- Pesan error upload kini membedakan format, ukuran, signature, link edit, rate limit, dan batas audio. Preview editor membaca signed URL dari draft yang tersimpan sehingga media tetap muncul setelah refresh.
+- Verifikasi checkpoint: typecheck lulus, seluruh unit test 118/118 lulus termasuk guest foto/audio tanpa subscription, lint lulus dengan warning existing, dan `git diff --check` lulus. Supabase Storage live/RLS production belum diuji.
+
 ## Checkpoint 2026-11-06: QRIS, cleanup, dan CTA homepage
 
 - Upload QRIS admin kini menyiapkan preview crop otomatis atau pilihan area manual tanpa mengaktifkan gambar sumber. Crop hanya disimpan setelah dikonfirmasi; server memeriksa payload EMVCo/CRC, quiet zone, rasio, decode dari gambar sumber dan hasil PNG, lalu mewajibkan payload keduanya sama. QRIS aktif harus memiliki path crop dan status `confirmed`; QR legacy/unverified ditolak.

@@ -54,6 +54,14 @@ function errorKey(code: string | null): string {
     case 'template_unavailable': return 'templateUnavailable';
     case 'media_not_found': return 'mediaDeleteFailed';
     case 'media_storage_delete_failed': return 'mediaDeleteFailed';
+    case 'invalid_media_type': return 'invalidMediaType';
+    case 'media_signature_mismatch': return 'invalidMediaType';
+    case 'invalid_media_size': return 'invalidMediaSize';
+    case 'guest_media_limit': return 'mediaLimitReached';
+    case 'guest_audio_limit': return 'audioLimitReached';
+    case 'edit_link_invalid': return 'editLinkInvalid';
+    case 'edit_link_expired': return 'editLinkExpired';
+    case 'rate_limited': return 'uploadRateLimited';
     case 'publish_failed': return 'saveFailed';
     case 'network_error': return 'networkError';
     default: return 'saveFailed';
@@ -326,10 +334,14 @@ export function GiftEditor({ giftId, initialTemplateId, initialEditToken, devMod
       });
       const data = await readJson(response);
       if (!response.ok || !data.ok || !data.media || !Number.isInteger(data.version) || typeof data.signedUrl !== 'string') {
-        if (data.code === 'photo_limit_reached') setMediaError(t('editor', 'photoLimitReached'));
+        if (data.code === 'photo_limit_reached' || data.code === 'guest_media_limit') setMediaError(t('editor', 'photoLimitReached'));
         else if (data.code === 'media_not_in_package') setMediaError(t('editor', 'musicNotIncluded'));
         else if (data.code === 'media_unavailable' || data.code === 'storage_not_configured' || data.code === 'server_not_configured') setMediaError(t('editor', 'mediaDisabled'));
         else if (data.code === 'no_subscription' || data.code === 'subscription_expired') setMediaError(t('errors', data.code === 'no_subscription' ? 'noSubscription' : 'subscriptionExpired'));
+        else if (data.code === 'invalid_media_type' || data.code === 'media_signature_mismatch') setMediaError(t('errors', 'invalidMediaType'));
+        else if (data.code === 'invalid_media_size') setMediaError(t('errors', 'invalidMediaSize'));
+        else if (data.code === 'guest_audio_limit') setMediaError(t('errors', 'audioLimitReached'));
+        else if (data.code === 'rate_limited') setMediaError(t('errors', 'uploadRateLimited'));
         else setMediaError(t('editor', 'mediaUploadFailed'));
         return;
       }
