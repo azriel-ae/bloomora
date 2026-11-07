@@ -318,19 +318,49 @@ export function GiftEditor({ giftId, initialTemplateId, initialEditToken, devMod
     window.setTimeout(() => setEditLinkCopied(false), 1800);
   };
 
+  const createDraftForMedia = async (): Promise<{ giftId: string; version: number }> => {
+    if (!template || !content) throw new Error('draft_content_missing');
+    const response = await fetch('/api/guest/gifts', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ templateId: template.id, content }),
+    });
+    const data = await readJson(response);
+    const version = Number(data.version);
+    if (!response.ok || !data.ok || typeof data.giftId !== 'string' || !Number.isInteger(version) || typeof data.editToken !== 'string') {
+      throw new Error(data.code ?? 'draft_create_failed');
+    }
+    window.sessionStorage.setItem(`bloomora_edit_token:${data.giftId}`, data.editToken);
+    window.sessionStorage.setItem('bloomora_edit_token', data.editToken);
+    versionRef.current = version;
+    setDraftVersion(version);
+    setActiveGiftId(data.giftId);
+    baselineRef.current = content;
+    setHasNewChanges(false);
+    setSaveStatus('saved');
+    return { giftId: data.giftId, version };
+  };
+
   const uploadMedia = async (kind: 'image' | 'audio', file?: File) => {
-    if (!activeGiftId || !file || mediaUploading) return;
+    if (!file || mediaUploading) return;
     setMediaUploading(true); setMediaError('');
     try {
+      let targetGiftId = activeGiftId;
       const saver = autosaverRef.current;
       await saver?.flush();
       if (saver?.hasPendingChanges) { setMediaError(t('editor', 'mediaUploadFailed')); return; }
+      let expectedVersion = saver?.currentVersion ?? versionRef.current;
+      if (!targetGiftId) {
+        const created = await createDraftForMedia();
+        targetGiftId = created.giftId;
+        expectedVersion = created.version;
+      }
       const form = new FormData();
       form.set('file', file);
       form.set('kind', kind);
-      form.set('expectedVersion', String(saver?.currentVersion ?? versionRef.current));
-      const response = await fetch(`/api/guest/gifts/${encodeURIComponent(activeGiftId)}/media`, {
-        method: 'POST', headers: guestHeaders(activeGiftId), body: form,
+      form.set('expectedVersion', String(expectedVersion));
+      const response = await fetch(`/api/guest/gifts/${encodeURIComponent(targetGiftId)}/media`, {
+        method: 'POST', headers: guestHeaders(targetGiftId), body: form,
       });
       const data = await readJson(response);
       if (!response.ok || !data.ok || !data.media || !Number.isInteger(data.version) || typeof data.signedUrl !== 'string') {
@@ -355,6 +385,7 @@ export function GiftEditor({ giftId, initialTemplateId, initialEditToken, devMod
       setMediaUrls((current) => ({ ...current, [data.media!.id]: data.signedUrl! }));
       setHasNewChanges(false);
       setMediaError('');
+      if (!activeGiftId && targetGiftId) router.replace(`/editor/g/${encodeURIComponent(targetGiftId)}`);
     } catch {
       setMediaError(t('editor', 'mediaUploadFailed'));
     } finally {
@@ -567,8 +598,8 @@ export function GiftEditor({ giftId, initialTemplateId, initialEditToken, devMod
             <legend className="font-display text-xl">{t('editor', 'media')}</legend>
             <p className="mt-2 text-sm leading-6 text-ink/60">{t('editor', 'mediaUploadHelp')}</p>
             <div className="mt-4 grid gap-3 sm:grid-cols-2">
-              <button type="button" disabled={!activeGiftId || !canEditContent || mediaUploading} onClick={() => photoInputRef.current?.click()} className="inline-flex items-center justify-center gap-2 rounded-xl border border-line px-3 py-3 text-left text-sm disabled:cursor-not-allowed disabled:opacity-45"><ImagePlus size={16} />{t('editor', 'uploadPhotos')} · {photoCount}</button>
-              <button type="button" disabled={!activeGiftId || !canEditContent || mediaUploading || hasAudio} onClick={() => audioInputRef.current?.click()} className="inline-flex items-center justify-center gap-2 rounded-xl border border-line px-3 py-3 text-left text-sm disabled:cursor-not-allowed disabled:opacity-45"><Music2 size={16} />{hasAudio ? t('editor', 'uploadedMusic') : t('editor', 'uploadMusic')}</button>
+              <button type="button" disabled={!canEditContent || mediaUploading} onClick={() => photoInputRef.current?.click()} className="inline-flex items-center justify-center gap-2 rounded-xl border border-line px-3 py-3 text-left text-sm disabled:cursor-not-allowed disabled:opacity-45"><ImagePlus size={16} />{t('editor', 'uploadPhotos')} · {photoCount}</button>
+              <button type="button" disabled={!canEditContent || mediaUploading || hasAudio} onClick={() => audioInputRef.current?.click()} className="inline-flex items-center justify-center gap-2 rounded-xl border border-line px-3 py-3 text-left text-sm disabled:cursor-not-allowed disabled:opacity-45"><Music2 size={16} />{hasAudio ? t('editor', 'uploadedMusic') : t('editor', 'uploadMusic')}</button>
             </div>
             <input ref={photoInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" aria-label={t('editor', 'uploadPhotos')} onChange={(event) => { void uploadMedia('image', event.target.files?.[0]); event.currentTarget.value = ''; }} />
             <input ref={audioInputRef} type="file" accept="audio/mpeg,audio/mp4,audio/ogg,audio/wav,audio/x-m4a" className="sr-only" aria-label={t('editor', 'uploadMusic')} onChange={(event) => { void uploadMedia('audio', event.target.files?.[0]); event.currentTarget.value = ''; }} />
