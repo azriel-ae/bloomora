@@ -846,18 +846,71 @@ export function createAdminCustomerEditorLink(env: Env, actor: Actor, orderId: s
   }));
 }
 
-/** Admin soft-delete preserves order state and all linked financial/audit history. */
+/** Permanently removes an order and its private/public gift links. Paid entitlements and antifraud hashes are retained. */
 export function deleteAdminOrder(env: Env, actor: Actor, orderId: string) {
   return guarded(async () => env.store.runTransaction(async (tx) => {
     requireAdmin(actor);
     if (!/^[A-Za-z0-9_-]{1,120}$/.test(orderId)) throw new ServiceError(404, 'order_not_found');
     const order = await tx.get(`orders/${orderId}`);
     if (!order) throw new ServiceError(404, 'order_not_found');
-    if (order.deletedAt) return { alreadyDeleted: true };
+    const giftId = typeof order.giftId === 'string' ? order.giftId : null;
+    const gift = giftId ? await tx.get(`gifts/${giftId}`) : null;
+    const giftOrders = giftId ? await tx.query('orders', 'giftId', giftId) : [];
+    const deleteGift = !!gift && !giftOrders.some((row) => row.id !== orderId);
+    const [editorLinks, orderIdempotency, transactionClaims, proofClaims, audits] = await Promise.all([
+      tx.query('guestEditLinks', 'orderId', orderId),
+      tx.query('guestOrderIdempotency', 'orderId', orderId),
+      tx.query('paymentTransactionClaims', 'orderId', orderId),
+      tx.query('paymentProofClaims', 'orderId', orderId),
+      tx.query('adminAuditLogs', 'orderId', orderId),
+    ]);
+    const [giftLinks, giftIdempotency, recoveries, media, revisions, publicGift, analytics, subscription] = deleteGift && gift && giftId
+      ? await Promise.all([
+        tx.query('guestEditLinks', 'giftId', giftId),
+        tx.query('guestOrderIdempotency', 'giftId', giftId),
+        tx.query('guestEditRecoveries', 'giftId', giftId),
+        tx.query('giftMedia', 'giftId', giftId),
+        tx.query('giftRevisions', 'giftId', giftId),
+        tx.get(`publicGifts/${gift.slug}`),
+        tx.get(`giftAnalytics/${gift.slug}`),
+        typeof order.subscriptionId === 'string' ? tx.get(`subscriptions/${order.subscriptionId}`) : Promise.resolve(null),
+      ])
+      : [[], [], [], [], [], null, null, null] as const;
     const now = env.ts(env.nowMs());
-    tx.update(`orders/${orderId}`, { deletedAt: now, deletedByUid: actor.uid, updatedAt: now });
-    tx.create(`adminAuditLogs/${env.newId()}`, { action: 'order.delete', actorUid: actor.uid, orderId, at: now });
-    return {};
+
+    // Keep paid time-limited access and duplicate-payment protections, but remove their order PII link.
+    if (subscription?.orderId === orderId) tx.update(`subscriptions/${order.subscriptionId}`, { orderId: null, updatedAt: now });
+    for (const row of transactionClaims) tx.update(`paymentTransactionClaims/${row.id}`, { orderId: null });
+    for (const row of proofClaims) tx.update(`paymentProofClaims/${row.id}`, { orderId: null });
+
+    const linksToDelete = new Map([...editorLinks, ...giftLinks].map((row) => [row.id, row]));
+    for (const row of linksToDelete.values()) tx.delete(`guestEditLinks/${row.id}`);
+    const idempotencyToDelete = new Map([...orderIdempotency, ...giftIdempotency].map((row) => [row.id, row]));
+    for (const row of idempotencyToDelete.values()) tx.delete(`guestOrderIdempotency/${row.id}`);
+    if (deleteGift && gift && giftId) {
+      for (const row of recoveries) tx.delete(`guestEditRecoveries/${row.id}`);
+      for (const row of media) tx.delete(`giftMedia/${row.id}`);
+      for (const row of revisions) {
+        const revision = Number(row.data.number);
+        if (Number.isSafeInteger(revision) && revision > 0) tx.delete(`gifts/${giftId}/revisions/${revision}`);
+      }
+      tx.set(`slugs/${gift.slug}`, { giftId: null, ownerUid: null, orderId: null, expiresAt: null, createdAt: gift.createdAt ?? now });
+      if (publicGift) tx.delete(`publicGifts/${gift.slug}`);
+      if (analytics) tx.delete(`giftAnalytics/${gift.slug}`);
+    }
+
+    // Keep the audit trail but scrub order-linked details and direct references.
+    for (const row of audits) tx.set(`adminAuditLogs/${row.id}`, {
+      action: row.data.action, actorUid: row.data.actorUid, orderId: null, reason: null,
+      ...(row.data.at === undefined ? {} : { at: row.data.at }),
+    });
+    tx.delete(`orders/${orderId}`);
+    if (deleteGift && giftId) tx.delete(`gifts/${giftId}`);
+    tx.create(`adminAuditLogs/${env.newId()}`, { action: 'order.permanently_deleted', actorUid: actor.uid, giftDeleted: deleteGift, at: now });
+    const mediaPaths = media.map((row) => row.data.storagePath).filter((path): path is string => typeof path === 'string' && !!giftId && path.startsWith(`private/${giftId}/`));
+    const proofPath = typeof order.proof?.storagePath === 'string' && typeof order.userId === 'string'
+      && order.proof.storagePath.startsWith(`paymentProofs/${order.userId}/${orderId}/`) ? order.proof.storagePath : null;
+    return { giftDeleted: deleteGift, mediaPaths, proofPath };
   }));
 }
 

@@ -71,7 +71,8 @@ export function validateGiftContent(input: unknown, opts: { mediaEnabled?: boole
     const r = m as Record<string, unknown>;
     if (typeof r?.id !== 'string' || (r.kind !== 'image' && r.kind !== 'audio') || typeof r.path !== 'string'
       || r.path.length > 300 || r.path.includes('..') || !r.path.startsWith('private/')) return bad('invalid media entry');
-    media.push({ id: r.id, kind: r.kind, path: r.path });
+    if (r.placement !== undefined && (r.placement !== 'hero' || r.kind !== 'image')) return bad('invalid media placement');
+    media.push({ id: r.id, kind: r.kind, path: r.path, ...(r.placement === 'hero' ? { placement: 'hero' as const } : {}) });
   }
   return { ok: true, content: { fields, sections, data: data as Record<string, unknown>, media } };
 }

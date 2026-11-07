@@ -161,7 +161,8 @@ export interface SubscriptionDoc<T extends TimestampLike = TimestampLike> {
   userId: string;
   packageId: PackageId;
   /** The approved order that created this subscription (paymentId). */
-  orderId: string;
+  /** Null after the source transaction is permanently deleted; entitlement remains intact. */
+  orderId: string | null;
   status: SubscriptionStatus;
   startedAt: T;
   expiresAt: T;
@@ -191,7 +192,7 @@ export interface GiftContent {
   /** Section-specific data, e.g. gallery captions or timeline entries. */
   data: Record<string, unknown>;
   /** Media references. Always empty while upload is disabled. */
-  media: { id: string; kind: 'image' | 'audio'; path: string }[];
+  media: { id: string; kind: 'image' | 'audio'; path: string; placement?: 'hero' }[];
 }
 
 export interface GiftDraft<T extends TimestampLike = TimestampLike> {
@@ -270,7 +271,8 @@ export interface GiftAnalyticsDoc<T extends TimestampLike = TimestampLike> {
 
 /** slugs/{slug} - server-only reservation and slug -> gift mapping. */
 export interface SlugDoc<T extends TimestampLike = TimestampLike> {
-  giftId: string;
-  ownerUid: string;
+  /** Null for a permanently deleted gift; the reserved slug stays unavailable to prevent URL reuse. */
+  giftId: string | null;
+  ownerUid: string | null;
   createdAt: T;
 }

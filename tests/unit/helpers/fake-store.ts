@@ -20,12 +20,18 @@ export class FakeStore implements Store {
         get: async (p) => { requireNoWrite(); const d = this.docs.get(p); return d ? { ...d } : null; },
         query: async (c, f, v) => {
           requireNoWrite();
+          if (c === 'giftRevisions' && f === 'giftId' && typeof v === 'string') {
+            const prefix = `gifts/${v}/revisions/`;
+            return [...this.docs].filter(([p]) => p.startsWith(prefix) && !p.slice(prefix.length).includes('/'))
+              .map(([p, d]) => ({ id: `${v}/${p.slice(prefix.length)}`, data: { ...d } }));
+          }
           return [...this.docs].filter(([p, d]) => p.startsWith(c + '/') && !p.slice(c.length + 1).includes('/') && (f === undefined || d[f] === v))
             .map(([p, d]) => ({ id: p.slice(c.length + 1), data: { ...d } }));
         },
         create: (p, d) => { wrote = true; writes.push(() => { if (shadow.has(p)) throw new Error('ALREADY_EXISTS ' + p); shadow.set(p, d); }); },
         set: (p, d) => { wrote = true; writes.push(() => { shadow.set(p, d); }); },
         update: (p, d) => { wrote = true; writes.push(() => { const cur = shadow.get(p); if (!cur) throw new Error('NOT_FOUND ' + p); shadow.set(p, { ...cur, ...d }); }); },
+        delete: (p) => { wrote = true; writes.push(() => { shadow.delete(p); }); },
       };
       const result = await fn(tx);
       for (const w of writes) w(); // throws before commit => nothing applied

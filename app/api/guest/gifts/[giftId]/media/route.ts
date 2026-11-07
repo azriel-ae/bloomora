@@ -15,7 +15,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ gif
   const file = form?.get('file');
   if (!(file instanceof File)) return privateJson({ ok: false, code: 'file_required' }, 400);
   const result = await uploadGuestMedia(env, storage, (await params).giftId, token(request), {
-    kind: form?.get('kind'), expectedVersion: Number(form?.get('expectedVersion')),
+    kind: form?.get('kind'), placement: form?.get('placement') ?? undefined, expectedVersion: Number(form?.get('expectedVersion')),
     bytes: new Uint8Array(await file.arrayBuffer()), mime: file.type,
   });
   return result.ok ? privateJson(result) : privateJson(result, result.status);

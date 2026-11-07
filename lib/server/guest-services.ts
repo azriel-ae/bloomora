@@ -56,7 +56,7 @@ async function nextReplacementSlug(tx: Tx): Promise<string> {
 type SlugClaim = { available: boolean; reclaimGiftId?: string; replacementSlug?: string };
 async function inspectSlugClaim(tx: Tx, env: Env, slug: string, giftId: string): Promise<SlugClaim> {
   const reservation = await tx.get(`slugs/${slug}`);
-  const reservedGift = reservation && reservation.giftId !== giftId ? await tx.get(`gifts/${reservation.giftId}`) : null;
+  const reservedGift = reservation && typeof reservation.giftId === 'string' && reservation.giftId !== giftId ? await tx.get(`gifts/${reservation.giftId}`) : null;
   const row = reservedGift && reservation && reservedGift.slug === slug ? { id: reservation.giftId, data: reservedGift } : await findGiftBySlug(tx, slug);
   if (!row || row.id === giftId) return { available: true };
   if (await hasActiveSlugOwner(tx, env, { ...row.data, id: row.id })) return { available: false };

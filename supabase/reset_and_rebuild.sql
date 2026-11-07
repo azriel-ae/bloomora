@@ -749,6 +749,56 @@ create policy qris_display_public_read on public.qris_display_settings for selec
 drop policy if exists qris_display_admin_write on public.qris_display_settings;
 create policy qris_display_admin_write on public.qris_display_settings for all to authenticated using (exists (select 1 from public.admin_profiles p where p.user_id = (select auth.uid()) and p.role in ('owner', 'admin'))) with check (exists (select 1 from public.admin_profiles p where p.user_id = (select auth.uid()) and p.role in ('owner', 'admin')));
 -- ===== END 20261106000100_qris_display_settings.sql =====
+-- ===== BEGIN 20261106000200_guest_edit_links.sql =====
+create table if not exists public.guest_edit_links (
+  token_hash text primary key check (token_hash ~ '^[a-f0-9]{64}$'),
+  gift_id text not null references public.gifts(id) on delete restrict,
+  owner_uid text not null,
+  order_id text not null references public.orders(id) on delete restrict,
+  issued_by_admin_uid text not null,
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null,
+  revoked_at timestamptz,
+  schema_version integer not null default 1 check (schema_version > 0),
+  check (expires_at > created_at)
+);
+create index if not exists guest_edit_links_gift_expiry_idx
+  on public.guest_edit_links (gift_id, expires_at) where revoked_at is null;
+alter table public.guest_edit_links enable row level security;
+revoke all on table public.guest_edit_links from anon, authenticated;
+grant all on table public.guest_edit_links to service_role;
+-- ===== END 20261106000200_guest_edit_links.sql =====
+
+-- ===== BEGIN 20261107000100_permanent_order_deletion.sql =====
+alter table public.subscriptions alter column order_id drop not null;
+alter table public.subscriptions drop constraint if exists subscriptions_order_id_fkey;
+alter table public.subscriptions add constraint subscriptions_order_id_fkey foreign key (order_id) references public.orders(id) on delete set null;
+alter table public.payment_transaction_claims alter column order_id drop not null;
+alter table public.payment_transaction_claims drop constraint if exists payment_transaction_claims_order_id_fkey;
+alter table public.payment_transaction_claims add constraint payment_transaction_claims_order_id_fkey foreign key (order_id) references public.orders(id) on delete set null;
+alter table public.payment_proof_claims alter column order_id drop not null;
+alter table public.payment_proof_claims drop constraint if exists payment_proof_claims_order_id_fkey;
+alter table public.payment_proof_claims add constraint payment_proof_claims_order_id_fkey foreign key (order_id) references public.orders(id) on delete set null;
+alter table public.guest_order_idempotency drop constraint if exists guest_order_idempotency_order_id_fkey;
+alter table public.guest_order_idempotency add constraint guest_order_idempotency_order_id_fkey foreign key (order_id) references public.orders(id) on delete cascade;
+alter table public.guest_order_idempotency drop constraint if exists guest_order_idempotency_gift_id_fkey;
+alter table public.guest_order_idempotency add constraint guest_order_idempotency_gift_id_fkey foreign key (gift_id) references public.gifts(id) on delete cascade;
+alter table public.guest_edit_links drop constraint if exists guest_edit_links_order_id_fkey;
+alter table public.guest_edit_links add constraint guest_edit_links_order_id_fkey foreign key (order_id) references public.orders(id) on delete cascade;
+alter table public.guest_edit_links drop constraint if exists guest_edit_links_gift_id_fkey;
+alter table public.guest_edit_links add constraint guest_edit_links_gift_id_fkey foreign key (gift_id) references public.gifts(id) on delete cascade;
+alter table public.guest_edit_recoveries drop constraint if exists guest_edit_recoveries_gift_id_fkey;
+alter table public.guest_edit_recoveries add constraint guest_edit_recoveries_gift_id_fkey foreign key (gift_id) references public.gifts(id) on delete cascade;
+alter table public.gift_revisions drop constraint if exists gift_revisions_gift_id_fkey;
+alter table public.gift_revisions add constraint gift_revisions_gift_id_fkey foreign key (gift_id) references public.gifts(id) on delete cascade;
+alter table public.gift_media drop constraint if exists gift_media_gift_id_fkey;
+alter table public.gift_media add constraint gift_media_gift_id_fkey foreign key (gift_id) references public.gifts(id) on delete cascade;
+alter table public.slug_reservations alter column gift_id drop not null;
+alter table public.slug_reservations alter column owner_uid drop not null;
+alter table public.slug_reservations drop constraint if exists slug_reservations_gift_id_fkey;
+alter table public.slug_reservations add constraint slug_reservations_gift_id_fkey foreign key (gift_id) references public.gifts(id) on delete set null deferrable initially deferred;
+-- ===== END 20261107000100_permanent_order_deletion.sql =====
+
 -- Final smoke checks. Expected: all listed public tables exist and QRIS has one default row.
 select table_name
 from information_schema.tables
@@ -758,7 +808,7 @@ where table_schema = 'public'
     'gift_revisions', 'public_gifts', 'slug_reservations', 'gift_analytics',
     'orders', 'subscriptions', 'subscription_schedules', 'guest_order_idempotency',
     'guest_edit_recoveries', 'rate_limits', 'admin_audit_logs', 'gift_media',
-    'payment_transaction_claims', 'payment_proof_claims', 'qris_display_settings'
+    'payment_transaction_claims', 'payment_proof_claims', 'qris_display_settings', 'guest_edit_links'
   )
 order by table_name;
 

@@ -40,6 +40,7 @@ class DevMemoryStore implements Store {
         create: (path, data) => { wrote = true; writes.push(() => { if (shadow.has(path)) throw new Error(`ALREADY_EXISTS ${path}`); shadow.set(path, data); }); },
         set: (path, data) => { wrote = true; writes.push(() => { shadow.set(path, data); }); },
         update: (path, data) => { wrote = true; writes.push(() => { const current = shadow.get(path); if (!current) throw new Error(`NOT_FOUND ${path}`); shadow.set(path, { ...current, ...data }); }); },
+        delete: (path) => { wrote = true; writes.push(() => { shadow.delete(path); }); },
       };
       const result = await fn(tx);
       for (const write of writes) write();

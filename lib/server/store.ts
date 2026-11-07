@@ -15,6 +15,7 @@ export interface Tx {
   create(path: string, data: Doc): void;
   set(path: string, data: Doc): void;
   update(path: string, data: Doc): void;
+  delete(path: string): void;
 }
 export interface Store { runTransaction<R>(fn: (tx: Tx) => Promise<R>): Promise<R>; }
 

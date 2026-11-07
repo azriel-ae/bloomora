@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react';
+import Image from 'next/image';
 import type { RenderModel } from '@/lib/engine/types';
 import type { GiftLabels } from '@/lib/engine/labels';
 import { OPENING_MS, activeIndex, openingReducer, roman, scrollProgress } from '@/lib/engine/interaction';
@@ -28,6 +29,8 @@ export interface GiftExperienceProps {
   footer?: ReactNode;
   /** Resolved URL of the gift's audio. The music section is hidden without it. */
   audioSrc?: string;
+  /** Resolved URL of a separately uploaded title/hero photo; never sourced from the gallery. */
+  coverImage?: string;
 }
 
 const NUMBERED = new Set(['letter', 'timeline', 'gallery', 'message', 'appreciation', 'music']);
@@ -37,7 +40,7 @@ const sectionLabel = (labels: GiftLabels, type: string): string => {
 };
 const pick = (model: RenderModel, key: string) => model.sections.map((s) => s.fields[key]).find(Boolean) ?? '';
 
-export function GiftExperience({ model, labels, mode, title, navActions, footer, audioSrc }: GiftExperienceProps) {
+export function GiftExperience({ model, labels, mode, title, navActions, footer, audioSrc, coverImage }: GiftExperienceProps) {
   const embedded = mode === 'preview';
   const [root, setRoot] = useState<HTMLElement | null>(null);
   const reduced = usePrefersReducedMotion(model.theme.motion);
@@ -121,10 +124,10 @@ export function GiftExperience({ model, labels, mode, title, navActions, footer,
   }, [embedded, root, behavior]);
 
   const flowerTransition = model.theme.flowerTransition === true || model.artDirection?.motion === 'petal';
+  const hasHeroSection = model.sections.some((section) => section.type === 'hero');
   const ctx = useMemo(() => ({ reduced, root: embedded ? root : null, flowerTransition }), [reduced, embedded, root, flowerTransition]);
   const recipient = pick(model, 'recipientName');
   const sender = pick(model, 'senderName');
-  const coverImage = model.sections.find((s) => s.type === 'gallery')?.lists.moments?.find((m) => m.imageSrc)?.imageSrc;
   const art = model.artDirection;
 
   if (!model.sections.length) {
@@ -160,6 +163,7 @@ export function GiftExperience({ model, labels, mode, title, navActions, footer,
         )}
         <noscript><style>{'.bl-opening{display:none!important}.bl-story[hidden]{display:block!important}'}</style></noscript>
         <div className="bl-story" ref={storyRef} tabIndex={-1} hidden={storyHidden}>
+          {!hasHeroSection && coverImage && <figure className="bl-cover-only"><Image src={coverImage} alt="" width={1600} height={1000} unoptimized /></figure>}
           <nav className="bl-nav" ref={navRef} aria-label={labels.navChapters}>
             <div className="bl-nav-row">
               <p className="bl-nav-title">{title}</p>

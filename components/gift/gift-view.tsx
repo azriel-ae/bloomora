@@ -25,7 +25,7 @@ export function GiftView(props: {
     () => {
       if (!config) return null;
       const resolved = resolveRenderModel(config, content, { fillEmptyFrom: mode === 'preview' ? locale : null });
-      const photos = content.media.filter((media) => media.kind === 'image');
+      const photos = content.media.filter((media) => media.kind === 'image' && media.placement !== 'hero');
       const gallery = resolved.sections.find((section) => section.type === 'gallery');
       if (gallery) {
         const moments = Array.isArray(content.data.moments) ? content.data.moments as Record<string, string>[] : [];
@@ -56,10 +56,12 @@ export function GiftView(props: {
     const audio = content.media.find((media) => media.kind === 'audio');
     return audio ? mediaUrls[audio.id] : undefined;
   })();
+  const heroMedia = content.media.find((media) => media.kind === 'image' && media.placement === 'hero');
   return (
     <GiftExperience
       model={model} labels={labels} mode={mode} title={config.name[locale]}
       navActions={navActions} footer={footer} audioSrc={resolvedAudioSrc}
+      coverImage={heroMedia ? mediaUrls[heroMedia.id] : undefined}
     />
   );
 }

@@ -13,6 +13,7 @@ import type { Env } from '../../lib/server/store.ts';
 const bootstrapSql = `
   create role anon nologin;
   create role authenticated nologin;
+  create role service_role nologin;
   create schema auth;
   create table auth.users (id uuid primary key);
   create function auth.uid() returns uuid language sql stable as $$ select null::uuid $$;
@@ -58,6 +59,8 @@ async function createDatabase() {
     'supabase/migrations/20261104000400_order_soft_delete.sql',
     'supabase/migrations/20261105000100_slug_reservation_lifecycle.sql',
     'supabase/migrations/20261105000200_payment_proof_ai_review.sql',
+    'supabase/migrations/20261106000200_guest_edit_links.sql',
+    'supabase/migrations/20261107000100_permanent_order_deletion.sql',
   ]) await database.exec(await readFile(resolve(process.cwd(), path), 'utf8'));
   return database;
 }
@@ -163,24 +166,27 @@ test('PostgreSQL Store runs guest checkout flows on real SQL transactions and ma
       nowMs += 40 * 86_400_000;
       const deletion = await services.deleteAdminOrder(env, actor, first.orderId);
       assert.equal(deletion.ok, true);
+      if (!deletion.ok) return;
+      assert.equal(deletion.giftDeleted, true);
+      assert.deepEqual(deletion.mediaPaths, [`private/${gift.giftId}/media_test.jpg`]);
+      assert.equal(deletion.proofPath, `paymentProofs/${owner.ownerUid}/${first.orderId}/receipt.png`);
       const deletedOrder = await store.runTransaction((tx) => tx.get(`orders/${first.orderId}`));
-      assert.equal(deletedOrder?.status, 'approved');
-      assert.ok(deletedOrder?.deletedAt);
-      assert.equal(deletedOrder?.subscriptionId, approval.subscriptionId);
-      assert.equal(deletedOrder?.voucherCode, 'ONEUSE');
-      assert.equal(deletedOrder?.proof?.storagePath, `paymentProofs/${owner.ownerUid}/${first.orderId}/receipt.png`);
-      assert.ok(await store.runTransaction((tx) => tx.get(`subscriptions/${approval.subscriptionId}`)));
-      assert.ok(await store.runTransaction((tx) => tx.get(`gifts/${gift.giftId}`)));
-      const deleteAudit = await store.runTransaction((tx) => tx.query('adminAuditLogs', 'orderId', first.orderId));
-      assert.equal(deleteAudit.some((row) => row.data.action === 'order.delete'), true);
+      assert.equal(deletedOrder, null);
+      assert.equal((await store.runTransaction((tx) => tx.get(`subscriptions/${approval.subscriptionId}`)))?.orderId, null);
+      assert.equal(await store.runTransaction((tx) => tx.get(`gifts/${gift.giftId}`)), null);
+      assert.equal(await store.runTransaction((tx) => tx.get('giftMedia/media_test')), null);
+      const slugTombstone = await store.runTransaction((tx) => tx.get(`slugs/${gift.slug}`));
+      assert.equal(slugTombstone?.giftId, null);
+      assert.equal(slugTombstone?.ownerUid, null);
+      const deletedProofClaim = await database.query<{ order_id: string | null }>('select order_id from public.payment_proof_claims where file_hash = $1', ['a'.repeat(64)]);
+      assert.equal(deletedProofClaim.rows[0]?.order_id, null);
+      const deleteAudit = await store.runTransaction((tx) => tx.query('adminAuditLogs'));
+      assert.equal(deleteAudit.some((row) => row.data.action === 'order.permanently_deleted'), true);
     }
     const stored = await database.query<{ status: string; order_access_token_hash: string; user_id: string }>(
       'select status, order_access_token_hash, user_id from public.orders where id = $1', [first.orderId],
     );
-    assert.equal(stored.rows.length, 1);
-    assert.equal(stored.rows[0].status, 'approved');
-    assert.ok(stored.rows[0].order_access_token_hash);
-    assert.ok(stored.rows[0].user_id.startsWith('guest_'));
+    assert.equal(stored.rows.length, 0);
 
     const rateLimits = await database.query<{ count: number }>('select count from public.rate_limits');
     assert.ok(rateLimits.rows.length >= 1);

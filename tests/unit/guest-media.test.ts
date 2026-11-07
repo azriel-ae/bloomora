@@ -59,11 +59,13 @@ test('guest photo upload persists the private ref, metadata, draft version and a
   assert.ok(created.ok); if (!created.ok) return;
   h.store.docs.set('subscriptions/sub1', { userId: guestOwnerId(created.editToken), status: 'active', startedAt: h.env.ts(Date.UTC(2026, 9, 1)), expiresAt: h.env.ts(Date.UTC(2026, 11, 1)), packageSnapshot: { packageId: 'premium', name: 'Premium', priceIdr: 1, durationDays: 30, limits: { maxGifts: 1, maxPhotos: 40, music: true, priorityReview: true, allowedTemplateTiers: ['core', 'extended'] } } });
   const storage = { storage: { from: () => ({ upload: async () => ({ error: null }), createSignedUrl: async (path: string) => ({ data: { signedUrl: `signed:${path}` }, error: null }), remove: async () => ({ error: null }) }) } };
-  const result = await uploadGuestMedia(h.env, storage, created.giftId, created.editToken, { kind: 'image', expectedVersion: 1, bytes: new Uint8Array([0xff, 0xd8, 0xff, 0]), mime: 'image/jpeg' });
+  const result = await uploadGuestMedia(h.env, storage, created.giftId, created.editToken, { kind: 'image', placement: 'hero', expectedVersion: 1, bytes: new Uint8Array([0xff, 0xd8, 0xff, 0]), mime: 'image/jpeg' });
   assert.equal(result.ok, true); if (!result.ok) return;
   assert.equal(result.version, 2);
+  assert.equal(result.media.placement, 'hero');
   assert.deepEqual([result.media.kind, result.media.path.startsWith(`private/${created.giftId}/`), result.signedUrl.startsWith('signed:')], ['image', true, true]);
   assert.equal(h.store.docs.get(`gifts/${created.giftId}`)?.draft.content.media[0].id, result.media.id);
+  assert.equal(h.store.docs.get(`gifts/${created.giftId}`)?.draft.content.media[0].placement, 'hero');
   assert.equal(h.store.docs.get(`giftMedia/${result.media.id}`)?.storagePath, result.media.path);
   const refreshed = await getGuestMediaUrls(h.env, storage, created.giftId, created.editToken);
   assert.equal(refreshed.ok, true);

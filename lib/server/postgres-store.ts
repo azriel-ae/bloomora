@@ -5,7 +5,7 @@ import type { Doc, Store, Tx } from './store.ts';
 
 const RETRY_LIMIT = 3;
 
-type WriteKind = 'create' | 'set' | 'update';
+type WriteKind = 'create' | 'set' | 'update' | 'delete';
 type PathInfo = {
   collection: string;
   table: string;
@@ -23,16 +23,17 @@ const COLLECTIONS: Record<string, { table: string; keyColumn: string; fields: Re
   qrisDisplaySettings: { table: 'qris_display_settings', keyColumn: 'id', fields: {} },
   vouchers: { table: 'vouchers', keyColumn: 'id', fields: {} },
   gifts: { table: 'gifts', keyColumn: 'id', fields: { ownerUid: 'owner_uid', editTokenHash: 'edit_token_hash', createdUnderSubscriptionId: 'created_under_subscription_id', slug: 'slug' } },
+  giftRevisions: { table: 'gift_revisions', keyColumn: 'revision_number', fields: { giftId: 'gift_id' } },
   publicGifts: { table: 'public_gifts', keyColumn: 'slug', fields: {} },
-  slugs: { table: 'slug_reservations', keyColumn: 'slug', fields: {} },
+  slugs: { table: 'slug_reservations', keyColumn: 'slug', fields: { giftId: 'gift_id', ownerUid: 'owner_uid', orderId: 'order_id' } },
   giftAnalytics: { table: 'gift_analytics', keyColumn: 'slug', fields: {} },
   orders: { table: 'orders', keyColumn: 'id', fields: { userId: 'user_id', giftId: 'gift_id', status: 'status', deletedAt: 'deleted_at' } },
-  paymentTransactionClaims: { table: 'payment_transaction_claims', keyColumn: 'transaction_hash', fields: {} },
-  paymentProofClaims: { table: 'payment_proof_claims', keyColumn: 'file_hash', fields: {} },
-  subscriptions: { table: 'subscriptions', keyColumn: 'id', fields: { userId: 'user_id', status: 'status' } },
+  paymentTransactionClaims: { table: 'payment_transaction_claims', keyColumn: 'transaction_hash', fields: { orderId: 'order_id' } },
+  paymentProofClaims: { table: 'payment_proof_claims', keyColumn: 'file_hash', fields: { orderId: 'order_id' } },
+  subscriptions: { table: 'subscriptions', keyColumn: 'id', fields: { userId: 'user_id', orderId: 'order_id', status: 'status' } },
   subscriptionSchedules: { table: 'subscription_schedules', keyColumn: 'user_id', fields: {} },
-  guestOrderIdempotency: { table: 'guest_order_idempotency', keyColumn: 'key_hash', fields: {} },
-  guestEditRecoveries: { table: 'guest_edit_recoveries', keyColumn: 'token_hash', fields: {} },
+  guestOrderIdempotency: { table: 'guest_order_idempotency', keyColumn: 'key_hash', fields: { giftId: 'gift_id', orderId: 'order_id' } },
+  guestEditRecoveries: { table: 'guest_edit_recoveries', keyColumn: 'token_hash', fields: { giftId: 'gift_id', ownerUid: 'owner_uid' } },
   guestEditLinks: { table: 'guest_edit_links', keyColumn: 'token_hash', fields: { giftId: 'gift_id', orderId: 'order_id' } },
   giftMedia: { table: 'gift_media', keyColumn: 'id', fields: { giftId: 'gift_id', ownerUid: 'owner_uid', storagePath: 'storage_path' } },
   rateLimits: { table: 'rate_limits', keyColumn: 'bucket_hash', fields: {} },
@@ -264,7 +265,7 @@ function decode(info: PathInfo, row: Row): Doc {
       const proof = d('proof_storage_path') === null ? null : { storagePath: d('proof_storage_path'), contentType: d('proof_content_type'), sizeBytes: Number(d('proof_size_bytes')), submittedAt: fromDate(d('proof_submitted_at')) };
       return { userId: d('user_id'), giftId: d('gift_id'), customerEmail: d('customer_email'), customerWhatsapp: d('customer_whatsapp'), packageId: d('package_id'), paymentMethodId: d('payment_method_id'), paymentMethodSnapshot: d('payment_method_snapshot'), orderAccessTokenHash: d('order_access_token_hash'), orderAccessTokenPreviousHashes: d('order_access_token_previous_hashes'), voucherCode: d('voucher_code'), packageSnapshot: d('package_snapshot'), originalAmountIdr: d('original_amount_idr'), discountIdr: d('discount_idr'), amountIdr: Number(d('amount_idr')), status: d('status'), proof, proofAiVerification: d('proof_ai_verification'), reviewedBy: d('reviewed_by'), reviewedAt: fromDate(d('reviewed_at')), rejectionReason: d('rejection_reason'), subscriptionId: d('subscription_id'), createdAt: fromDate(d('created_at')), updatedAt: fromDate(d('updated_at')), deletedAt: fromDate(d('deleted_at')), deletedByUid: d('deleted_by_uid'), schemaVersion: d('schema_version') };
     }
-    case 'subscriptions': return { userId: d('user_id'), packageId: d('package_id'), orderId: d('order_id'), status: d('status'), startedAt: fromDate(d('started_at')), expiresAt: fromDate(d('expires_at')), packageSnapshot: d('package_snapshot'), createdAt: fromDate(d('created_at')), updatedAt: fromDate(d('updated_at')), schemaVersion: d('schema_version') };
+    case 'subscriptions': return { userId: d('user_id'), packageId: d('package_id'), orderId: d('order_id') ?? null, status: d('status'), startedAt: fromDate(d('started_at')), expiresAt: fromDate(d('expires_at')), packageSnapshot: d('package_snapshot'), createdAt: fromDate(d('created_at')), updatedAt: fromDate(d('updated_at')), schemaVersion: d('schema_version') };
     case 'subscriptionSchedules': return { userId: d('user_id'), lastSubscriptionId: d('last_subscription_id'), lastStartedAt: fromDate(d('last_started_at')), lastExpiresAt: fromDate(d('last_expires_at')), updatedAt: fromDate(d('updated_at')), schemaVersion: d('schema_version') };
     case 'guestOrderIdempotency': return { ownerUid: d('owner_uid'), giftId: d('gift_id'), orderId: d('order_id'), createdAt: fromDate(d('created_at')), expiresAt: fromDate(d('expires_at')), schemaVersion: d('schema_version') };
     case 'guestEditRecoveries': return { giftId: d('gift_id'), ownerUid: d('owner_uid'), channel: d('channel'), destinationHash: d('destination_hash'), status: d('status'), createdAt: fromDate(d('created_at')), expiresAt: fromDate(d('expires_at')), sentAt: fromDate(d('sent_at')), failedAt: fromDate(d('failed_at')), usedAt: fromDate(d('used_at')), schemaVersion: d('schema_version') };
@@ -282,7 +283,6 @@ function keyFor(info: PathInfo, row: Row): string {
 }
 
 function fieldColumn(collection: string, field: string): string {
-  if (collection === 'giftRevisions') throw new Error('query_not_supported');
   const definition = COLLECTIONS[collection];
   if (!definition) throw new Error('unsupported_collection');
   if (field === definition.keyColumn || field === 'id') return definition.keyColumn;
@@ -300,6 +300,11 @@ async function readOne(tx: TransactionSql, info: PathInfo): Promise<Row | null> 
 
 async function applyWrite(tx: TransactionSql, write: PendingWrite) {
   const info = parsePath(write.path);
+  if (write.kind === 'delete') {
+    const predicates = info.keyColumns.map((column, index) => `${quoteIdentifier(column)} = $${index + 1}`).join(' and ');
+    await tx.unsafe(`delete from public.${quoteIdentifier(info.table)} where ${predicates}`, info.keyValues as never[]);
+    return;
+  }
   const record = encode(info, write.data);
   const columns = Object.keys(record);
   if (write.kind === 'update' && columns.every((column) => info.keyColumns.includes(column))) return;
@@ -383,6 +388,7 @@ export function postgresStore(database: Sql): Store {
               create: (path, data) => addWrite('create', path, data),
               set: (path, data) => addWrite('set', path, data),
               update: (path, data) => addWrite('update', path, data),
+              delete: (path) => addWrite('delete', path, {}),
             };
             const result = await fn(adapter);
             for (const write of writes) await applyWrite(tx, write);

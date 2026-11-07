@@ -112,6 +112,7 @@ export function GiftEditor({ giftId, initialTemplateId, initialEditToken, devMod
   const [mediaDeleting, setMediaDeleting] = useState<string | null>(null);
   const [mediaError, setMediaError] = useState('');
   const photoInputRef = useRef<HTMLInputElement>(null);
+  const heroPhotoInputRef = useRef<HTMLInputElement>(null);
   const photoTargetMomentRef = useRef<number | null>(null);
   const audioInputRef = useRef<HTMLInputElement>(null);
   const autosaverRef = useRef<DraftAutosaver | null>(null);
@@ -343,7 +344,7 @@ export function GiftEditor({ giftId, initialTemplateId, initialEditToken, devMod
     return { giftId: data.giftId, version };
   };
 
-  const uploadMedia = async (kind: 'image' | 'audio', file?: File, momentIndex?: number) => {
+  const uploadMedia = async (kind: 'image' | 'audio', file?: File, momentIndex?: number, placement?: 'hero') => {
     if (!file || mediaUploading) return;
     setMediaUploading(true); setMediaError('');
     try {
@@ -360,6 +361,7 @@ export function GiftEditor({ giftId, initialTemplateId, initialEditToken, devMod
       const form = new FormData();
       form.set('file', file);
       form.set('kind', kind);
+      if (placement) form.set('placement', placement);
       form.set('expectedVersion', String(expectedVersion));
       const response = await fetch(`/api/guest/gifts/${encodeURIComponent(targetGiftId)}/media`, {
         method: 'POST', headers: guestHeaders(targetGiftId), body: form,
@@ -563,6 +565,8 @@ export function GiftEditor({ giftId, initialTemplateId, initialEditToken, devMod
           : t('editor', 'statusSaved');
   const canEditContent = editable && !readOnlyReason;
   const hasAudio = content.media.some((item) => item.kind === 'audio');
+  const heroPhoto = content.media.find((item) => item.kind === 'image' && item.placement === 'hero');
+  const heroPhotoSection = template.sections.some((item) => item.type === 'hero') ? 'hero' : 'opening';
   return (
     <main className="mx-auto max-w-[1600px] px-4 py-5 sm:px-6 lg:px-8" data-editor-form data-editor-gift-id={activeGiftId ?? ''} data-editor-status={saveStatus} data-dev-mode={devMode ? 'in-memory' : undefined}>
       {devMode && <aside className="mb-5 rounded-2xl border border-[#d4b875] bg-[#faf2dc] px-4 py-3 text-sm leading-6 text-ink/75" data-dev-warning="true">{t('editor', 'devNotice')}</aside>}
@@ -605,6 +609,12 @@ export function GiftEditor({ giftId, initialTemplateId, initialEditToken, devMod
                       : <span className="rounded-full bg-sage px-3 py-1 text-xs text-moss">{t('editor', 'requiredSection')}</span>}
                 </div>
                 {section.fields.map((field) => <FieldInput key={field.key} field={field} value={content.fields[field.key] ?? ''} locale={locale} disabled={!canEditContent || mediaUploading || (!!section.optional && !sectionEnabled)} onChange={(value) => updateField(field, value)} />)}
+                {section.type === heroPhotoSection && <div className="mt-4 flex flex-wrap items-center gap-3 rounded-xl border border-line bg-ivory p-3" data-hero-photo>
+                  {heroPhoto && mediaUrls[heroPhoto.id] ? <Image src={mediaUrls[heroPhoto.id]} alt={t('editor', 'heroPhotoAttached')} width={64} height={64} unoptimized className="size-16 rounded-lg object-cover" /> : <span className="grid size-16 place-items-center rounded-lg bg-sage/20 text-moss"><ImagePlus size={20} /></span>}
+                  {heroPhoto
+                    ? <><span className="flex-1 text-xs font-semibold text-ink/65">{t('editor', 'heroPhotoAttached')}</span><button type="button" disabled={!canEditContent || mediaUploading || mediaDeleting !== null} onClick={() => void deleteMedia(heroPhoto.id)} className="inline-flex items-center gap-1 rounded-lg border border-rose/30 px-2 py-1.5 text-xs font-semibold text-rose disabled:opacity-40">{mediaDeleting === heroPhoto.id ? <LoaderCircle size={13} className="animate-spin" /> : <Trash2 size={13} />}{t('editor', 'removeMedia')}</button></>
+                    : <><span className="flex-1 text-xs leading-5 text-ink/60">{t('editor', 'heroPhotoHelp')}</span><button type="button" disabled={!canEditContent || mediaUploading || (!!section.optional && !sectionEnabled)} onClick={() => heroPhotoInputRef.current?.click()} className="rounded-full border border-moss px-3 py-2 text-xs font-semibold text-moss disabled:opacity-40">{t('editor', 'uploadHeroPhoto')}</button></>}
+                </div>}
                 {section.lists.map((list) => {
                   const items = Array.isArray(content.data[list.key]) ? content.data[list.key] as Record<string, string>[] : [];
                   return <div key={list.key} className="mt-5 border-t border-line pt-4" data-editor-list={list.key}>
@@ -612,7 +622,7 @@ export function GiftEditor({ giftId, initialTemplateId, initialEditToken, devMod
                     {items.map((item, index) => {
                       const momentPhoto = list.key === 'moments' && section.type === 'gallery'
                         ? content.media.find((media) => media.kind === 'image' && media.id === item.photoId)
-                          ?? (items.some((moment) => moment.photoId) ? undefined : content.media.filter((media) => media.kind === 'image')[index])
+                          ?? (items.some((moment) => moment.photoId) ? undefined : content.media.filter((media) => media.kind === 'image' && media.placement !== 'hero')[index])
                         : undefined;
                       const momentPhotoUrl = momentPhoto ? mediaUrls[momentPhoto.id] : undefined;
                       return <div key={`${list.key}-${index}`} className="mt-3 rounded-2xl bg-ivory p-3" data-list-item={index}>
@@ -638,6 +648,7 @@ export function GiftEditor({ giftId, initialTemplateId, initialEditToken, devMod
               <button type="button" disabled={!canEditContent || mediaUploading || hasAudio} onClick={() => audioInputRef.current?.click()} className="inline-flex items-center justify-center gap-2 rounded-xl border border-line px-3 py-3 text-left text-sm disabled:cursor-not-allowed disabled:opacity-45"><Music2 size={16} />{hasAudio ? t('editor', 'uploadedMusic') : t('editor', 'uploadMusic')}</button>
             </div>
             <input ref={photoInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" aria-label={t('editor', 'uploadMomentPhoto')} onChange={(event) => { void uploadMedia('image', event.target.files?.[0], photoTargetMomentRef.current ?? undefined); photoTargetMomentRef.current = null; event.currentTarget.value = ''; }} />
+            <input ref={heroPhotoInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" aria-label={t('editor', 'uploadHeroPhoto')} onChange={(event) => { void uploadMedia('image', event.target.files?.[0], undefined, 'hero'); event.currentTarget.value = ''; }} />
             <input ref={audioInputRef} type="file" accept="audio/mpeg,audio/mp4,audio/ogg,audio/wav,audio/x-m4a" className="sr-only" aria-label={t('editor', 'uploadMusic')} onChange={(event) => { void uploadMedia('audio', event.target.files?.[0]); event.currentTarget.value = ''; }} />
             {mediaUploading && <p className="mt-3 text-sm text-ink/60" role="status">{t('editor', 'uploadingMedia')}</p>}
             {content.media.some((item) => item.kind === 'audio') && <ul className="mt-3 space-y-2 text-xs text-ink/60">{content.media.filter((item) => item.kind === 'audio').map((item, index) => <li key={item.id} className="flex items-center justify-between gap-3 rounded-xl bg-ivory px-3 py-2"><span>{t('editor', 'uploadedMusic')}</span><button type="button" disabled={!canEditContent || mediaUploading || mediaDeleting !== null} onClick={() => void deleteMedia(item.id)} className="inline-flex shrink-0 items-center gap-1 rounded-lg border border-rose/30 px-2 py-1 text-rose disabled:opacity-40" aria-label={`${t('editor', 'removeMedia')} ${index + 1}`}>{mediaDeleting === item.id ? <LoaderCircle size={13} className="animate-spin" /> : <Trash2 size={13} />}{t('editor', 'removeMedia')}</button></li>)}</ul>}

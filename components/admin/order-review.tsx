@@ -71,14 +71,16 @@ export function AdminOrderReview({ order, audit }: { order: Order; audit: Audit[
   }
 
   async function deleteOrder() {
-    if (deleteBusy || order.deletedAtMs) return;
-    const confirmed = window.confirm(`Hapus transaksi ${order.orderId} dari daftar aktif?\n\nTindakan ini hanya menyembunyikan transaksi (soft delete). Pembayaran, riwayat laporan, hadiah, dan langganan tidak dibatalkan atau dihapus.`);
+    if (deleteBusy) return;
+    const confirmed = window.confirm(`Hapus transaksi ${order.orderId} secara permanen?\n\nData transaksi, bukti pembayaran, tautan editor, dan hadiah beserta link /g akan dihapus jika hadiah tidak dipakai transaksi lain. Tindakan ini tidak dapat dibatalkan. Jika pembayaran sudah mengaktifkan langganan, sisa masa akses tetap berlaku.`);
     if (!confirmed) return;
     setDeleteBusy(true); setMessage('');
     try {
       const response = await fetch(`/api/admin/orders/${encodeURIComponent(order.orderId)}`, { method: 'DELETE' });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || !data.ok) { setMessage(`Penghapusan gagal: ${String(data.code ?? 'unknown_error')}`); return; }
+      if (data.storageCleanupIncomplete) window.alert('Transaksi dan tautannya sudah dihapus, tetapi sebagian file Storage belum berhasil dibersihkan.');
+      else if (data.giftDeleted === false && order.giftId) window.alert('Transaksi dihapus. Hadiah dan link /g tetap tersedia karena masih dipakai transaksi lain.');
       window.location.assign('/admin/orders?deleted=1');
     } catch { setMessage('Server tidak dapat dijangkau. Transaksi tidak dihapus; coba lagi.'); }
     finally { setDeleteBusy(false); }
@@ -153,7 +155,7 @@ export function AdminOrderReview({ order, audit }: { order: Order; audit: Audit[
         <div className="mt-4 flex flex-wrap gap-3"><button type="button" disabled={!order.canReview || busy} onClick={() => void submit('approve')} className="rounded-full bg-moss px-5 py-3 text-sm font-semibold text-ivory disabled:opacity-45">Setujui dan aktifkan</button><button type="button" disabled={!order.canReview || busy || !reason.trim()} onClick={() => void submit('reject')} className="rounded-full border border-line px-5 py-3 text-sm font-semibold disabled:opacity-45">Tolak</button></div>
         {order.subscriptionId && <p className="mt-4 break-all text-xs text-ink/50">Langganan: {order.subscriptionId}</p>}
       </section>
-      <section className="rounded-3xl border border-[#d9aaa0] bg-paper p-6"><h2 className="font-display text-2xl">Hapus transaksi</h2><p className="mt-2 text-sm leading-6 text-ink/60">Penghapusan lunak (soft delete) hanya menyembunyikan transaksi dari daftar aktif. Status pembayaran, audit/laporan, hadiah, dan langganan tetap tersimpan; tindakan ini bukan pembatalan atau penghapusan hadiah.</p>{order.deletedAtMs ? <p className="mt-4 rounded-xl bg-ivory p-3 text-sm">Transaksi dihapus dari daftar aktif pada {new Date(order.deletedAtMs).toLocaleString('id-ID')}.</p> : <button type="button" disabled={deleteBusy} onClick={() => void deleteOrder()} className="mt-4 rounded-full border border-rose/50 px-5 py-3 text-sm font-semibold text-rose disabled:opacity-45">{deleteBusy ? 'Menghapus…' : 'Hapus transaksi'}</button>}</section>
+      <section className="rounded-3xl border border-[#d9aaa0] bg-paper p-6"><h2 className="font-display text-2xl">Hapus transaksi permanen</h2><p className="mt-2 text-sm leading-6 text-ink/60">Transaksi, bukti, tautan editor, dan hadiah publik/privat yang hanya terkait ke transaksi ini akan dihapus dan tidak dapat dipulihkan. Slug publik lama dikosongkan agar /g tidak aktif dan tidak dapat dipakai ulang. Langganan yang sudah dibayar tetap berlaku sampai masa aktifnya habis; catatan audit dan hash anti-duplikasi pembayaran dipertahankan tanpa detail pesanan.</p><button type="button" disabled={deleteBusy} onClick={() => void deleteOrder()} className="mt-4 rounded-full border border-rose/50 px-5 py-3 text-sm font-semibold text-rose disabled:opacity-45">{deleteBusy ? 'Menghapus…' : 'Hapus permanen'}</button></section>
       <section className="rounded-3xl border border-line bg-paper p-6"><h2 className="font-display text-2xl">Riwayat admin</h2>{audit.length === 0 ? <p className="mt-3 text-sm text-ink/55">Belum ada tindakan admin pada pesanan ini.</p> : <ol className="mt-4 space-y-4">{audit.map((item) => <li key={item.id} className="border-l-2 border-sage pl-4"><p className="text-sm font-semibold">{auditActionLabel[item.action] ?? item.action}</p><p className="mt-1 text-xs text-ink/50">{item.actorUid} · {new Date(item.atMs).toLocaleString('id-ID')}</p>{item.reason && <p className="mt-1 text-sm text-ink/65">{item.reason}</p>}</li>)}</ol>}</section>
     </aside>
   </div>;

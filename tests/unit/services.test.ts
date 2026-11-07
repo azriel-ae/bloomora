@@ -13,7 +13,8 @@ const admin: S.Actor = { uid: 'root', admin: true };
 const content = (msg = 'hello') => ({ fields: { title: 'T', message: msg }, sections: ['Opening', 'Letter'], data: {}, media: [] });
 
 function markProofSubmitted(h: ReturnType<typeof makeEnv>, orderId: string) {
-  h.store.docs.set(`orders/${orderId}`, { ...h.store.docs.get(`orders/${orderId}`)!, status: 'proof_submitted', proof: { storagePath: `payment-proofs/${orderId}/receipt.png`, contentType: 'image/png', sizeBytes: 1024, submittedAt: h.env.ts(T0) } });
+  const order = h.store.docs.get(`orders/${orderId}`)!;
+  h.store.docs.set(`orders/${orderId}`, { ...order, status: 'proof_submitted', proof: { storagePath: `paymentProofs/${order.userId}/${orderId}/receipt.png`, contentType: 'image/png', sizeBytes: 1024, submittedAt: h.env.ts(T0) } });
 }
 
 test('public read uses only publicGifts and remains available without an owner subscription', async () => {
@@ -309,7 +310,7 @@ test('fake store enforces reads-before-writes and atomic rollback (guards the ha
   assert.equal(h.store.docs.has('a/2'), false);
 });
 
-test('admin order soft-delete is audited, idempotent, preserves snapshots/status, and disappears from operational lists', async () => {
+test('admin order hard-delete removes private/public gift links, preserves paid access and anti-fraud claims', async () => {
   const h = makeEnv(T0);
   const created = await S.createOrder(h.env, alice, 'basic');
   assert.ok(created.ok);
@@ -317,24 +318,44 @@ test('admin order soft-delete is audited, idempotent, preserves snapshots/status
   markProofSubmitted(h, created.orderId);
   const approved = await S.approveOrder(h.env, admin, created.orderId);
   assert.ok(approved.ok);
-  h.advance(35 * DAY_MS);
-  const before = h.store.docs.get(`orders/${created.orderId}`)!;
+  if (!approved.ok) return;
+  const giftId = 'gift_hard_delete'; const slug = 'harddelete234';
+  h.store.docs.set(`orders/${created.orderId}`, { ...h.store.docs.get(`orders/${created.orderId}`)!, giftId });
+  h.store.docs.set(`gifts/${giftId}`, {
+    ownerUid: alice.uid, editTokenHash: null, editTokenExpiresAt: null, customerEmail: null, customerWhatsapp: null,
+    templateId: 'pressed-garden', templateVersion: 1, slug, status: 'published',
+    draft: { content: content(), version: 1, updatedAt: h.env.ts(T0) }, publishedRevision: 1, publishedAt: h.env.ts(T0),
+    createdUnderSubscriptionId: null, createdAt: h.env.ts(T0), updatedAt: h.env.ts(T0), archivedAt: null, deletedAt: null, schemaVersion: 2,
+  });
+  h.store.docs.set(`gifts/${giftId}/revisions/1`, { number: 1, content: content(), templateId: 'pressed-garden', templateVersion: 1, createdAt: h.env.ts(T0) });
+  h.store.docs.set(`publicGifts/${slug}`, { slug, status: 'published', templateId: 'pressed-garden', templateVersion: 1, revision: 1, content: content(), publishedAt: h.env.ts(T0), updatedAt: h.env.ts(T0), schemaVersion: 2 });
+  h.store.docs.set(`giftAnalytics/${slug}`, { slug, totalViews: 1 });
+  h.store.docs.set(`slugs/${slug}`, { giftId, ownerUid: alice.uid, orderId: created.orderId, createdAt: h.env.ts(T0), expiresAt: h.env.ts(T0 + DAY_MS) });
+  h.store.docs.set('giftMedia/media-hard-delete', { giftId, ownerUid: alice.uid, kind: 'image', storagePath: `private/${giftId}/media-hard-delete.jpg`, contentType: 'image/jpeg', sizeBytes: 10, createdAt: h.env.ts(T0), deletedAt: null, schemaVersion: 1 });
+  h.store.docs.set('guestEditLinks/link-hard-delete', { giftId, orderId: created.orderId, ownerUid: alice.uid });
+  h.store.docs.set('guestEditRecoveries/recovery-hard-delete', { giftId, ownerUid: alice.uid });
+  h.store.docs.set('guestOrderIdempotency/idempotency-hard-delete', { giftId, orderId: created.orderId, ownerUid: alice.uid });
+  h.store.docs.set('paymentTransactionClaims/transaction-hash', { orderId: created.orderId });
+  h.store.docs.set('paymentProofClaims/proof-hash', { orderId: created.orderId });
+  h.store.docs.set('adminAuditLogs/audit-before-delete', { action: 'order.approve', actorUid: admin.uid, orderId: created.orderId, amountIdr: 1000, reason: 'private reason' });
+
   const deleted = await S.deleteAdminOrder(h.env, admin, created.orderId);
-  assert.deepEqual(deleted, { ok: true });
-  const again = await S.deleteAdminOrder(h.env, admin, created.orderId);
-  assert.deepEqual(again, { ok: true, alreadyDeleted: true });
-  const after = h.store.docs.get(`orders/${created.orderId}`)!;
-  assert.equal(after.status, 'approved');
-  assert.deepEqual(after.packageSnapshot, before.packageSnapshot);
-  assert.equal(after.subscriptionId, before.subscriptionId);
-  assert.equal(after.deletedByUid, admin.uid);
-  assert.equal([...h.store.docs.values()].filter((row) => row.action === 'order.delete').length, 1);
+  assert.ok(deleted.ok);
+  if (!deleted.ok) return;
+  assert.equal(deleted.giftDeleted, true);
+  assert.deepEqual(deleted.mediaPaths, [`private/${giftId}/media-hard-delete.jpg`]);
+  assert.equal(deleted.proofPath, `paymentProofs/${alice.uid}/${created.orderId}/receipt.png`);
+  for (const path of [`orders/${created.orderId}`, `gifts/${giftId}`, `gifts/${giftId}/revisions/1`, `publicGifts/${slug}`, `giftAnalytics/${slug}`, 'giftMedia/media-hard-delete', 'guestEditLinks/link-hard-delete', 'guestEditRecoveries/recovery-hard-delete', 'guestOrderIdempotency/idempotency-hard-delete']) assert.equal(h.store.docs.has(path), false, path);
+  assert.equal(h.store.docs.get(`slugs/${slug}`)?.giftId, null, 'old /g slug stays reserved but no longer resolves to a gift');
+  assert.equal(h.store.docs.get(`subscriptions/${approved.subscriptionId}`)?.orderId, null, 'paid time-limited access remains but is detached from the deleted order');
+  assert.equal(h.store.docs.get('paymentTransactionClaims/transaction-hash')?.orderId, null);
+  assert.equal(h.store.docs.get('paymentProofClaims/proof-hash')?.orderId, null);
+  assert.equal(h.store.docs.get('adminAuditLogs/audit-before-delete')?.orderId, null);
+  assert.equal(h.store.docs.get('adminAuditLogs/audit-before-delete')?.amountIdr, undefined, 'audit details no longer retain deleted transaction metadata');
+  assert.equal([...h.store.docs.values()].filter((row) => row.action === 'order.permanently_deleted').length, 1);
   const listing = await S.listAdminOrders(h.env, admin);
   assert.ok(listing.ok);
-  if (listing.ok) {
-    assert.equal(listing.orders.some((row) => row.orderId === created.orderId), false);
-    assert.equal(listing.summary.revenueIdr, Number(after.amountIdr));
-  }
+  if (listing.ok) assert.equal(listing.orders.some((row) => row.orderId === created.orderId), false);
   const denied = await S.deleteAdminOrder(h.env, alice, created.orderId);
   assert.deepEqual([denied.ok, !denied.ok && denied.code], [false, 'admin_required']);
 });

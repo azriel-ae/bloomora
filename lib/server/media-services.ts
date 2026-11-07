@@ -55,9 +55,10 @@ async function checkUpload(env: Env, giftId: string, token: unknown, kind: Media
   });
 }
 
-export async function uploadGuestMedia(env: Env, storage: MediaStorage, giftId: string, token: unknown, input: { kind: unknown; expectedVersion: unknown; bytes: Uint8Array; mime: unknown }) {
+export async function uploadGuestMedia(env: Env, storage: MediaStorage, giftId: string, token: unknown, input: { kind: unknown; placement?: unknown; expectedVersion: unknown; bytes: Uint8Array; mime: unknown }) {
   const result = await guarded(async () => {
     const { kind, mime, ext } = validateMediaFile(input.kind, input.mime, input.bytes);
+    if (input.placement !== undefined && (input.placement !== 'hero' || kind !== 'image')) throw new ServiceError(400, 'invalid_media_placement');
     if (!Number.isInteger(input.expectedVersion)) throw new ServiceError(400, 'invalid_expected_version');
     await checkUpload(env, giftId, token, kind, input.expectedVersion);
     const id = env.newId();
@@ -73,7 +74,7 @@ export async function uploadGuestMedia(env: Env, storage: MediaStorage, giftId: 
         if (!Number.isInteger(input.expectedVersion) || gift.draft.version !== input.expectedVersion) throw new ServiceError(409, 'version_conflict', String(gift.draft.version));
         const current = validateGiftContent(gift.draft.content, { mediaEnabled: true });
         if (!current.ok) throw new ServiceError(400, 'invalid_content');
-        const media = { id, kind, path } as const;
+        const media = { id, kind, path, ...(input.placement === 'hero' ? { placement: 'hero' as const } : {}) };
         const content = { ...current.content, media: [...current.content.media, media] };
         const checked = validateGiftContent(content, { mediaEnabled: true });
         if (!checked.ok) throw new ServiceError(400, 'invalid_media_ref', checked.detail);
