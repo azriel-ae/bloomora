@@ -76,6 +76,8 @@ export interface ListDef {
   label: L10n;
   itemLabel: L10n;
   itemFields: FieldDef[];
+  /** Hidden engine-owned metadata accepted on list items but never rendered as an editable field. */
+  systemFields?: Record<string, number>;
   minItems: number;
   maxItems: number;
 }

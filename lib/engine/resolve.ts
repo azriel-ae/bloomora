@@ -50,9 +50,10 @@ export function validateContentForTemplate(config: TemplateConfig, content: Gift
     for (const item of raw) {
       if (!isRecord(item)) return `list_item:${key}`;
       for (const [k, v] of Object.entries(item)) {
-        const f = itemKeys.get(k);
-        if (!f) return `unknown_list_field:${key}.${k}`;
-        if (typeof v !== 'string' || v.length > f.maxLength) return `list_field_invalid:${key}.${k}`;
+        const fieldMaxLength = itemKeys.get(k)?.maxLength ?? def.systemFields?.[k];
+        if (fieldMaxLength === undefined) return `unknown_list_field:${key}.${k}`;
+        if (typeof v !== 'string' || v.length > fieldMaxLength) return `list_field_invalid:${key}.${k}`;
+        if (k === 'photoId' && v && !/^[A-Za-z0-9_-]{1,120}$/.test(v)) return `list_field_invalid:${key}.${k}`;
       }
     }
   }

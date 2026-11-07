@@ -43,9 +43,9 @@ export const S = {
   }),
   gallery: (variant: string, min = 3, max = 8): SectionDef => ({
     id: 'gallery', type: 'gallery', variant, fields: [], lists: [
-      list('moments', 'Moments', 'Momen', 'Moment', 'Momen', [
+      { ...list('moments', 'Moments', 'Momen', 'Moment', 'Momen', [
         f('caption', 'text', 'Caption', 'Keterangan', 90), f('place', 'text', 'Place', 'Tempat', 50),
-      ], min, max),
+      ], min, max), systemFields: { photoId: 120 } },
     ],
   }),
   message: (variant: string, min = 3, max = 10): SectionDef => ({

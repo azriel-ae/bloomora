@@ -27,12 +27,25 @@ export function GiftView(props: {
       const resolved = resolveRenderModel(config, content, { fillEmptyFrom: mode === 'preview' ? locale : null });
       const photos = content.media.filter((media) => media.kind === 'image');
       const gallery = resolved.sections.find((section) => section.type === 'gallery');
-      if (gallery) photos.forEach((photo, index) => {
-        const url = mediaUrls[photo.id];
-        if (!url) return;
-        while (gallery.lists.moments.length <= index) gallery.lists.moments.push({ caption: '', place: '' });
-        gallery.lists.moments[index].imageSrc = url;
-      });
+      if (gallery) {
+        const moments = Array.isArray(content.data.moments) ? content.data.moments as Record<string, string>[] : [];
+        const hasExplicitMomentPhotos = moments.some((moment) => typeof moment.photoId === 'string' && moment.photoId.length > 0);
+        if (hasExplicitMomentPhotos) {
+          moments.forEach((moment, index) => {
+            const url = moment.photoId ? mediaUrls[moment.photoId] : undefined;
+            if (!url) return;
+            while (gallery.lists.moments.length <= index) gallery.lists.moments.push({ caption: '', place: '' });
+            gallery.lists.moments[index].imageSrc = url;
+          });
+        } else {
+          photos.forEach((photo, index) => {
+            const url = mediaUrls[photo.id];
+            if (!url) return;
+            while (gallery.lists.moments.length <= index) gallery.lists.moments.push({ caption: '', place: '' });
+            gallery.lists.moments[index].imageSrc = url;
+          });
+        }
+      }
       return resolved;
     },
     [config, content, mode, locale, mediaUrls],

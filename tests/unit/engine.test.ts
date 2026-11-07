@@ -126,6 +126,18 @@ test('content-vs-template validation: unknown keys, limits, section rules', () =
   assert.equal(v((c) => { c.data.reasons = [{ text: 'x'.repeat(161) }]; }), 'list_field_invalid:reasons.text');
 });
 
+test('gallery photo IDs are accepted as hidden system metadata and validated as media IDs', () => {
+  const c = sampleContent(chapterOfUs, 'id');
+  const moments = c.data.moments as Record<string, string>[];
+  moments[0].photoId = 'photo_123-abc';
+  assert.equal(validateContentForTemplate(chapterOfUs, c), null);
+  moments[0].photoId = 'invalid/photo/id';
+  assert.equal(validateContentForTemplate(chapterOfUs, c), 'list_field_invalid:moments.photoId');
+  moments[0].photoId = '';
+  moments[0].hidden = 'not-allowed';
+  assert.equal(validateContentForTemplate(chapterOfUs, c), 'unknown_list_field:moments.hidden');
+});
+
 test('publish completeness: drafts may be incomplete, publications may not', () => {
   assert.deepEqual(missingForPublish(chapterOfUs, blankContent(chapterOfUs)).map((m) => m.key).sort(),
     ['appreciationText', 'chapters', 'closingLine', 'letterBody', 'moments', 'reasons', 'recipientName', 'senderName', 'signature', 'title']);
