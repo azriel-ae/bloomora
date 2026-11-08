@@ -482,3 +482,14 @@ Pada halaman `/admin/payment-methods`, `QrisDisplayManager` menyediakan preview 
 Checkout membaca konfigurasi sebelum transaksi menulis order dan memasukkannya ke payment snapshot hanya untuk metode QRIS. Detail order guest merender snapshot tersebut, sehingga konfigurasi baru tidak memengaruhi order lama. Terapkan `supabase/migrations/20261106000100_qris_display_settings.sql` atau bagian terkait dari `supabase/manual_apply_all_migrations.sql`; jangan membuka write policy untuk anon. Setelah deploy, verifikasi admin save/refresh, non-admin denial, checkout snapshot freeze, dan scan QRIS nyata dengan beberapa aplikasi pembayaran.
 
 Gate kode: typecheck, lint, targeted unit tests lulus. Warning lint `<img>` berasal dari gambar payment/QR yang memang dipakai untuk menjaga kompatibilitas; belum dilakukan live Supabase/browser/device smoke.
+
+
+## Handover 2026-11-08: Interactive Flower Adventure
+
+Commit source `31e189f` sudah dipush ke `origin/main` setelah clone ulang dari commit terbaru `7c8b0fd`. Perubahan meliputi template engine `lib/engine/templates/interactive-flower-adventure.ts`, registry/art direction, field kind `pin` dengan validasi server-side 4–6 digit, input PIN password-style pada editor, renderer client `components/gift/interactive-flower-adventure.tsx`, stylesheet responsive terpisah, dan regresi katalog.
+
+Experience mencakup envelope reveal, welcome letter, memory cards, clue answers, watering state, progress, PIN gate, private-note reveal, dan replay/reset. GiftExperience tetap menjadi entry point dan template lama tidak diubah versinya. CSS menggunakan token theme existing (`--bl-bg`, `--bl-ink`, `--bl-muted`, `--bl-accent`, dan seterusnya) serta reduced-motion fallback.
+
+Gate lokal aktual: `pnpm install --frozen-lockfile` PASS; `pnpm typecheck` PASS; `pnpm test:unit` 134/134 PASS; `pnpm check:i18n` PASS; `pnpm lint` PASS dengan warning existing; `pnpm build` PASS dengan 49/49 halaman. Browser catalog/editor NOT TESTED karena `playwright` tidak tersedia. Supabase/live Storage, deployment, dan device visual QA NOT TESTED. Tidak ada deploy production.
+
+Risiko: PIN dan private note masih dikirim dalam model/content client-side sehingga PIN gate bukan kontrol kerahasiaan kriptografis. Jika catatan benar-benar privat terhadap inspeksi browser, tindak lanjut harus memakai verifikasi PIN server-side dan endpoint release terpisah.

@@ -494,3 +494,12 @@ Bug hapus foto ditemukan pada `deleteGuestMedia`: transaksi melakukan `tx.update
 Admin payment-method page sekarang memiliki pengaturan QRIS terpisah dengan live preview desktop/mobile-friendly: judul, deskripsi, background/accent/border color, frame, dekorasi aman, dan footer. QRIS asli tetap menjadi sumber scan; sistem tidak menggambar ulang modul, tidak menutupinya dengan logo/dekorasi, dan tidak meregangkan atau mengubah payload. Konfigurasi disimpan pada `qris_display_settings/default`, hanya admin yang dapat menyimpan, dan dibaca publik hanya untuk rendering. Saat checkout, konfigurasi dicopy ke `paymentMethodSnapshot`, sehingga perubahan admin berikutnya tidak mengubah order lama. Migration baru: `supabase/migrations/20261106000100_qris_display_settings.sql`; bundle manual juga diperbarui.
 
 Validasi checkpoint: typecheck lulus, lint lulus dengan warning `<img>` existing, regresi media 6/6, order/payment/QRIS 11/11. Supabase live, scan QRIS dengan aplikasi pembayaran, dan browser E2E belum dijalankan dari sandbox; migration harus diterapkan pemilik di project target.
+
+
+## Checkpoint 2026-11-08: Interactive Flower Adventure
+
+Repository terbaru di-clone dari `origin/main` pada commit `7c8b0fd` sebelum implementasi. Template `interactive-flower-adventure` ditambahkan sebagai konfigurasi engine terpisah: pembuka amplop, surat, memory cards dengan media binding existing, tiga clue cards, flower garden interaktif, closing note, dan PIN 4–6 digit. Template memakai editor generik dan renderer client khusus tanpa mengubah versi template lama.
+
+Validasi aktual setelah `pnpm install --frozen-lockfile`: `pnpm typecheck` PASS; `pnpm test:unit` PASS 134/134; `pnpm check:i18n` PASS (26 bagian); `pnpm lint` PASS dengan warning existing pada `<img>`, satu `exhaustive-deps`, dan deprecation `next lint`; `pnpm build` PASS, 49/49 halaman dibuat. `git diff --check` PASS. Browser catalog/editor smoke belum diuji karena package Playwright tidak tersedia di repository/workspace. Supabase live, Storage production, dan deployment tidak disentuh.
+
+Source checkpoint dipush ke `origin/main` sebagai commit `31e189f`. Risiko residual: PIN/private note saat ini adalah interaction gate client-side, bukan boundary kerahasiaan kriptografis; private content yang dikirim ke browser secara teknis dapat diinspeksi. Untuk privasi kuat, diperlukan verifikasi PIN server-side dan endpoint release note terpisah.
