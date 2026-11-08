@@ -62,7 +62,7 @@ export interface ArtDirection {
   motion: MotionCharacter;
 }
 
-export type FieldKind = 'text' | 'textarea' | 'date';
+export type FieldKind = 'text' | 'textarea' | 'date' | 'pin';
 export interface FieldDef {
   key: string;
   kind: FieldKind;

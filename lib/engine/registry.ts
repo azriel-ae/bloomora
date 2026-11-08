@@ -6,6 +6,7 @@ import { justALetter } from './templates/just-a-letter.ts';
 import { expandedTemplates } from './templates/expanded-collection.ts';
 import { forYouScrapbook } from './templates/for-you-scrapbook.ts';
 import { designedTemplate } from './art-directions.ts';
+import { interactiveFlowerAdventure } from './templates/interactive-flower-adventure.ts';
 
 /**
  * Every template version ever shipped stays in this list. Published gifts pin
@@ -13,7 +14,7 @@ import { designedTemplate } from './art-directions.ts';
  * existing gift renders. To change a template's fields or layout, add a new
  * entry with version + 1 and leave the old one in place.
  */
-const originalTemplates: readonly TemplateConfig[] = [chapterOfUs, pressedGarden, ourLittleArchive, justALetter, forYouScrapbook, ...expandedTemplates];
+const originalTemplates: readonly TemplateConfig[] = [chapterOfUs, pressedGarden, ourLittleArchive, justALetter, forYouScrapbook, interactiveFlowerAdventure, ...expandedTemplates];
 /** V2 adds explicit art direction; v1 remains immutable for gifts that already pin it. */
 const artDirectedTemplates = originalTemplates.map(designedTemplate);
 export const ALL_TEMPLATE_VERSIONS: readonly TemplateConfig[] = [...originalTemplates, ...artDirectedTemplates];

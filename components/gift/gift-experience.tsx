@@ -9,6 +9,7 @@ import { themeVars } from '@/lib/engine/theme-vars';
 import { GiftContext, IconClose, IconMenu, usePrefersReducedMotion } from './parts';
 import { Appreciation, Closing, Gallery, Hero, Letter, Music, OpeningScene, Reasons, Timeline } from './sections';
 import { ForYouScrapbook } from './for-you-scrapbook';
+import { InteractiveFlowerAdventure } from './interactive-flower-adventure';
 import './gift.css';
 
 /**
@@ -136,6 +137,9 @@ export function GiftExperience({ model, labels, mode, title, navActions, footer,
   }
   if (model.templateId === 'for-you-scrapbook') {
     return <ForYouScrapbook model={model} mode={mode} title={title} navActions={navActions} footer={footer} audioSrc={audioSrc} style={style} />;
+  }
+  if (model.templateId === 'interactive-flower-adventure') {
+    return <InteractiveFlowerAdventure model={model} mode={mode} title={title} navActions={navActions} footer={footer} style={style} />;
   }
 
   let chapterNo = 0;

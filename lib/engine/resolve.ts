@@ -30,6 +30,7 @@ export function validateContentForTemplate(config: TemplateConfig, content: Gift
     const def = fields.get(key);
     if (!def) return `unknown_field:${key}`;
     if (value.length > def.maxLength) return `field_too_long:${key}`;
+    if (def.kind === 'pin' && !/^\d{4,6}$/.test(value)) return `field_invalid:${key}`;
   }
 
   const ids = config.sections.map((s) => s.id);

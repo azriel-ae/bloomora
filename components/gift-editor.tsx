@@ -754,7 +754,7 @@ function FieldInput({ field, value, locale, disabled, onChange, compact = false,
     {field.label[locale]}{field.required ? <span className="ml-1 text-rose" aria-label={locale === 'id' ? 'wajib' : 'required'}>*</span> : null}
     {field.kind === 'textarea'
       ? <textarea id={id} value={value} maxLength={field.maxLength} rows={compact ? 2 : 4} disabled={disabled} onChange={(event) => onChange(event.target.value)} className={`${base} resize-y leading-6`} />
-      : <input id={id} type={field.kind === 'date' ? 'date' : 'text'} value={value} maxLength={field.maxLength} disabled={disabled} onChange={(event) => onChange(event.target.value)} className={base} />}
+      : <input id={id} type={field.kind === 'date' ? 'date' : field.kind === 'pin' ? 'password' : 'text'} inputMode={field.kind === 'pin' ? 'numeric' : undefined} pattern={field.kind === 'pin' ? '[0-9]{4,6}' : undefined} value={value} maxLength={field.maxLength} disabled={disabled} onChange={(event) => onChange(field.kind === 'pin' ? event.target.value.replace(/\D/g, '') : event.target.value)} className={base} />}
     {field.hint && <span className="mt-1 block text-xs font-normal leading-5 text-ink/45">{field.hint[locale]}</span>}
   </label>;
 }

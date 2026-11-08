@@ -8,6 +8,7 @@ const art = (style: ArtStyle, hero: HeroComposition, gallery: GalleryComposition
  * remain available without an artDirection and keep their original appearance.
  */
 export const TEMPLATE_ART_DIRECTIONS: Record<string, ArtDirection> = {
+  'interactive-flower-adventure': art('botanical-floral', 'centered-cover', 'polaroid', 'petal'),
   'chapter-of-us': art('editorial-luxury', 'offset-editorial', 'collage', 'editorial'),
   'pressed-garden': art('botanical-floral', 'vertical-calm', 'masonry', 'petal'),
   'our-little-archive': art('scrapbook-memories', 'framed-invitation', 'polaroid', 'spring'),
