@@ -9,7 +9,7 @@ export const pressedGarden: TemplateConfig = {
     en: 'A quiet, floral keepsake for the person who makes ordinary days feel lighter.',
     id: 'Kenang-kenangan bernuansa bunga yang tenang untuk orang yang membuat hari biasa terasa lebih ringan.',
   },
-  category: 'thank-you', tier: 'core', status: 'active', featured: false, popular: true, isNew: false, hasDemo: false,
+  category: 'appreciation-thanks', tier: 'core', status: 'active', featured: false, popular: true, isNew: false, hasDemo: false,
   theme: {
     palette: { background: '#f1eee5', surface: '#fbf9f3', ink: '#25241f', mutedInk: '#575f50', accent: '#4f5e47', accentInk: '#f7f5ee', line: '#d9d6c8' },
     display: 'serif-old', body: 'sans-clean', motion: 'subtle',

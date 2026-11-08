@@ -48,12 +48,12 @@ export function TemplatesPageView({ packages, featuredTemplateId = 'chapter-of-u
 
         <fieldset className="mt-6 border-y border-line py-4">
           <legend className="sr-only">{t('templatesPage', 'filterLabel')}</legend>
-          <div className="flex flex-wrap gap-2" role="group" aria-label={t('templatesPage', 'filterLabel')}>
+          <div className="-mx-5 flex flex-nowrap gap-2 overflow-x-auto overscroll-x-contain px-5 pb-2 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0" role="group" aria-label={t('templatesPage', 'filterLabel')}>
             <button
               type="button"
               aria-pressed={selectedCategory === null}
               onClick={() => setSelectedCategory(null)}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition ${selectedCategory === null ? 'bg-moss text-ivory' : 'border border-line text-ink/60 hover:border-moss'}`}
+              className={`shrink-0 rounded-full px-4 py-2 text-sm font-semibold transition ${selectedCategory === null ? 'bg-moss text-ivory' : 'border border-line text-ink/60 hover:border-moss'}`}
             >{t('templatesPage', 'all')}</button>
             {CATEGORIES.map((category) => (
               <button
@@ -62,7 +62,7 @@ export function TemplatesPageView({ packages, featuredTemplateId = 'chapter-of-u
                 data-category-filter={category.id}
                 aria-pressed={selectedCategory === category.id}
                 onClick={() => setSelectedCategory(category.id)}
-                className={`rounded-full px-4 py-2 text-sm transition ${selectedCategory === category.id ? 'bg-moss font-semibold text-ivory' : 'border border-line text-ink/60 hover:border-moss'}`}
+                className={`shrink-0 rounded-full px-4 py-2 text-sm transition ${selectedCategory === category.id ? 'bg-moss font-semibold text-ivory' : 'border border-line text-ink/60 hover:border-moss'}`}
               >{category.label[locale]}</button>
             ))}
           </div>

@@ -30,7 +30,7 @@ export const interactiveFlowerAdventure: TemplateConfig = {
   id: 'interactive-flower-adventure', version: 1, name: { en: 'The Garden I Saved for You', id: 'Taman yang Kusimpan untukmu' },
   tagline: { en: 'A tiny interactive flower adventure with a private note at the end', id: 'Petualangan bunga interaktif dengan catatan privat di bagian akhir' },
   description: { en: 'Open the envelope, solve three gentle clues, water a hand-drawn garden, and unlock a personal note with a PIN.', id: 'Buka amplop, pecahkan tiga petunjuk lembut, sirami taman bergambar tangan, lalu buka catatan personal dengan PIN.' },
-  category: 'romantic-love', tier: 'core', status: 'active', featured: false, popular: true, isNew: true, hasDemo: true,
+  category: 'romantic-anniversary', tier: 'core', status: 'active', featured: false, popular: true, isNew: true, hasDemo: true,
   theme: { palette: { background: '#f4efe4', surface: '#fffdf8', ink: '#2f4938', mutedInk: '#506052', accent: '#8b5630', accentInk: '#fffdf8', line: '#d9cdb6' }, display: 'serif-classic', body: 'sans-clean', motion: 'subtle', flowerTransition: true },
   sections,
   sample: { en: sample('en'), id: sample('id') },

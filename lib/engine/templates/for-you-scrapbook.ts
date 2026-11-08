@@ -25,7 +25,7 @@ export const forYouScrapbook: TemplateConfig = {
     en: 'A sealed letter opens into a maroon scrapbook with a handwritten note, a rose garden, personal music and photographs tucked into polaroid frames.',
     id: 'Surat bersegel membuka scrapbook merah marun berisi tulisan personal, taman mawar, lagu pilihan, dan foto kenangan dalam bingkai polaroid.',
   },
-  category: 'romantic-love',
+  category: 'romantic-anniversary',
   tier: 'core',
   status: 'active',
   featured: false,

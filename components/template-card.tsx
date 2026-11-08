@@ -19,6 +19,7 @@ export function TemplateCard({ template }: { template: TemplateConfig }) {
   return (
     <motion.article
       data-template-card={template.id}
+      data-template-category={template.category}
       initial={{ opacity: 0, y: 14 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-30px' }}

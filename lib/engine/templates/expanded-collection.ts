@@ -4,7 +4,7 @@ import { S } from './builders.ts';
 type SectionKey = 'opening' | 'hero' | 'letter' | 'timeline' | 'gallery' | 'message' | 'appreciation' | 'closing';
 type Copy = { recipient: string; sender: string; occasion: string; title: string; subtitle: string; dateLine: string; greeting: string; body: string; signoff: string; intro: string; appreciation: string; closing: string; signature: string; list: string[]; places: string[] };
 type Seed = {
-  id: string; category: TemplateConfig['category']; name: [string, string]; tagline: [string, string]; description: [string, string];
+  id: string; category: string; name: [string, string]; tagline: [string, string]; description: [string, string];
   palette: TemplateConfig['theme']['palette']; display: TemplateConfig['theme']['display']; bodyFont: TemplateConfig['theme']['body'];
   order: SectionKey[]; flowers?: boolean; en: Copy; idCopy: Copy;
 };
@@ -252,6 +252,26 @@ const seeds: Seed[] = [
   },
 ];
 
+const ARCHIVED_SEED_IDS = new Set([
+  'wedding-garden-vows', 'apology-room-to-listen', 'birthday-midnight-table',
+  'friendship-city-atlas', 'friendship-voice-note-archive', 'anniversary-seasons-kept',
+  'love-letter-after-rain', 'graduation-next-page', 'valentines-postmark',
+]);
+
+function categoryForSeed(seed: Seed): TemplateConfig['category'] {
+  if (seed.id.startsWith('wedding-') || seed.id.startsWith('holiday-') || seed.category === 'holiday-seasonal' || seed.category === 'wedding' || seed.category === 'special-moments') return 'special-moments';
+  if (seed.id.startsWith('apology-')) return 'family-friendship';
+  if (seed.id === 'letter-for-mother' || seed.id === 'fathers-day-built-together') return 'appreciation-thanks';
+  switch (seed.category) {
+    case 'birthday': case 'birthday-celebration': return 'birthday-celebration';
+    case 'anniversary': case 'romantic-love': case 'long-distance': case 'just-because': return 'romantic-anniversary';
+    case 'friendship': case 'family': case 'family-friendship': return 'family-friendship';
+    case 'thank-you': case 'appreciation': case 'apology-appreciation': return 'appreciation-thanks';
+    case 'graduation': case 'graduation-achievement': return 'graduation-achievement';
+    default: return 'special-moments';
+  }
+}
+
 function makeSections(order: SectionKey[]): SectionDef[] {
   return order.map((key) => {
     switch (key) {
@@ -287,7 +307,7 @@ export const expandedTemplates: TemplateConfig[] = seeds.map((seed) => {
   return {
     id: seed.id, version: 1, name: { en: seed.name[0], id: seed.name[1] },
     tagline: { en: seed.tagline[0], id: seed.tagline[1] }, description: { en: seed.description[0], id: seed.description[1] },
-    category: seed.category, tier: 'core', status: 'active', featured: false, popular: false, isNew: true, hasDemo: false,
+    category: categoryForSeed(seed), tier: 'core', status: ARCHIVED_SEED_IDS.has(seed.id) ? 'inactive' : 'active', featured: false, popular: false, isNew: true, hasDemo: false,
     theme: { palette: seed.palette, display: seed.display, body: seed.bodyFont, motion: 'subtle', flowerTransition: seed.flowers ?? false },
     sections, sample: { en: sampleFor(seed, 'en', sections), id: sampleFor(seed, 'id', sections) },
   };

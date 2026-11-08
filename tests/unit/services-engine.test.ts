@@ -76,6 +76,38 @@ test('MODEL B + engine: a gift keeps being editable/publishable against its pinn
   assert.equal(code(await S.saveDraft(h.env, alice, g.giftId, { expectedVersion: 2, content: sampleContent(chapterOfUs, 'en') }, gone)), 'template_unavailable');
 });
 
+test('a curated template is hidden for new gifts but existing gifts keep their public URL and pinned version', async () => {
+  const templateId = 'wedding-garden-vows';
+  const pinned = ALL_TEMPLATE_VERSIONS.find((template) => template.id === templateId && template.version === 2)!;
+  assert.equal(pinned.status, 'inactive');
+  const preRetirementVersions = ALL_TEMPLATE_VERSIONS.map((template) =>
+    template.id === templateId && template.version === pinned.version ? { ...template, status: 'active' as const } : template,
+  );
+  const preRetirementLookup = createTemplateLookup(createRegistry(preRetirementVersions));
+  const currentLookup = createTemplateLookup(createRegistry(ALL_TEMPLATE_VERSIONS));
+  const h = makeEnv(T0); await buy(h, 'basic');
+  const content = sampleContent(pinned, 'id');
+  const gift = await S.createGift(h.env, alice, { templateId, content }, preRetirementLookup);
+  assert.ok(gift.ok);
+  if (!gift.ok) return;
+  assert.ok((await S.publishGift(h.env, alice, gift.giftId, { expectedVersion: 1 }, preRetirementLookup)).ok);
+
+  const originalPublic = h.store.docs.get(`publicGifts/${gift.slug}`)!;
+  assert.equal(originalPublic.templateId, templateId);
+  assert.equal(originalPublic.templateVersion, pinned.version);
+  assert.equal(S.getPublicGift(h.env, gift.slug).ok, true, 'the published slug remains publicly readable');
+  assert.equal(code(await S.createGift(h.env, alice, { templateId, content }, currentLookup)), 'unknown_template');
+
+  const edited = await S.saveDraft(h.env, alice, gift.giftId, { expectedVersion: 1, content }, currentLookup);
+  assert.ok(edited.ok, 'retired template gift remains editable against its pinned version');
+  assert.ok((await S.publishGift(h.env, alice, gift.giftId, { expectedVersion: 2 }, currentLookup)).ok);
+  const updatedPublic = h.store.docs.get(`publicGifts/${gift.slug}`)!;
+  assert.equal(updatedPublic.slug, originalPublic.slug);
+  assert.equal(updatedPublic.templateId, templateId);
+  assert.equal(updatedPublic.templateVersion, pinned.version);
+  assert.equal(updatedPublic.revision, 2);
+});
+
 test('private draft read is owner-only and still returns read-only content after entitlement expires', async () => {
   const h = makeEnv(T0); await buy(h, 'basic');
   const content = sampleContent(chapterOfUs, 'id');

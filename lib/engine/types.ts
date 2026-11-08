@@ -12,10 +12,8 @@ export type Locale = 'en' | 'id';
 export type L10n = Record<Locale, string>;
 
 export type CategoryId =
-  | 'birthday' | 'anniversary' | 'friendship' | 'graduation' | 'thank-you'
-  | 'long-distance' | 'appreciation' | 'just-because' | 'wedding' | 'family'
-  | 'romantic-love' | 'birthday-celebration' | 'apology-appreciation'
-  | 'family-friendship' | 'graduation-achievement' | 'special-moments' | 'holiday-seasonal';
+  | 'romantic-anniversary' | 'birthday-celebration' | 'family-friendship'
+  | 'appreciation-thanks' | 'graduation-achievement' | 'special-moments';
 
 export type SectionType =
   | 'opening' | 'hero' | 'letter' | 'gallery' | 'timeline'

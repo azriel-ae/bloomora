@@ -9,7 +9,7 @@ export const ourLittleArchive: TemplateConfig = {
     en: 'A playful timeline of inside jokes, tiny victories, and all the places your story has been.',
     id: 'Linimasa jenaka berisi lelucon internal, kemenangan kecil, dan semua tempat yang pernah kalian singgahi.',
   },
-  category: 'friendship', tier: 'extended', status: 'active', featured: false, popular: false, isNew: false, hasDemo: false,
+  category: 'family-friendship', tier: 'extended', status: 'active', featured: false, popular: false, isNew: false, hasDemo: false,
   theme: {
     palette: { background: '#f5e5dc', surface: '#fff6f0', ink: '#352a26', mutedInk: '#6a4d44', accent: '#9a4f48', accentInk: '#fff6f0', line: '#e0c8bc' },
     display: 'serif-classic', body: 'sans-clean', motion: 'standard',

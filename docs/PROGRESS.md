@@ -1,5 +1,14 @@
 # Bloomora: progres pengerjaan
 
+## Checkpoint 2026-11-08: kurasi katalog template
+
+- Katalog kini memakai enam kategori utama: Romantis & Hari Jadi, Ulang Tahun & Perayaan, Keluarga & Persahabatan, Apresiasi & Terima Kasih, Kelulusan & Pencapaian, dan Momen Spesial. Setiap template aktif mendapat tepat satu kategori; kategori lama yang lebih sempit dipetakan ke salah satu kategori ini.
+- Dari 46 template aktif, sembilan konsep berulang/lemah diarsipkan dari katalog: `wedding-garden-vows`, `apology-room-to-listen`, `birthday-midnight-table`, `friendship-city-atlas`, `friendship-voice-note-archive`, `anniversary-seasons-kept`, `love-letter-after-rain`, `graduation-next-page`, dan `valentines-postmark`. Sebanyak 37 template tetap aktif; pilihan lain tetap dipertahankan bila konteks penerima/peristiwa atau pengalaman berbeda.
+- Arsip memakai `status: inactive`, bukan menghapus konfigurasi, versi, renderer, atau aset. Gift lama tetap memakai versi yang dipin; editor dan publish masih dapat membaca versi tersebut. Template arsip tidak bisa dipakai untuk gift baru dan tidak lagi memiliki halaman detail/demo katalog aktif. Gift publik dan slug tidak disentuh. Featured Demo dinamis dan pilihan admin tetap mengambil template aktif.
+- Chip kategori di HP menjadi satu baris horizontal yang dapat digeser; layar lebar tetap dapat membungkus chip. Tampilan Bloomora, pencarian, jumlah hasil, tautan detail, CTA editor, dan demo memakai struktur yang sudah ada.
+- Regresi ditambahkan untuk daftar aktif dan enam filter kategori, pencarian, detail semua template aktif, penolakan detail arsip, tiga demo dinamis, seleksi editor, serta gift publik yang sudah memakai template yang diarsipkan. Diagnostik VS Code tidak menemukan error pada file TypeScript yang diedit. Perintah typecheck/unit/lint/i18n/build/browser **tidak dijalankan karena pengguna memilih melewati panggilan pengujian**; jalankan sebelum rilis bila diizinkan. Inventarisasi data produksi Supabase tidak dilakukan, tetapi perubahan tidak menghapus atau mengubah record dan seluruh ID/versi tetap terdaftar.
+- Folder kerja Bloomora yang sebelumnya berada di bawah repositori lokal lain telah dihubungkan secara terisolasi ke `https://github.com/azriel-ae/bloomora.git`; tidak ada file atau perubahan repositori induk yang ikut masuk ke cakupan commit.
+
 ## Checkpoint 2026-11-08: upload MP3 "Gagal menyimpan di server" (upload langsung ke Storage)
 
 - Gejala: setelah perbaikan 8c416b0 pesan berubah menjadi "Server gagal menyimpan media". Kode lama hanya punya tiga kode Storage dan membuang detail error; exception non-ServiceError (database, constraint, schema) keluar sebagai `media_server_failed` tanpa penyebab, dan respons non-JSON (mis. platform menolak body) jatuh ke pesan yang sama.

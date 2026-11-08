@@ -99,25 +99,55 @@ try {
 
   await page.goto(`${base}/id/templates`, { waitUntil: 'networkidle' });
   const initialTemplateIds = await page.locator('[data-template-card]').evaluateAll((elements) => elements.map((element) => element.getAttribute('data-template-card')));
-  assert.ok(initialTemplateIds.length >= 4 && new Set(initialTemplateIds).size === initialTemplateIds.length, 'catalog lists each active engine template exactly once');
+  assert.equal(initialTemplateIds.length, 37, 'catalog count reflects the curated active collection');
+  assert.equal(new Set(initialTemplateIds).size, initialTemplateIds.length, 'catalog lists each active engine template exactly once');
+  const filterGroup = page.locator('fieldset [role="group"]');
+  const categoryIds = await page.locator('[data-category-filter]').evaluateAll((elements) => elements.map((element) => element.getAttribute('data-category-filter')));
+  assert.deepEqual(categoryIds, ['romantic-anniversary', 'birthday-celebration', 'family-friendship', 'appreciation-thanks', 'graduation-achievement', 'special-moments'], 'catalog exposes exactly the six requested categories');
   const layouts = await page.locator('[data-template-art]').evaluateAll((elements) => [...new Set(elements.map((element) => element.getAttribute('data-layout')))]);
   assert.equal(layouts.length, 4, 'catalog includes each implemented data-driven art composition');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  const mobileFilterLayout = await filterGroup.evaluate((element) => ({
+    overflowX: getComputedStyle(element).overflowX,
+    scrolls: element.scrollWidth > element.clientWidth,
+    buttonTops: [...element.querySelectorAll('button')].map((button) => Math.round(button.getBoundingClientRect().top)),
+  }));
+  assert.equal(mobileFilterLayout.overflowX, 'auto', 'mobile category controls scroll horizontally');
+  assert.equal(mobileFilterLayout.scrolls, true, 'mobile category controls stay in one compact scroll row');
+  assert.equal(new Set(mobileFilterLayout.buttonTops).size, 1, 'mobile category chips do not wrap into multiple rows');
+  for (const id of categoryIds) {
+    await page.locator(`[data-category-filter="${id}"]`).click();
+    const shownCategories = await page.locator('[data-template-card]').evaluateAll((elements) => elements.map((element) => element.getAttribute('data-template-category')));
+    assert.ok(shownCategories.length > 0, `${id} has catalog results`);
+    assert.ok(shownCategories.every((category) => category === id), `${id} filter shows only its assigned templates`);
+  }
+  await page.getByRole('button', { name: 'Semua' }).click();
 
   const search = page.getByRole('searchbox', { name: 'Cari template' });
   await search.fill('minimalis');
   assert.deepEqual(await page.locator('[data-template-card]').evaluateAll((elements) => elements.map((element) => element.getAttribute('data-template-card'))), ['just-a-letter', 'wedding-quiet-ivory'], 'search matches localized template content');
 
   await search.fill('');
-  await page.locator('[data-category-filter="friendship"]').click();
-  assert.deepEqual(await page.locator('[data-template-card]').evaluateAll((elements) => elements.map((element) => element.getAttribute('data-template-card'))), ['our-little-archive'], 'category filtering uses the engine category');
-
-  await page.locator('[data-category-filter="birthday"]').click();
-  assert.equal(await page.locator('[data-template-card]').count(), 0, 'categories without active templates return a real empty state');
+  await search.fill('not-a-real-template');
+  assert.equal(await page.locator('[data-template-card]').count(), 0, 'unmatched search returns a real empty state');
   assert.equal(await page.locator('[data-empty-catalog]').isVisible(), true);
   await page.getByRole('button', { name: 'Hapus filter' }).click();
   assert.equal(await page.locator('[data-template-card]').count(), initialTemplateIds.length, 'clear filters restores the active catalog');
 
-  assert.equal(await page.locator('[data-template-card] [data-demo-link]').count(), 1, 'only the real demo template exposes a card demo link');
+  assert.equal(await page.locator('[data-template-card] [data-demo-link]').count(), 3, 'all interactive demo templates expose their dynamic demo links');
+  for (const id of ['chapter-of-us', 'for-you-scrapbook', 'interactive-flower-adventure']) {
+    const demoLink = page.locator(`[data-template-card="${id}"] [data-demo-link]`);
+    assert.equal(await demoLink.getAttribute('href'), `/demo/${id}`, `${id} links to its dynamic demo route`);
+  }
+  for (const id of initialTemplateIds) {
+    const response = await page.request.get(`${base}/templates/${id}`);
+    assert.equal(response.status(), 200, `${id} detail route is accessible`);
+  }
+  const archivedDetail = await page.request.get(`${base}/templates/wedding-garden-vows`);
+  assert.equal(archivedDetail.status(), 404, 'archived templates are no longer available as new catalog details');
+
+  await page.setViewportSize({ width: 1280, height: 850 });
   const chapterCard = page.locator('[data-template-card="chapter-of-us"]');
   assert.equal(await chapterCard.getByText('Unggulan').count(), 1, 'featured flag renders a localized badge');
   assert.equal(await chapterCard.locator('a[href="/create?template=chapter-of-us"]').count(), 1, 'use-template CTA retains selected template');

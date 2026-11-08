@@ -6,6 +6,7 @@ import { resolveRenderModel, sampleContent, blankContent, validateContentForTemp
 import { contrastRatio } from '../../lib/engine/color.ts';
 import { attachMomentImages } from '../../lib/engine/photo-bindings.ts';
 import { chapterOfUs } from '../../lib/engine/templates/chapter-of-us.ts';
+import { CATEGORIES } from '../../lib/engine/categories.ts';
 import { TEMPLATE_ART_DIRECTIONS } from '../../lib/engine/art-directions.ts';
 import { validateGiftContent } from '../../lib/model/content.ts';
 import type { TemplateConfig } from '../../lib/engine/types.ts';
@@ -177,16 +178,36 @@ test('publish completeness: drafts may be incomplete, publications may not', () 
   assert.deepEqual(missingForPublish(chapterOfUs, noAppreciation), []);
 });
 
-test('catalog: only active templates listed; search by name/description in either language; category filter', () => {
-  assert.deepEqual(listCatalog().map((t) => t.id).sort(), ['anniversary-distance-letters', 'anniversary-miles-and-mornings', 'anniversary-seasons-kept', 'apology-friendship-repair', 'apology-room-to-listen', 'apology-sibling-open-door', 'apology-staying-present', 'baby-gender-reveal-garden', 'birthday-first-light', 'birthday-midnight-table', 'birthday-mothers-sunday', 'birthday-paper-confetti', 'bridal-shower-gathering', 'chapter-of-us', 'christmas-window-light', 'eid-homeward-table', 'engagement-first-to-forever', 'family-table-stories', 'farewell-last-train', 'fathers-day-built-together', 'for-you-scrapbook', 'friendship-city-atlas', 'friendship-voice-note-archive', 'graduation-first-in-family', 'graduation-next-page', 'graduation-work-in-the-margins', 'interactive-flower-adventure', 'just-a-letter', 'letter-for-mother', 'love-letter-after-rain', 'lunar-new-year-open-table', 'moving-away-photo-route', 'new-chapter-announcement', 'new-year-room-to-begin', 'our-little-archive', 'pressed-garden', 'ramadan-lantern-letter', 'valentines-postmark', 'wedding-aksara-evening', 'wedding-blossom-parchment', 'wedding-city-hall-promise', 'wedding-coastal-letters', 'wedding-garden-vows', 'wedding-gold-editorial', 'wedding-intimate-afterglow', 'wedding-quiet-ivory']);
-  assert.deepEqual(searchCatalog('bab', 'id').map((t) => t.id), ['chapter-of-us', 'graduation-next-page', 'new-chapter-announcement', 'bridal-shower-gathering', 'farewell-last-train', 'baby-gender-reveal-garden', 'anniversary-miles-and-mornings']);
+test('catalog: six Indonesian-first categories filter the curated active set and search stays localized', () => {
+  const activeIds = ['anniversary-distance-letters', 'anniversary-miles-and-mornings', 'apology-friendship-repair', 'apology-sibling-open-door', 'apology-staying-present', 'baby-gender-reveal-garden', 'birthday-first-light', 'birthday-mothers-sunday', 'birthday-paper-confetti', 'bridal-shower-gathering', 'chapter-of-us', 'christmas-window-light', 'eid-homeward-table', 'engagement-first-to-forever', 'family-table-stories', 'farewell-last-train', 'fathers-day-built-together', 'for-you-scrapbook', 'graduation-first-in-family', 'graduation-work-in-the-margins', 'interactive-flower-adventure', 'just-a-letter', 'letter-for-mother', 'lunar-new-year-open-table', 'moving-away-photo-route', 'new-chapter-announcement', 'new-year-room-to-begin', 'our-little-archive', 'pressed-garden', 'ramadan-lantern-letter', 'wedding-aksara-evening', 'wedding-blossom-parchment', 'wedding-city-hall-promise', 'wedding-coastal-letters', 'wedding-gold-editorial', 'wedding-intimate-afterglow', 'wedding-quiet-ivory'];
+  assert.deepEqual(listCatalog().map((t) => t.id).sort(), activeIds.sort());
+  assert.equal(CATEGORIES.length, 6);
+  assert.deepEqual(CATEGORIES.map((category) => category.id), ['romantic-anniversary', 'birthday-celebration', 'family-friendship', 'appreciation-thanks', 'graduation-achievement', 'special-moments']);
+  for (const category of CATEGORIES) {
+    const matches = searchCatalog('', 'id', category.id);
+    assert.ok(matches.length > 0, `${category.id} has catalog entries`);
+    assert.ok(matches.every((template) => template.category === category.id), `${category.id} returns only its assigned templates`);
+  }
+  assert.deepEqual(searchCatalog('bab', 'id').map((t) => t.id), ['chapter-of-us', 'new-chapter-announcement', 'bridal-shower-gathering', 'farewell-last-train', 'baby-gender-reveal-garden', 'anniversary-miles-and-mornings']);
   assert.deepEqual(searchCatalog('BOTANICAL', 'en').map((t) => t.id), ['pressed-garden', 'wedding-garden-vows', 'wedding-blossom-parchment']);
-  assert.deepEqual(searchCatalog('', 'en', 'friendship').map((t) => t.id), ['our-little-archive']);
-  assert.deepEqual(searchCatalog('', 'en', 'wedding').map((t) => t.id), ['wedding-garden-vows', 'wedding-quiet-ivory', 'wedding-aksara-evening', 'wedding-blossom-parchment', 'wedding-gold-editorial', 'wedding-intimate-afterglow', 'wedding-coastal-letters', 'wedding-city-hall-promise']);
-  assert.deepEqual(searchCatalog('room to listen', 'en').map((t) => t.id), ['apology-room-to-listen']);
+  assert.deepEqual(searchCatalog('', 'en', 'family-friendship').map((t) => t.id), ['our-little-archive', 'family-table-stories', 'apology-staying-present', 'apology-friendship-repair', 'apology-sibling-open-door']);
+  assert.deepEqual(searchCatalog('', 'en', 'special-moments').map((t) => t.id).filter((id) => id.startsWith('wedding-')).sort(), ['wedding-aksara-evening', 'wedding-blossom-parchment', 'wedding-city-hall-promise', 'wedding-coastal-letters', 'wedding-gold-editorial', 'wedding-intimate-afterglow', 'wedding-quiet-ivory']);
+  assert.deepEqual(searchCatalog('room to listen', 'en'), []);
   assert.deepEqual(searchCatalog('zzzz', 'en'), []);
   assert.equal(getFeaturedDemo()?.id, 'chapter-of-us');
   assert.equal(listCatalog().filter((t) => t.featured && t.hasDemo).length, 1, 'exactly one featured demo');
+});
+
+test('curated templates are archived, not removed: pinned versions still render with unchanged structures', () => {
+  const archivedIds = ['wedding-garden-vows', 'apology-room-to-listen', 'birthday-midnight-table', 'friendship-city-atlas', 'friendship-voice-note-archive', 'anniversary-seasons-kept', 'love-letter-after-rain', 'graduation-next-page', 'valentines-postmark'];
+  for (const id of archivedIds) {
+    assert.equal(getActiveTemplate(id), null, `${id} is not available for new gifts`);
+    const before = ALL_TEMPLATE_VERSIONS.find((template) => template.id === id && template.version === 2);
+    const pinned = getTemplateForRender(id, 2);
+    assert.ok(before && pinned, `${id} version remains registered for existing gifts`);
+    assert.deepEqual(pinned.sections, before.sections);
+    assert.deepEqual(pinned.sample, before.sample);
+  }
 });
 
 test('MODEL B: deactivating or revising a template never changes how an existing gift renders', () => {

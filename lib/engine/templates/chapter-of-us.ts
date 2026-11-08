@@ -11,7 +11,7 @@ export const chapterOfUs: TemplateConfig = {
     en: 'A sealed letter opens onto a magazine-style title page, a handwritten-feeling letter, a timeline of chapters, a gallery of illustrated plates, and a deck of reasons the recipient can turn one by one.',
     id: 'Surat bersegel terbuka ke halaman judul bergaya majalah, surat yang terasa ditulis tangan, linimasa bab, galeri ilustrasi, dan setumpuk alasan yang bisa dibuka satu per satu.',
   },
-  category: 'anniversary', tier: 'core', status: 'active',
+  category: 'romantic-anniversary', tier: 'core', status: 'active',
   featured: true, popular: true, isNew: true, hasDemo: true,
   theme: {
     palette: { background: '#f6efe6', surface: '#fffaf3', ink: '#2a1d1b', mutedInk: '#65504a', accent: '#8a2f3c', accentInk: '#fff7f0', line: '#dccfc0' },

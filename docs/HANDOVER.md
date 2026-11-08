@@ -1,5 +1,13 @@
 # Handover Bloomora (untuk AI atau developer baru)
 
+## Checkpoint terbaru — kurasi katalog (2026-11-08)
+
+Katalog disederhanakan menjadi enam kategori utama dan 37 template aktif. Sembilan template berulang/lemah disembunyikan dengan status `inactive`: `wedding-garden-vows`, `apology-room-to-listen`, `birthday-midnight-table`, `friendship-city-atlas`, `friendship-voice-note-archive`, `anniversary-seasons-kept`, `love-letter-after-rain`, `graduation-next-page`, dan `valentines-postmark`. Kode/config versi, renderer, dan asetnya sengaja dipertahankan. Gift lama tetap dirender/diedit/dipublish melalui `templateId` + `templateVersion` yang dipin dan URL gift publiknya tidak dialihkan atau dihapus. Jangan hapus versi arsip tanpa audit referensi dan persetujuan terpisah.
+
+Filter mobile katalog kini satu baris dan dapat digeser. Admin Featured Demo masih dinamis dan hanya menawarkan template aktif; tidak ada CRUD template penuh di admin saat ini (status katalog berasal dari konfigurasi source). Regresi unit/browser untuk kategori, search, count, detail, editor, demo dinamis, dan pinned legacy gift sudah ditambahkan, tetapi belum dijalankan karena pengguna memilih melewati panggilan pengujian. Jalankan `pnpm typecheck`, `pnpm test:unit`, `pnpm lint`, `pnpm check:i18n`, `pnpm build`, dan `pnpm test:catalog` sebelum rilis jika pengujian diizinkan.
+
+Repo kerja Bloomora kini memiliki Git tersendiri pada branch `main`, dengan remote `https://github.com/azriel-ae/bloomora.git`; baseline file cocok dengan `origin/main`. Repositori induk `/home/lenovo` memakai remote lain dan berisi perubahan lokal yang tidak terkait—jangan stage/commit dari repositori induk. Commit/push katalog harus dilakukan dari root folder Bloomora saja.
+
 ## Checkpoint terbaru — upload MP3 langsung ke Storage (2026-11-08)
 
 Berkas baru: `lib/server/media-direct.ts`, `lib/editor/direct-upload.ts`, route `app/api/guest/gifts/[giftId]/media/upload-url` dan `/complete`. Perubahan: `lib/server/media-services.ts` (klasifikasi error nyata, cleanup aman, signed URL toleran, objek tidak dihapus saat gift terbit), route `/media` (tidak lagi menyembunyikan penyebab), `components/gift-editor.tsx` (audio memakai alur langsung), `messages/id.json` (pesan baru).

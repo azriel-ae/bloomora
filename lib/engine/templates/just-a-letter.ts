@@ -9,7 +9,7 @@ export const justALetter: TemplateConfig = {
     en: 'A considered note with room for photographs, pauses, and everything you could not fit in a text.',
     id: 'Catatan yang dipikirkan matang dengan ruang untuk foto, jeda, dan semua yang tak muat dalam pesan singkat.',
   },
-  category: 'long-distance', tier: 'core', status: 'active', featured: false, popular: false, isNew: false, hasDemo: false,
+  category: 'romantic-anniversary', tier: 'core', status: 'active', featured: false, popular: false, isNew: false, hasDemo: false,
   theme: {
     palette: { background: '#efe7da', surface: '#faf5ea', ink: '#2e2a25', mutedInk: '#5f5446', accent: '#7a5a40', accentInk: '#faf5ea', line: '#d8ccb8' },
     display: 'serif-old', body: 'typewriter', motion: 'subtle',
