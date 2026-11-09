@@ -1,7 +1,7 @@
 // Bundles tests/browser/entry.tsx for a real-browser test. Dev tooling only; not part of the Next build.
 // Needs esbuild (and react/react-dom). In a sandbox where they are installed globally, set ESBUILD_PATH / REACT_NODE_PATH.
 import { createRequire } from 'node:module';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { copyFileSync, mkdirSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -10,6 +10,8 @@ const req = createRequire(import.meta.url);
 const { build } = req(process.env.ESBUILD_PATH ?? 'esbuild');
 const dist = path.join(root, 'tests/browser/dist');
 mkdirSync(dist, { recursive: true });
+mkdirSync(path.join(dist, 'audio'), { recursive: true });
+copyFileSync(path.join(root, 'public/audio/bloomora-demo-original.mp3'), path.join(dist, 'audio/bloomora-demo-original.mp3'));
 const result = await build({
   entryPoints: [path.join(root, 'tests/browser/entry.tsx')], outfile: path.join(dist, 'app.js'), bundle: true, format: 'iife',
   jsx: 'automatic', alias: { '@': root }, loader: { '.json': 'json' }, define: { 'process.env.NODE_ENV': '"production"' },

@@ -702,3 +702,34 @@
   .fy-envelope-button, .fy-envelope-flap, .fy-envelope-paper, .fy-menu-card, .fy-vinyl { animation-duration: .01ms !important; transition-duration: .01ms !important; }
   .fy-vinyl { animation: none; }
 }
+
+
+/* For You, With Love — soft rose-petal atmosphere and tactile scrapbook motion. */
+.fy-root{overflow:hidden;background-image:radial-gradient(ellipse at 12% 15%,#c9828a24,transparent 30%),radial-gradient(ellipse at 88% 58%,#d5b28a1c,transparent 28%)}
+.fy-root .fy-opening-frame,.fy-root .fy-home,.fy-root .fy-page-wrap{animation:fy-page-reveal .85s cubic-bezier(.2,.7,.2,1) both}
+.fy-root .fy-envelope-button{animation:fy-envelope-hover 5.5s ease-in-out infinite;transition:filter .5s ease,transform .6s cubic-bezier(.2,.8,.2,1)}
+.fy-root .fy-envelope-button:hover{filter:drop-shadow(0 22px 24px #13070a55);transform:translateY(-7px) scale(1.015)}
+.fy-root .fy-menu-card{transition:transform .55s cubic-bezier(.2,.8,.2,1),box-shadow .55s ease,filter .55s ease}
+.fy-root .fy-menu-card:hover,.fy-root .fy-menu-card:focus-visible{transform:translateY(-8px) rotate(0);box-shadow:0 24px 48px #12060a55;filter:saturate(1.08)}
+.fy-root .fy-polaroid{transition:transform .65s cubic-bezier(.2,.8,.2,1),box-shadow .65s ease}.fy-root .fy-polaroid:hover{transform:translateY(-8px) rotate(0);box-shadow:0 24px 42px #12060a55}
+@keyframes fy-page-reveal{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes fy-envelope-hover{0%,100%{translate:0 0}50%{translate:0 -8px}}
+@media(prefers-reduced-motion:reduce){.fy-root .fy-opening-frame,.fy-root .fy-home,.fy-root .fy-page-wrap,.fy-root .fy-envelope-button{animation:none!important}.fy-root .fy-menu-card,.fy-root .fy-polaroid,.fy-root .fy-envelope-button{transition:none!important}}
+
+/* Keep scrapbook copy above decorative paper layers and make navigation reliably clickable. */
+.fy-letter-page { position: relative; isolation: isolate; }
+.fy-letter-copy { position: relative; z-index: 2; }
+.fy-paper { position: relative; z-index: 1; overflow: visible; }
+.fy-memory-gallery { position: relative; z-index: 1; }
+.fy-topbar, .fy-topbar button, .fy-back { pointer-events: auto; }
+.fy-page-wrap { position: relative; z-index: 1; }
+.fy-audio-toggle { display: inline-flex; min-height: 2.8rem; align-items: center; justify-content: center; margin-top: .85rem; padding: .7rem 1.25rem; border: 1px solid #c98788; border-radius: 999px; background: linear-gradient(135deg,#f0c7b5,#d78d91); color: #35131b; font-size: .76rem; font-weight: 700; letter-spacing: .08em; cursor: pointer; }
+.fy-audio-toggle:hover { filter: brightness(1.08); transform: translateY(-1px); }
+
+
+/* Scrapbook keepsakes page: a small paper insert with its own visual signature. */
+.fy-menu-film{position:relative;display:block;width:6.3rem;height:5.2rem;border:.45rem solid #fffaf0;background:#ddc2a4;box-shadow:0 6px 14px #59453126;transform:rotate(-5deg)}
+.fy-menu-film::before,.fy-menu-film::after{position:absolute;top:-.42rem;bottom:-.42rem;width:.38rem;background:repeating-linear-gradient(to bottom,#fff8e9 0 5px,transparent 5px 11px);content:""}
+.fy-menu-film::before{left:-.38rem}.fy-menu-film::after{right:-.38rem}.fy-menu-film i{position:absolute;top:.45rem;bottom:.45rem;left:.45rem;width:1.8rem;border:1px solid #fff9edaa;background:linear-gradient(155deg,#dcb39d 0 35%,#879477 36% 100%)}.fy-menu-film i+ i{left:2.6rem;background:linear-gradient(145deg,#c98982 0 40%,#e6d4ab 41% 100%)}
+.fy-keepsakes-page{width:min(100% - 2rem,76rem);margin:0 auto;padding:clamp(2.8rem,7vw,5rem) 0 4rem}.fy-keepsakes-page>h1{margin:.5rem 0 2rem;color:var(--bl-ink);font-family:var(--bl-display);font-size:clamp(2.3rem,6vw,4.5rem);font-weight:400;line-height:1.05}
+@media(max-width:700px){.fy-keepsakes-page{width:min(100% - 1.25rem,40rem)}}

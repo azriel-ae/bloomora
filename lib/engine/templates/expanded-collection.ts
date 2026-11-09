@@ -253,9 +253,38 @@ const seeds: Seed[] = [
 ];
 
 const ARCHIVED_SEED_IDS = new Set([
-  'wedding-garden-vows', 'apology-room-to-listen', 'birthday-midnight-table',
-  'friendship-city-atlas', 'friendship-voice-note-archive', 'anniversary-seasons-kept',
-  'love-letter-after-rain', 'graduation-next-page', 'valentines-postmark',
+  'anniversary-miles-and-mornings',
+  'anniversary-seasons-kept',
+  'apology-friendship-repair',
+  'apology-sibling-open-door',
+  'apology-staying-present',
+  'baby-gender-reveal-garden',
+  'birthday-first-light',
+  'birthday-midnight-table',
+  'birthday-mothers-sunday',
+  'bridal-shower-gathering',
+  'christmas-window-light',
+  'eid-homeward-table',
+  'engagement-first-to-forever',
+  'farewell-last-train',
+  'fathers-day-built-together',
+  'friendship-voice-note-archive',
+  'graduation-first-in-family',
+  'graduation-work-in-the-margins',
+  'love-letter-after-rain',
+  'lunar-new-year-open-table',
+  'moving-away-photo-route',
+  'new-chapter-announcement',
+  'new-year-room-to-begin',
+  'ramadan-lantern-letter',
+  'valentines-postmark',
+  'wedding-aksara-evening',
+  'wedding-blossom-parchment',
+  'wedding-city-hall-promise',
+  'wedding-coastal-letters',
+  'wedding-gold-editorial',
+  'wedding-intimate-afterglow',
+  'wedding-quiet-ivory',
 ]);
 
 function categoryForSeed(seed: Seed): TemplateConfig['category'] {
@@ -307,7 +336,7 @@ export const expandedTemplates: TemplateConfig[] = seeds.map((seed) => {
   return {
     id: seed.id, version: 1, name: { en: seed.name[0], id: seed.name[1] },
     tagline: { en: seed.tagline[0], id: seed.tagline[1] }, description: { en: seed.description[0], id: seed.description[1] },
-    category: categoryForSeed(seed), tier: 'core', status: ARCHIVED_SEED_IDS.has(seed.id) ? 'inactive' : 'active', featured: false, popular: false, isNew: true, hasDemo: false,
+    category: categoryForSeed(seed), tier: 'core', status: ARCHIVED_SEED_IDS.has(seed.id) ? 'inactive' : 'active', featured: false, popular: false, isNew: false, hasDemo: false,
     theme: { palette: seed.palette, display: seed.display, body: seed.bodyFont, motion: 'subtle', flowerTransition: seed.flowers ?? false },
     sections, sample: { en: sampleFor(seed, 'en', sections), id: sampleFor(seed, 'id', sections) },
   };

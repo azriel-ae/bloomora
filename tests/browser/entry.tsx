@@ -3,6 +3,8 @@ import { GiftView } from '@/components/gift/gift-view';
 import { getActiveTemplate } from '@/lib/engine/registry';
 import { blankContent, sampleContent } from '@/lib/engine/resolve';
 import { chapterOfUs } from '@/lib/engine/templates/chapter-of-us';
+import { PublicFlowerPinGate } from '@/components/gift/public-flower-pin-gate';
+import { themeVars } from '@/lib/engine/theme-vars';
 import type { GiftContent } from '@/lib/engine/types';
 
 /** Browser harness untuk pengalaman hadiah dalam Bahasa Indonesia. */
@@ -39,5 +41,18 @@ if (scenario === 'audio' || scenario === 'audio-nourl') {
 
 const nav = <a className="bl-nav-link" href="#use-template">Gunakan Template</a>;
 const footer = <div className="bl-demo-footer"><h2>Suka dengan yang kamu lihat?</h2><div className="bl-demo-actions"><a className="bl-btn" href="#use-template">Gunakan Template</a></div></div>;
-const view = <GiftView templateId={template.id} templateVersion={template.version} content={content} locale={locale} mode={mode} navActions={nav} footer={footer} audioSrc={audioSrc} />;
+if (scenario === 'flower-gate') {
+  const { pinCode: _pinCode, ...safeFields } = content.fields;
+  const unlockedContent: GiftContent = { ...content, fields: safeFields };
+  window.fetch = async (_input, init) => {
+    const request = JSON.parse(String(init?.body ?? '{}')) as { pin?: string };
+    const ok = request.pin === '583941';
+    return new Response(JSON.stringify(ok
+      ? { ok: true, content: unlockedContent, templateId: template.id, templateVersion: template.version, mediaUrls: {} }
+      : { ok: false, code: 'wrong_pin' }), { status: ok ? 200 : 401, headers: { 'Content-Type': 'application/json' } });
+  };
+}
+const view = scenario === 'flower-gate'
+  ? <PublicFlowerPinGate giftSlug="browser-fixture" templateId={template.id} templateVersion={template.version} title={template.name[locale]} locale={locale} style={themeVars(template.theme) as React.CSSProperties} />
+  : <GiftView templateId={template.id} templateVersion={template.version} content={content} locale={locale} mode={mode} navActions={nav} footer={footer} audioSrc={audioSrc ?? (mode === 'demo' && template.id === 'for-you-scrapbook' ? 'audio/bloomora-demo-original.mp3' : undefined)} />;
 createRoot(document.getElementById('root')!).render(mode === 'preview' ? <div id="host" style={{ height: 640, width: 900, margin: '0 auto', border: '1px solid #ccc' }}>{view}</div> : view);

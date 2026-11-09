@@ -39,12 +39,15 @@ export function GiftView(props: {
   if (!config || !model) return <div className="bl-root"><p className="bl-empty">{labels.emptyGift}</p></div>;
   const resolvedAudioSrc = audioSrc ?? (() => {
     const audio = content.media.find((media) => media.kind === 'audio');
-    return audio ? mediaUrls[audio.id] : undefined;
+    if (audio) return mediaUrls[audio.id];
+    // The public demo uses an original Bloomora instrumental, never an unlicensed commercial recording.
+    if (mode === 'demo' && templateId === 'for-you-scrapbook') return '/audio/bloomora-demo-original.mp3';
+    return undefined;
   })();
   const heroMedia = content.media.find((media) => media.kind === 'image' && media.placement === 'hero');
   return (
     <GiftExperience
-      model={model} labels={labels} mode={mode} title={config.name[locale]}
+      model={model} labels={labels} mode={mode} locale={locale} title={config.name[locale]}
       navActions={navActions} footer={footer} audioSrc={resolvedAudioSrc}
       coverImage={heroMedia ? mediaUrls[heroMedia.id] : undefined}
     />

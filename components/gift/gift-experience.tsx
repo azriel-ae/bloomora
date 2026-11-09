@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useReducer, useRef, useState, type ReactNode } from 'react';
 import Image from 'next/image';
-import type { RenderModel } from '@/lib/engine/types';
+import type { Locale, RenderModel } from '@/lib/engine/types';
 import type { GiftLabels } from '@/lib/engine/labels';
 import { OPENING_MS, activeIndex, openingReducer, roman, scrollProgress } from '@/lib/engine/interaction';
 import { themeVars } from '@/lib/engine/theme-vars';
@@ -22,6 +22,7 @@ export type GiftMode = 'demo' | 'public' | 'preview';
 
 export interface GiftExperienceProps {
   model: RenderModel;
+  locale: Locale;
   labels: GiftLabels;
   mode: GiftMode;
   /** Shown in the top bar. */
@@ -43,7 +44,7 @@ const sectionLabel = (labels: GiftLabels, type: string): string => {
 };
 const pick = (model: RenderModel, key: string) => model.sections.map((s) => s.fields[key]).find(Boolean) ?? '';
 
-export function GiftExperience({ model, labels, mode, title, navActions, footer, audioSrc, coverImage }: GiftExperienceProps) {
+export function GiftExperience({ model, labels, mode, locale, title, navActions, footer, audioSrc, coverImage }: GiftExperienceProps) {
   const embedded = mode === 'preview';
   const [root, setRoot] = useState<HTMLElement | null>(null);
   const reduced = usePrefersReducedMotion(model.theme.motion);
@@ -137,13 +138,13 @@ export function GiftExperience({ model, labels, mode, title, navActions, footer,
     return <div className="bl-root" style={style} data-mode={mode} data-embedded={embedded || undefined}><p className="bl-empty">{labels.emptyGift}</p></div>;
   }
   if (model.templateId === 'for-you-scrapbook') {
-    return <ForYouScrapbook model={model} mode={mode} title={title} navActions={navActions} footer={footer} audioSrc={audioSrc} style={style} />;
+    return <ForYouScrapbook model={model} mode={mode} locale={locale} title={title} navActions={navActions} footer={footer} audioSrc={audioSrc} style={style} />;
   }
   if (model.templateId === 'interactive-flower-adventure') {
-    return <InteractiveFlowerAdventure model={model} mode={mode} title={title} navActions={navActions} footer={footer} style={style} />;
+    return <InteractiveFlowerAdventure model={model} mode={mode} locale={locale} title={title} navActions={navActions} footer={footer} style={style} />;
   }
   if (model.templateId === 'between-the-pages') {
-    return <BetweenThePages model={model} mode={mode} title={title} navActions={navActions} footer={footer} audioSrc={audioSrc} style={style} />;
+    return <BetweenThePages model={model} mode={mode} locale={locale} title={title} navActions={navActions} footer={footer} audioSrc={audioSrc} style={style} />;
   }
 
   let chapterNo = 0;

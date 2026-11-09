@@ -1,6 +1,7 @@
 import { isValidCustomSlug, normalizeCustomSlug, generateSlug } from '../slug.ts';
 import { createEditToken, guestOwnerId, hashEditToken, verifyEditToken } from '../security/edit-token.ts';
 import { validateGiftContent } from '../model/content.ts';
+import { publicPresentationContent } from '../model/public-content.ts';
 import { ServiceError, guarded, type Doc, type Env, type Tx } from './store.ts';
 import { consumeRateLimit, type RateLimitPolicy } from '../security/rate-limit.ts';
 import type { GiftContent, ProofAiAnalysis } from '../model/types.ts';
@@ -262,7 +263,7 @@ export function publishGuestGift(env: Env, giftId: string, token: unknown, input
     const revision = Number(gift.publishedRevision ?? 0) + 1;
     const publishedAt = gift.publishedAt ?? now;
     tx.create(`gifts/${giftId}/revisions/${revision}`, { number: revision, content, templateId: gift.templateId, templateVersion: gift.templateVersion, createdAt: now });
-    tx.set(publicPath, { slug: gift.slug, status: 'published', templateId: gift.templateId, templateVersion: gift.templateVersion, revision, content, publishedAt, updatedAt: now, schemaVersion: 2 });
+    tx.set(publicPath, { slug: gift.slug, status: 'published', templateId: gift.templateId, templateVersion: gift.templateVersion, revision, content: publicPresentationContent(gift.templateId, content), publishedAt, updatedAt: now, schemaVersion: 2 });
     tx.update(`gifts/${giftId}`, { status: 'published', publishedRevision: revision, publishedAt, updatedAt: now, archivedAt: null });
     return { slug: String(gift.slug), revision };
   }));

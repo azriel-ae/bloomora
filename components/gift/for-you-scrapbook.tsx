@@ -1,11 +1,12 @@
 'use client';
 
 import Image from 'next/image';
-import { useState, type ReactNode } from 'react';
+import { useRef, useState, type ReactNode } from 'react';
 import type { GiftMode, GiftExperienceProps } from './gift-experience';
-import type { RenderSection } from '@/lib/engine/types';
+import type { Locale, RenderSection } from '@/lib/engine/types';
+import { GiftExtras } from './gift-extras';
 
-type Page = 'letter' | 'flower' | 'music';
+type Page = 'letter' | 'flower' | 'music' | 'keepsakes';
 const field = (section: RenderSection | undefined, key: string) => section?.fields[key] ?? '';
 const paragraphs = (copy: string) => copy.split(/\n{2,}/).map((part) => part.trim()).filter(Boolean);
 
@@ -53,11 +54,12 @@ function Polaroid({ memory, index }: { memory: Record<string, string>; index: nu
   );
 }
 
-function PageMenu({ onChoose }: { onChoose: (page: Page) => void }) {
+function PageMenu({ onChoose, locale }: { onChoose: (page: Page) => void; locale: Locale }) {
   const pages: { id: Page; title: string; label: string; art: string }[] = [
     { id: 'letter', title: 'Letter', label: 'A note I wrote just for you', art: 'paper' },
     { id: 'flower', title: 'Flower', label: 'A garden of little things I love', art: 'rose' },
     { id: 'music', title: 'A song for you', label: 'Press play when you have a minute', art: 'record' },
+    { id: 'keepsakes', title: locale === 'id' ? 'Ruang Kenangan' : 'Keepsakes', label: locale === 'id' ? 'Main sebentar, simpan foto buatanmu' : 'Play a little, keep a photo you made', art: 'film' },
   ];
   return (
     <section className="fy-home" aria-labelledby="fy-home-title">
@@ -67,7 +69,7 @@ function PageMenu({ onChoose }: { onChoose: (page: Page) => void }) {
       <div className="fy-menu-cards">
         {pages.map((page, index) => <button type="button" className={`fy-menu-card fy-menu-card-${page.art}`} onClick={() => onChoose(page.id)} key={page.id}>
           <span className="fy-card-number">0{index + 1}</span>
-          <span className="fy-menu-art" aria-hidden="true">{page.art === 'rose' ? <RoseBouquet /> : page.art === 'record' ? <span className="fy-menu-record" /> : <span className="fy-menu-paper"><i /><i /><i /></span>}</span>
+          <span className="fy-menu-art" aria-hidden="true">{page.art === 'rose' ? <RoseBouquet /> : page.art === 'record' ? <span className="fy-menu-record" /> : page.art === 'film' ? <span className="fy-menu-film"><i /><i /></span> : <span className="fy-menu-paper"><i /><i /><i /></span>}</span>
           <span className="fy-menu-card-title">{page.title}</span><span className="fy-menu-card-label">{page.label}</span><span className="fy-card-arrow" aria-hidden="true">↗</span>
         </button>)}
       </div>
@@ -76,12 +78,22 @@ function PageMenu({ onChoose }: { onChoose: (page: Page) => void }) {
   );
 }
 
-export function ForYouScrapbook({ model, mode, title, navActions, footer, audioSrc, style }: {
-  model: GiftExperienceProps['model']; mode: GiftMode; title: string; navActions?: ReactNode; footer?: ReactNode; audioSrc?: string; style: React.CSSProperties;
+export function ForYouScrapbook({ model, mode, locale, title, navActions, footer, audioSrc, style }: {
+  model: GiftExperienceProps['model']; mode: GiftMode; locale: Locale; title: string; navActions?: ReactNode; footer?: ReactNode; audioSrc?: string; style: React.CSSProperties;
 }) {
   const [opened, setOpened] = useState(mode === 'preview');
   const [envelopeOpening, setEnvelopeOpening] = useState(false);
   const [page, setPage] = useState<Page | null>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const returnToHome = () => { setPage(null); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const choosePage = (next: Page) => {
+    setPage(next);
+    if (next === 'music' && audioSrc && audioRef.current) {
+      audioRef.current.currentTime = 0;
+      void audioRef.current.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false));
+    }
+  };
   const openEnvelope = () => {
     if (envelopeOpening) return;
     setEnvelopeOpening(true);
@@ -100,6 +112,7 @@ export function ForYouScrapbook({ model, mode, title, navActions, footer, audioS
 
   return (
     <div className="bl-root fy-root" style={style} data-mode={mode} data-embedded={embedded || undefined} data-art-style="scrapbook-memories" data-template-id="for-you-scrapbook">
+      {audioSrc && <audio ref={audioRef} src={audioSrc} preload="auto" loop aria-label="Musik untuk kenangan ini" onPause={() => setIsPlaying(false)} onPlay={() => setIsPlaying(true)} />}
       {!opened ? <section className="fy-opening" aria-labelledby="fy-opening-title">
         <div className="fy-opening-frame">
           <p className="fy-kicker">A LETTER, SEALED WITH LOVE</p>
@@ -114,11 +127,11 @@ export function ForYouScrapbook({ model, mode, title, navActions, footer, audioS
         </div>
       </section> : <>
         <header className="fy-topbar">
-          <button type="button" className="fy-brand" onClick={() => setPage(null)} aria-label="Kembali ke menu For you">{title}</button>
-          <div className="fy-nav-actions">{navActions}<button type="button" className="fy-menu-back" onClick={() => setPage(null)}>{page ? 'For you' : 'Halaman awal'}</button></div>
+          <button type="button" className="fy-brand" onClick={returnToHome} aria-label="Kembali ke menu For you">{title}</button>
+          <div className="fy-nav-actions">{navActions}<button type="button" className="fy-menu-back" onClick={returnToHome}>{page ? 'For you' : 'Halaman awal'}</button></div>
         </header>
-        {!page ? <PageMenu onChoose={setPage} /> : <main className="fy-page-wrap">
-          <button type="button" className="fy-back" onClick={() => setPage(null)}>← <span>Kembali ke For you</span></button>
+        {!page ? <PageMenu onChoose={choosePage} locale={locale} /> : <main className="fy-page-wrap">
+          <button type="button" className="fy-back" onClick={returnToHome}>← <span>Kembali ke For you</span></button>
           {page === 'letter' && <section className="fy-letter-page" aria-labelledby="fy-letter-title">
             <div className="fy-letter-copy">
               <p className="fy-kicker">A LETTER FROM {field(hero, 'senderName').toUpperCase()}</p>
@@ -152,7 +165,12 @@ export function ForYouScrapbook({ model, mode, title, navActions, footer, audioS
                 {moments[0]?.imageSrc ? <Image src={moments[0].imageSrc} alt={moments[0].caption || 'Foto kenangan'} fill sizes="(max-width: 700px) 45vw, 260px" unoptimized /> : <span className="fy-album-placeholder"><span>for you</span><i /></span>}
               </div>
             </div>
-            <div className="fy-track-card"><span className="fy-track-eyebrow">OUR SONG</span><h2>{field(music, 'trackTitle') || 'Lagu pilihanmu'}</h2><p>{field(music, 'trackArtist')}</p>{audioSrc ? <audio className="fy-audio" controls preload="metadata" src={audioSrc}>Browser kamu belum mendukung pemutar audio.</audio> : <p className="fy-audio-hint">{field(music, 'trackTitle') ? 'Lagu ini disimpan sebagai kenangan. Audio bisa ditambahkan dari editor.' : 'Tambahkan judul dan audio lagu pilihanmu di editor.'}</p>}</div>
+            <div className="fy-track-card"><span className="fy-track-eyebrow">OUR SONG</span><h2>{field(music, 'trackTitle') || 'Lagu pilihanmu'}</h2><p>{field(music, 'trackArtist')}</p>{audioSrc ? <button type="button" className="fy-audio-toggle" onClick={() => { const player = audioRef.current; if (!player) return; if (player.paused) void player.play().then(() => setIsPlaying(true)).catch(() => setIsPlaying(false)); else { player.pause(); setIsPlaying(false); } }} aria-pressed={isPlaying}>{isPlaying ? 'Jeda lagu' : 'Putar lagu'}</button> : <p className="fy-audio-hint">{field(music, 'trackTitle') ? 'Lagu ini disimpan sebagai kenangan. Audio bisa ditambahkan dari editor.' : 'Tambahkan judul dan audio lagu pilihanmu di editor.'}</p>}</div>
+          </section>}
+          {page === 'keepsakes' && <section className="fy-keepsakes-page" aria-labelledby="fy-keepsakes-title">
+            <p className="fy-kicker">{locale === 'id' ? 'SESUATU YANG BISA KITA SIMPAN' : 'SOMETHING TO KEEP'}</p>
+            <h1 id="fy-keepsakes-title">{locale === 'id' ? 'Main & simpan kenangan' : 'Play & keep a memory'}</h1>
+            <GiftExtras variant="scrapbook" locale={locale} motion={model.theme.motion} />
           </section>}
           {closing && <footer className="fy-closing"><p>{field(closing, 'closingLine')}</p>{signature && <span>{signature}</span>}{footer}</footer>}
         </main>}

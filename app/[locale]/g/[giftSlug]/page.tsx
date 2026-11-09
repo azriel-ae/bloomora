@@ -4,11 +4,13 @@ import { ArrowUpRight, Heart, LockKeyhole } from 'lucide-react';
 import { GiftView } from '@/components/gift/gift-view';
 import { TemplateArt } from '@/components/template-art';
 import { getActiveTemplate, getTemplateForRender, listCatalog } from '@/lib/engine/registry';
+import { themeVars } from '@/lib/engine/theme-vars';
 import { getLocale, getMessages } from '@/lib/i18n';
 import { getServerEnv } from '@/lib/server/runtime';
 import { getPublicGift, recordPublicGiftView } from '@/lib/server/services';
 import { createSupabaseAdminClient } from '@/lib/supabase/admin';
 import type { GiftContent } from '@/lib/model/types';
+import { PublicFlowerPinGate } from '@/components/gift/public-flower-pin-gate';
 
 async function signedMediaUrls(content: GiftContent): Promise<Record<string, string>> {
   const storage = createSupabaseAdminClient();
@@ -68,6 +70,16 @@ export default async function GiftPage({ params }: { params: Promise<{ giftSlug:
   if (!template) return <StatusCard title={recipient.unavailable} body={recipient.unavailableBody} explore={recipient.explore} />;
   const env = getServerEnv();
   if (env) await recordPublicGiftView(env, giftSlug);
+  if (gift.templateId === 'interactive-flower-adventure') {
+    return <PublicFlowerPinGate
+      giftSlug={giftSlug}
+      templateId={gift.templateId}
+      templateVersion={gift.templateVersion}
+      title={template.name[locale]}
+      locale={locale}
+      style={themeVars(template.theme) as React.CSSProperties}
+    />;
+  }
   const mediaUrls = await signedMediaUrls(gift.content);
   return <GiftView templateId={gift.templateId} templateVersion={gift.templateVersion} content={gift.content} locale={locale} mode="public" mediaUrls={mediaUrls} />;
 }

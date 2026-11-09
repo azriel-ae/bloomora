@@ -1,4 +1,4 @@
-import { createHash } from 'node:crypto';
+import { createHash, timingSafeEqual } from 'node:crypto';
 import {
   resolveEntitlement, canCreateGift, canEditGift, canPublishGift, canUnarchiveGift,
   canArchiveOrDeleteGift, planSubscriptionActivation, canTransitionOrder,
@@ -7,6 +7,8 @@ import {
 import { generateSlug, isValidPublicSlug } from '../slug.ts';
 import { createEditToken, hashEditToken } from '../security/edit-token.ts';
 import { validateGiftContent } from '../model/content.ts';
+import { consumeRateLimit } from '../security/rate-limit.ts';
+import { publicPresentationContent } from '../model/public-content.ts';
 import { planLegacyGiftMigration } from '../model/migrate.ts';
 import { DEFAULT_PACKAGES } from '../packages.ts';
 import { DEFAULT_QRIS_DISPLAY, isVerifiedQrisImagePath, normalizeVoucherCode, publicPaymentMethods, validateQrisDisplay, validateVoucherDefinition, type PaymentMethodDoc, type PaymentMethodType, type QrisDetectionStatus, type QrisDisplayConfig, type VoucherDiscount, type VoucherDoc } from '../commerce.ts';
@@ -95,8 +97,69 @@ export function getPublicGift(env: Env, slug: unknown) {
     if (!raw) throw new ServiceError(404, 'gift_not_found');
     const status = raw.status;
     if (status !== 'published') return { slug, status };
-    return { publicGift: raw as PublicGiftDoc };
+    const publicGift = raw as PublicGiftDoc;
+    return { publicGift: { ...publicGift, content: publicPresentationContent(publicGift.templateId, publicGift.content) } };
   }));
+}
+
+const PUBLIC_FLOWER_UNLOCK_POLICY = { max: 5, windowMs: 15 * 60_000 } as const;
+const isGiftPin = (value: unknown): value is string => typeof value === 'string' && /^[0-9]{4,6}$/.test(value);
+
+/** Verify a flower-adventure PIN using only its server-private published revision. */
+export function unlockPublicFlowerGift(env: Env, slug: unknown, pin: unknown, identity: string) {
+  return guarded(async () => {
+    const attempt = await env.store.runTransaction(async (tx) => {
+      if (!isValidPublicSlug(slug)) throw new ServiceError(404, 'gift_not_found');
+      if (typeof identity !== 'string' || identity.length < 1 || identity.length > 128) throw new ServiceError(400, 'invalid_identity');
+
+      // Use the anon-readable public row only for publication metadata, never for content.
+      const [publicGift, reservation] = await Promise.all([
+        tx.get(`publicGifts/${slug}`),
+        tx.get(`slugs/${slug}`),
+      ]);
+      if (!publicGift || publicGift.status !== 'published' || publicGift.templateId !== 'interactive-flower-adventure'
+        || !Number.isSafeInteger(publicGift.revision) || publicGift.revision < 1
+        || typeof reservation?.giftId !== 'string') throw new ServiceError(404, 'gift_not_found');
+
+      const gift = await tx.get(`gifts/${reservation.giftId}`);
+      if (!gift || gift.slug !== slug || gift.status !== 'published' || gift.templateId !== 'interactive-flower-adventure'
+        || !Number.isSafeInteger(gift.publishedRevision) || gift.publishedRevision !== publicGift.revision) {
+        throw new ServiceError(404, 'gift_not_found');
+      }
+      const revision = await tx.get(`gifts/${reservation.giftId}/revisions/${gift.publishedRevision}`);
+      if (!revision || revision.templateId !== 'interactive-flower-adventure'
+        || !Number.isSafeInteger(revision.templateVersion) || revision.templateVersion < 1) {
+        throw new ServiceError(404, 'gift_not_found');
+      }
+      const checked = validateGiftContent(revision.content, { mediaEnabled: true });
+      if (!checked.ok || !checked.content.sections.includes('closing') || !isGiftPin(checked.content.fields.pinCode)) {
+        throw new ServiceError(409, 'gift_unavailable');
+      }
+
+      // All reads precede this rate-limit write, as required by the transaction adapter.
+      const rate = await consumeRateLimit(tx, `public-flower-unlock:${slug}`, identity, env.nowMs(), PUBLIC_FLOWER_UNLOCK_POLICY);
+      if (!rate.ok) return { error: new ServiceError(429, 'rate_limited', String(Math.ceil(rate.retryAfterMs / 1000))) };
+      if (!isGiftPin(pin)) return { error: new ServiceError(400, 'invalid_pin') };
+
+      const configuredPin = checked.content.fields.pinCode;
+      // Pad both valid 4–6 digit PINs to a fixed width so timingSafeEqual always
+      // receives equal-size buffers; include length in the comparison result.
+      const candidateBytes = Buffer.from(pin.padEnd(6, '\0'), 'utf8');
+      const configuredBytes = Buffer.from(configuredPin.padEnd(6, '\0'), 'utf8');
+      const matches = timingSafeEqual(candidateBytes, configuredBytes) && pin.length === configuredPin.length;
+      if (!matches) return { error: new ServiceError(401, 'wrong_pin') };
+
+      const safeFields = { ...checked.content.fields };
+      delete safeFields.pinCode;
+      return {
+        content: { ...checked.content, fields: safeFields },
+        templateId: revision.templateId,
+        templateVersion: revision.templateVersion,
+      };
+    });
+    if ('error' in attempt) throw attempt.error;
+    return attempt;
+  });
 }
 
 const millis = (value: unknown, fallback: number): number => {
@@ -300,7 +363,7 @@ export function publishGift(env: Env, actor: Actor, giftId: string, input: { exp
     tx.create(`gifts/${giftId}/revisions/${revision}`, { number: revision, content, templateId: gift.templateId, templateVersion: gift.templateVersion, createdAt: now });
     tx.set(`publicGifts/${gift.slug}`, {
       slug: gift.slug, status: 'published', templateId: gift.templateId, templateVersion: gift.templateVersion,
-      revision, content, publishedAt, updatedAt: now, schemaVersion: 2,
+      revision, content: publicPresentationContent(gift.templateId, content), publishedAt, updatedAt: now, schemaVersion: 2,
     });
     const g = { status: 'published', publishedRevision: revision, publishedAt, updatedAt: now, archivedAt: null };
     writeGift(tx, giftId, gift, legacy, g);

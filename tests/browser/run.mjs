@@ -22,14 +22,15 @@ const DESKTOP = { viewport: { width: 1280, height: 800 } };
 const MOBILE = { viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 };
 
 async function page(ctxOpts, query) {
-  const ctx = await browser.newContext(ctxOpts);
+  const ctx = await browser.newContext({ ...ctxOpts, acceptDownloads: true });
   const p = await ctx.newPage();
   const problems = []; const failedRequests = [];
-  p.on('console', (m) => { if (['error', 'warning'].includes(m.type())) problems.push(`${m.type()}: ${m.text()}`); });
+  p.on('console', (m) => { if (['error', 'warning'].includes(m.type())) problems.push(`${m.type()}: ${m.text()} (${m.location().url || 'unknown source'})`); });
   p.on('pageerror', (e) => problems.push(`pageerror: ${e.message}`));
   p.on('requestfailed', (r) => failedRequests.push(r.url().slice(0, 80)));
   await p.goto(`${base}?${query}`);
-  await p.waitForSelector('.bl-root');
+  const readySelector = query.includes('scenario=flower-gate') ? '.ifa-pin-gate' : query.includes('template=between-the-pages') ? '.btp-root' : '.bl-root';
+  await p.waitForSelector(readySelector);
   return { p, ctx, problems, failedRequests };
 }
 const shot = (p, n) => p.screenshot({ path: path.join(shots, `${n}.png`) });
@@ -337,14 +338,14 @@ group('Server render + hydration (what Next does)');
   await ctx.close();
 }
 
-group('For You scrapbook: envelope, three pages and original details');
+group('For You scrapbook: envelope, four pages and original details');
 {
   const { p, ctx, problems, failedRequests } = await page(DESKTOP, 'locale=id&template=for-you-scrapbook&scenario=audio');
   check('custom sealed envelope is the first screen', await p.locator('.fy-opening').isVisible() && (await text(p, '.fy-opening h1')).includes('Maya'));
   await p.getByRole('button', { name: 'Buka suratnya' }).click();
   await p.waitForSelector('.fy-opening', { state: 'detached', timeout: 5000 });
   check('envelope opens to the dedicated For you menu', (await text(p, '#fy-home-title')) === 'For you');
-  check('the main menu has exactly Letter, Flower and A song for you', JSON.stringify(await p.$$eval('.fy-menu-card-title', (els) => els.map((el) => el.textContent))) === JSON.stringify(['Letter', 'Flower', 'A song for you']));
+  check('the main menu adds the Keepsakes page without changing the original three pages', JSON.stringify(await p.$$eval('.fy-menu-card-title', (els) => els.map((el) => el.textContent))) === JSON.stringify(['Letter', 'Flower', 'A song for you', 'Ruang Kenangan']));
   await p.getByRole('button', { name: /Letter A note/ }).click();
   check('letter page uses cream paper and renders polaroid memory gallery', await p.locator('.fy-paper').isVisible() && (await p.locator('.fy-polaroid').count()) === 3);
   check('each sample memory retains its stable slot ID', (await p.locator('[data-memory-id]').count()) === 3);
@@ -353,25 +354,71 @@ group('For You scrapbook: envelope, three pages and original details');
   check('flower page shows an original rose bouquet illustration and its quote fragments', await p.locator('.fy-bouquet').isVisible() && (await p.locator('.fy-flower-quote').count()) === 2);
   await p.getByRole('button', { name: 'For you' }).first().click();
   await p.getByRole('button', { name: /A song for you Press play/ }).click();
-  check('song page presents a vinyl record, memory artwork and audio player when audio exists', await p.locator('.fy-vinyl').isVisible() && await p.locator('.fy-album-cover').isVisible() && await p.locator('.fy-audio').isVisible());
+  check('song page presents a vinyl record, memory artwork and its working audio toggle', await p.locator('.fy-vinyl').isVisible() && await p.locator('.fy-album-cover').isVisible() && await p.locator('.fy-audio-toggle').isVisible() && (await p.locator('audio').count()) === 1);
+  await p.getByRole('button', { name: 'For you' }).first().click();
+  await p.getByRole('button', { name: /Ruang Kenangan Main sebentar/ }).click();
+  check('scrapbook keepsakes page renders its tailored Claw Machine and Photo Studio', await p.locator('.gift-extras[data-variant="scrapbook"]').isVisible() && await p.getByRole('heading', { name: 'Studio Foto mungil' }).isVisible());
+  await p.getByRole('button', { name: 'Mulai permainan' }).click();
+  const clawMachine = p.locator('.gift-extras__machine'); await clawMachine.focus(); await p.keyboard.press('ArrowLeft');
+  check('claw responds to keyboard positioning before the grab', (await p.locator('.gift-extras__claw').getAttribute('style'))?.includes('38%'));
+  await p.getByRole('button', { name: 'Turunkan capit' }).click();
+  await p.waitForSelector('.gift-extras__reward strong', { timeout: 5000 });
+  check('claw animation finishes with a randomized prize and a replay control', (await p.locator('.gift-extras__reward strong').textContent())?.trim().length > 5 && await p.getByRole('button', { name: 'Main lagi' }).isVisible());
+  const photoInput = p.locator('.gift-extras__upload input');
+  await photoInput.setInputFiles({ name: 'unsupported.gif', mimeType: 'image/gif', buffer: Buffer.from('GIF89a') });
+  check('Photo Studio rejects unsupported image types', (await text(p, '.gift-extras__alert')).includes('JPEG, PNG, atau WebP'));
+  const photoPng = await p.screenshot({ type: 'png' });
+  await photoInput.setInputFiles({ name: 'keepsake.png', mimeType: 'image/png', buffer: photoPng });
+  await p.locator('.gift-extras__preview img').waitFor({ state: 'visible' });
+  await p.getByLabel('Keterangan').fill('Kenangan senja');
+  await p.getByRole('button', { name: 'Hangat' }).click();
+  check('Photo Studio updates the caption and filter without re-uploading', (await text(p, '.gift-extras__caption-preview')) === 'Kenangan senja' && (await p.locator('.gift-extras__preview img').evaluate((img) => getComputedStyle(img).filter)).includes('sepia'));
+  const downloadPromise = p.waitForEvent('download'); await p.getByRole('button', { name: 'Simpan kenanganmu' }).click(); const keepsakeDownload = await downloadPromise;
+  check('Photo Studio exports the edited keepsake and reports success', keepsakeDownload.suggestedFilename() === 'bloomora-keepsake.png' && (await text(p, '.gift-extras__photo-status')).includes('diunduh'));
   check('custom pages avoid horizontal overflow and console/network errors', (await overflowX(p)) <= 0 && problems.length === 0 && failedRequests.length === 0, { problems, failedRequests, overflow: await overflowX(p) });
   await ctx.close();
 }
 
 group('For You scrapbook: mobile composition');
 {
-  const { p, ctx, problems } = await page(MOBILE, 'locale=id&template=for-you-scrapbook');
+  const { p, ctx, problems, failedRequests } = await page(MOBILE, 'locale=id&template=for-you-scrapbook');
   await p.getByRole('button', { name: 'Buka suratnya' }).click();
   await p.waitForSelector('.fy-opening', { state: 'detached', timeout: 5000 });
   const menuCardBoxes = await p.locator('.fy-menu-card').evaluateAll((els) => els.map((el) => { const r = el.getBoundingClientRect(); return { left: r.left, right: r.right, width: r.width }; }));
   const viewportWidth = await p.evaluate(() => innerWidth);
-  check('mobile menu cards fit viewport without clipping', menuCardBoxes.length === 3 && menuCardBoxes.every((r) => r.left >= 0 && r.right <= viewportWidth && r.width > 200), menuCardBoxes);
+  check('mobile menu cards fit viewport without clipping', menuCardBoxes.length === 4 && menuCardBoxes.every((r) => r.left >= 0 && r.right <= viewportWidth && r.width > 200), menuCardBoxes);
   await p.getByRole('button', { name: /Letter A note/ }).click();
   check('mobile letter and polaroids stay within screen width', (await overflowX(p)) <= 0 && await p.locator('.fy-paper').isVisible(), await overflowX(p));
   await p.getByRole('button', { name: 'For you' }).first().click();
   await p.getByRole('button', { name: /Flower A garden/ }).click();
   check('mobile flower illustration remains visible and uncropped', await p.locator('.fy-bouquet').isVisible() && (await overflowX(p)) <= 0);
-  check('mobile custom renderer has no console errors', problems.length === 0, problems); await ctx.close();
+  check('mobile custom renderer has no console or network errors', problems.length === 0 && failedRequests.length === 0, JSON.stringify({ problems, failedRequests })); await ctx.close();
+}
+
+group('Between the Pages: editorial keepsakes spread');
+{
+  const { p, ctx, problems } = await page(DESKTOP, 'locale=id&template=between-the-pages');
+  check('book cover is the first screen, with no garden envelope', await p.locator('.btp-cover').isVisible() && !(await p.locator('.ifa-envelope').count()));
+  await p.getByRole('button', { name: 'Open the book' }).click();
+  for (let spread = 0; spread < 3; spread++) await p.getByRole('button', { name: 'Next' }).click();
+  check('the Keepsakes spread is reachable and uses the editorial variant', await p.locator('.btp-extras-page .gift-extras[data-variant="pages"]').isVisible());
+  check('both Claw Machine and Photo Studio are available on the spread', await p.getByRole('heading', { name: 'Hadiah mungil untukmu' }).isVisible() && await p.getByRole('heading', { name: 'Studio Foto mungil' }).isVisible());
+  check('editorial keepsakes spread has no horizontal overflow or console errors', (await overflowX(p)) <= 0 && problems.length === 0, { overflow: await overflowX(p), problems });
+  await ctx.close();
+}
+
+group('Interactive Flower Adventure: public PIN gate and unlocked garden');
+{
+  const { p, ctx, problems } = await page(DESKTOP, 'locale=id&template=interactive-flower-adventure&scenario=flower-gate&mode=public');
+  check('PIN screen is the first public view; envelope and letter are absent', await p.locator('.ifa-pin-gate').isVisible() && !(await p.locator('.ifa-envelope, .ifa-letter').count()));
+  await p.locator('#ifa-public-pin').fill('1111'); await p.getByRole('button', { name: 'Buka taman' }).click();
+  await p.waitForSelector('#ifa-public-pin-error');
+  check('incorrect PIN produces a clear accessible error', (await text(p, '#ifa-public-pin-error')).includes('PIN belum cocok'));
+  await p.locator('#ifa-public-pin').fill('583941'); await p.getByRole('button', { name: 'Buka taman' }).click();
+  await p.waitForSelector('.ifa-pin-gate', { state: 'detached', timeout: 5000 });
+  check('valid PIN reveals the configured garden experience and garden-themed extras', await p.locator('.ifa-root[data-template-id="interactive-flower-adventure"]').isVisible() && await p.locator('.gift-extras[data-variant="garden"]').isVisible());
+  check('unlocked garden is keyboard/mobile-ready and keeps its Photo Studio', await p.getByRole('button', { name: 'Mulai permainan' }).isVisible() && await p.getByRole('heading', { name: 'Studio Foto mungil' }).isVisible());
+  check('PIN flow completes without console errors', problems.length === 0, problems); await ctx.close();
 }
 
 await browser.close();
