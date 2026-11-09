@@ -512,3 +512,12 @@ Repository terbaru di-clone dari `origin/main` pada commit `7c8b0fd` sebelum imp
 Validasi aktual setelah `pnpm install --frozen-lockfile`: `pnpm typecheck` PASS; `pnpm test:unit` PASS 134/134; `pnpm check:i18n` PASS (26 bagian); `pnpm lint` PASS dengan warning existing pada `<img>`, satu `exhaustive-deps`, dan deprecation `next lint`; `pnpm build` PASS, 49/49 halaman dibuat. `git diff --check` PASS. Browser catalog/editor smoke belum diuji karena package Playwright tidak tersedia di repository/workspace. Supabase live, Storage production, dan deployment tidak disentuh.
 
 Source checkpoint dipush ke `origin/main` sebagai commit `31e189f`. Risiko residual: PIN/private note saat ini adalah interaction gate client-side, bukan boundary kerahasiaan kriptografis; private content yang dikirim ke browser secara teknis dapat diinspeksi. Untuk privasi kuat, diperlukan verifikasi PIN server-side dan endpoint release note terpisah.
+
+
+## Checkpoint 2026-11-09 — Between the Pages
+
+Remote repository disinkronkan ke `origin/main` setelah force-push terbaru (`f106e01`). Ditambahkan template config-driven `between-the-pages` versi 1 dan art-directed catalog version melalui registry yang sama dengan template Bloomora lain. Template memakai field/list generik sehingga editor existing dapat mengubah penerima, pengirim, cover, pengantar, foto creator/recipient, timeline, surat, pesan tersembunyi, musik, dan penutup.
+
+Renderer khusus `components/gift/between-the-pages.tsx` memakai konfigurasi/model yang sama untuk demo, preview, dan public reader. Experience mencakup cover editorial, tombol YOU sebagai shutter, penjelasan sebelum permission kamera, capture/retake/confirm, upload fallback, session-local recipient photos, double-page spread reader, previous/next navigation, photo frames, timeline, envelope letter reveal, hidden-note interaction, music control, closing page, responsive mobile layout, dan reduced-motion-safe styling. Recipient photos hanya berada pada state reader lokal dan tidak mengubah creator configuration.
+
+Gate: `pnpm typecheck` lulus; `pnpm lint` lulus dengan warning non-blocking existing/no-img; `pnpm test:unit` 136/136 lulus; `pnpm build` lulus dengan 49/49 halaman; `pnpm check:i18n` lulus. Browser/device camera smoke dan Supabase live media persistence belum dijalankan.

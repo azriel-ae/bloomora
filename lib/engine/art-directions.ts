@@ -54,6 +54,7 @@ export const TEMPLATE_ART_DIRECTIONS: Record<string, ArtDirection> = {
   'friendship-voice-note-archive': art('scrapbook-memories', 'fullbleed-photo', 'contact-sheet', 'spring'),
   'lunar-new-year-open-table': art('classic-traditional', 'centered-cover', 'collage', 'petal'),
   'for-you-scrapbook': art('scrapbook-memories', 'framed-invitation', 'polaroid', 'paper-open'),
+  'between-the-pages': art('scrapbook-memories', 'centered-cover', 'contact-sheet', 'paper-open'),
 };
 
 export function designedTemplate(config: TemplateConfig): TemplateConfig {

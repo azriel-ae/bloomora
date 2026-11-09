@@ -95,7 +95,7 @@ test('a curated template is hidden for new gifts but existing gifts keep their p
   const originalPublic = h.store.docs.get(`publicGifts/${gift.slug}`)!;
   assert.equal(originalPublic.templateId, templateId);
   assert.equal(originalPublic.templateVersion, pinned.version);
-  assert.equal(S.getPublicGift(h.env, gift.slug).ok, true, 'the published slug remains publicly readable');
+  assert.equal((await S.getPublicGift(h.env, gift.slug)).ok, true, 'the published slug remains publicly readable');
   assert.equal(code(await S.createGift(h.env, alice, { templateId, content }, currentLookup)), 'unknown_template');
 
   const edited = await S.saveDraft(h.env, alice, gift.giftId, { expectedVersion: 1, content }, currentLookup);

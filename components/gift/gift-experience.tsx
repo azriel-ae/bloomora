@@ -10,6 +10,7 @@ import { GiftContext, IconClose, IconMenu, usePrefersReducedMotion } from './par
 import { Appreciation, Closing, Gallery, Hero, Letter, Music, OpeningScene, Reasons, Timeline } from './sections';
 import { ForYouScrapbook } from './for-you-scrapbook';
 import { InteractiveFlowerAdventure } from './interactive-flower-adventure';
+import { BetweenThePages } from './between-the-pages';
 import './gift.css';
 
 /**
@@ -140,6 +141,9 @@ export function GiftExperience({ model, labels, mode, title, navActions, footer,
   }
   if (model.templateId === 'interactive-flower-adventure') {
     return <InteractiveFlowerAdventure model={model} mode={mode} title={title} navActions={navActions} footer={footer} style={style} />;
+  }
+  if (model.templateId === 'between-the-pages') {
+    return <BetweenThePages model={model} mode={mode} title={title} navActions={navActions} footer={footer} audioSrc={audioSrc} style={style} />;
   }
 
   let chapterNo = 0;

@@ -422,3 +422,8 @@ Pesan pelanggan pada detail order tidak lagi menyatakan upload bukti selalu unav
 - Menambahkan tabel `qris_display_settings`, endpoint admin-only, validasi config, adapter PostgreSQL, migration Supabase, dan bundle manual SQL.
 - Checkout membekukan desain QRIS ke payment snapshot; perubahan admin tidak mengubah order lama.
 - Validasi: typecheck, lint, media regression 6/6, order/payment/QRIS regression 11/11. Supabase live, browser E2E, dan pemindaian QRIS perangkat nyata masih perlu dilakukan setelah migration diterapkan.
+
+
+## 2026-11-09 — Between the Pages scrapbook template
+
+Menambahkan template scrapbook editorial baru dengan registry config-driven, sample Bahasa Indonesia/Inggris, art direction modern scrapbook, editor-compatible fields/lists, dan renderer bersama untuk demo/preview/public. Reader memiliki cover personal, YOU camera shutter, camera permission flow, retake/confirm, upload fallback, recipient-only photo state, double-page spreads, timeline, personal letter, hidden message, music player, ending page, responsive mobile behavior, dan keyboard-friendly navigation controls. Existing templates, landing page, dan persistence model tidak diganti.
