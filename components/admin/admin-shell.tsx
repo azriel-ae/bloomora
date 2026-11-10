@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { BarChart3, CreditCard, LayoutDashboard, LogOut, Menu, Package, ReceiptText, ShieldCheck, Sparkles, X, type LucideIcon } from 'lucide-react';
+import { BarChart3, CreditCard, LayoutDashboard, LogOut, Menu, Package, ReceiptText, ShieldCheck, Sparkles, UploadCloud, X, type LucideIcon } from 'lucide-react';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 
 type NavItem = { href: string; label: string; icon: LucideIcon; exact?: boolean };
@@ -14,6 +14,7 @@ const navItems: NavItem[] = [
   { href: '/admin/payment-methods', label: 'Metode pembayaran', icon: CreditCard },
   { href: '/admin/vouchers', label: 'Voucher', icon: BarChart3 },
   { href: '/admin/featured-demo', label: 'Pengaturan Demo Utama', icon: Sparkles },
+  { href: '/admin/templates', label: 'Tambah Template', icon: UploadCloud },
 ];
 
 function isActive(pathname: string, item: NavItem) {
