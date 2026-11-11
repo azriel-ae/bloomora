@@ -12,6 +12,7 @@ async function usageFor(supabase: ReturnType<typeof createSupabaseAdminClient> e
     supabase.from('gift_revisions').select('template_id,template_version').or(`template_id.eq.${id},template_id.eq.${slug}`),
     supabase.from('public_gifts').select('template_id,status').or(`template_id.eq.${id},template_id.eq.${slug}`),
   ]);
+  if (gifts.error || revisions.error || publicGifts.error) throw new Error('usage_query_failed');
   const giftRows = gifts.data ?? [];
   const revisionRows = revisions.data ?? [];
   const publicRows = publicGifts.data ?? [];
@@ -20,16 +21,28 @@ async function usageFor(supabase: ReturnType<typeof createSupabaseAdminClient> e
   const publicCount = publicRows.filter((row) => row.status === 'published').length;
   // Storage references are counted from metadata paths, not from client-supplied values.
   let files = 0;
-  if (sourcePath) { const { data } = await supabase.storage.from('dynamic-templates').list(sourcePath, { limit: 1000 }); files = data?.length ?? 0; }
-  const total = giftRows.length + publishedRevisions + publicRows.length + files;
-  return { gifts: giftRows.length, activeGifts, drafts: giftRows.filter((row) => row.status === 'draft').length, publicGifts: publicCount, publishedRevisions, files, total, canDeletePermanently: total === 0 };
+  async function countFiles(prefix: string): Promise<number> {
+    let count = 0; let offset = 0;
+    while (true) {
+      const { data, error } = await supabase.storage.from('dynamic-templates').list(prefix, { limit: 1000, offset });
+      if (error) throw new Error('storage_list_failed');
+      const items = data ?? [];
+      for (const item of items) count += item.id ? 1 : await countFiles(`${prefix}/${item.name}`);
+      if (items.length < 1000) return count;
+      offset += items.length;
+    }
+  }
+  if (sourcePath) files = await countFiles(sourcePath);
+  const references = giftRows.length + publishedRevisions + publicRows.length;
+  return { gifts: giftRows.length, activeGifts, drafts: giftRows.filter((row) => row.status === 'draft').length, publicGifts: publicCount, publishedRevisions, files, total: references + files, canDeletePermanently: references === 0 };
 }
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser(); if (!user?.admin) return json({ ok: false, code: 'admin_required' }, 403);
   const supabase = createSupabaseAdminClient(); if (!supabase) return json({ ok: false, code: 'server_not_configured' }, 503);
   const { id } = await params; const { data: template } = await supabase.from('dynamic_templates').select('id,slug,name,status,source_path').eq('id', id).maybeSingle();
   if (!template) return json({ ok: false, code: 'template_not_found' }, 404);
-  return json({ ok: true, usage: await usageFor(supabase, template.id, template.slug, template.source_path) });
+  try { return json({ ok: true, usage: await usageFor(supabase, template.id, template.slug, template.source_path) }); }
+  catch { return json({ ok: false, code: 'usage_check_failed', message: 'Relasi dan file template gagal diverifikasi. Tidak ada penghapusan yang diizinkan.' }, 503); }
 }
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const user = await getCurrentUser(); if (!user?.admin) return json({ ok: false, code: 'admin_required' }, 403);
@@ -59,11 +72,31 @@ export async function DELETE(request: Request, { params }: { params: Promise<{ i
   const supabase = createSupabaseAdminClient(); if (!supabase) return json({ ok: false, code: 'server_not_configured' }, 503);
   const { id } = await params; const { data: template } = await supabase.from('dynamic_templates').select('id,slug,name,status,source_path,build_path,thumbnail_path').eq('id', id).maybeSingle();
   if (!template) return json({ ok: false, code: 'template_not_found' }, 404);
-  const usage = await usageFor(supabase, template.id, template.slug, template.source_path);
+  if (!['draft', 'ready_for_preview', 'validation_failed'].includes(template.status)) return json({ ok: false, code: 'draft_delete_only', message: 'Hanya template Draft yang boleh dihapus. Template yang pernah dipublikasikan harus diarsipkan.' }, 409);
+  let usage: Usage;
+  try { usage = await usageFor(supabase, template.id, template.slug, template.source_path); }
+  catch { return json({ ok: false, code: 'usage_check_failed', message: 'Relasi dan file template gagal diverifikasi. Tidak ada penghapusan yang diizinkan.' }, 503); }
   if (!usage.canDeletePermanently) return json({ ok: false, code: 'template_in_use', message: 'Template masih digunakan; gunakan arsip.', usage }, 409);
+  const templateStorage = supabase.storage.from('dynamic-templates');
   const paths: string[] = [];
-  for (const prefix of [template.source_path, template.build_path, template.thumbnail_path]) { if (!prefix) continue; const { data } = await supabase.storage.from('dynamic-templates').list(prefix, { limit: 1000 }); for (const item of data ?? []) paths.push(`${prefix}/${item.name}`); }
-  if (paths.length) { const { error } = await supabase.storage.from('dynamic-templates').remove(paths); if (error) return json({ ok: false, code: 'storage_delete_failed', message: error.message }, 500); }
+  async function collectFiles(prefix: string): Promise<void> {
+    let offset = 0;
+    while (true) {
+      const { data, error } = await templateStorage.list(prefix, { limit: 1000, offset });
+      if (error) throw new Error('storage_list_failed');
+      const items = data ?? [];
+      for (const item of items) {
+        const path = `${prefix}/${item.name}`;
+        if (item.id) paths.push(path);
+        else await collectFiles(path);
+      }
+      if (items.length < 1000) return;
+      offset += items.length;
+    }
+  }
+  try { for (const prefix of [template.source_path, template.build_path, template.thumbnail_path]) if (prefix) await collectFiles(prefix); }
+  catch { return json({ ok: false, code: 'storage_list_failed', message: 'Daftar file template gagal diperiksa; tidak ada metadata atau file yang dihapus.' }, 500); }
+  if (paths.length) { const { error } = await templateStorage.remove(paths); if (error) return json({ ok: false, code: 'storage_delete_failed', message: error.message }, 500); }
   const { error } = await supabase.from('dynamic_templates').delete().eq('id', id);
   if (error) return json({ ok: false, code: 'database_delete_failed', message: 'Metadata tidak dihapus karena penghapusan database gagal.' }, 500);
   await supabase.from('admin_audit_logs').insert({ id: `template_delete_${id}_${Date.now()}`, actor_uid: user.uid, action: 'delete_template', entity_type: 'dynamic_template', entity_id: id, details: { usage, removedFiles: paths.length } });
