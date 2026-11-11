@@ -24,6 +24,8 @@ create index if not exists dynamic_templates_catalog_idx on public.dynamic_templ
 alter table public.dynamic_templates enable row level security;
 revoke all on table public.dynamic_templates from anon, authenticated;
 grant select on public.dynamic_templates to anon, authenticated;
+grant usage on schema public to service_role;
+grant select, insert, update, delete on public.dynamic_templates to service_role;
 create policy dynamic_templates_public_published_read on public.dynamic_templates
   for select to anon, authenticated using (status = 'published');
 

@@ -19,8 +19,11 @@ export function classifyDynamicTemplateDatabaseError(error: SupabaseDbError): Dy
   if (postgresCode === '23514' || postgresCode === '22P02' || postgresCode === '22001') {
     return { code: 'dynamic_template_metadata_invalid', message: 'Metadata ditolak oleh aturan tabel Supabase. Periksa nama, slug, kategori, renderer, versi, dan migration yang terpasang.', status: 400 };
   }
-  if (postgresCode === '42501' || postgresCode === 'PGRST301') {
-    return { code: 'dynamic_template_database_permission', message: 'Supabase menolak akses database. Periksa SUPABASE_SERVICE_ROLE_KEY pada deployment dan privilege service_role.', status: 503 };
+  if (postgresCode === '42501') {
+    return { code: 'dynamic_template_database_permission', message: 'service_role belum memiliki privilege pada tabel dynamic_templates. Jalankan migration 20261111000200_dynamic_template_service_role_grants.sql di Supabase SQL Editor, lalu coba lagi.', status: 503 };
+  }
+  if (postgresCode === 'PGRST301') {
+    return { code: 'dynamic_template_service_role_key_invalid', message: 'Kredensial server Supabase ditolak. Pastikan SUPABASE_SERVICE_ROLE_KEY pada deployment adalah secret service_role yang benar.', status: 503 };
   }
   return { code: 'dynamic_template_database_error', message: `Metadata template gagal disimpan (kode database: ${postgresCode || 'tidak tersedia'}). Periksa log server untuk detail aman.`, status: 500 };
 }

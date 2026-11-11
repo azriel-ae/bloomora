@@ -33,7 +33,7 @@ Status penyimpanan tetap menggunakan lifecycle database `draft` → `processing`
 
 ## Database dan Storage
 
-Migrasi `20261110000100_dynamic_templates.sql` dan `20261110000200_dynamic_template_lifecycle.sql` membuat tabel/indeks, RLS read-only untuk status published, bucket privat, dan status archive. Migrasi `20261111000100_dynamic_template_asset_mime.sql` menambahkan MIME media yang didukung analyzer ke bucket. Ketiga migrasi harus diterapkan di lingkungan Supabase sebelum API admin digunakan. Service-role hanya dipakai server; aplikasi tidak menjalankan migrasi otomatis.
+Migrasi `20261110000100_dynamic_templates.sql` dan `20261110000200_dynamic_template_lifecycle.sql` membuat tabel/indeks, RLS read-only untuk status published, bucket privat, dan status archive. Migrasi `20261111000100_dynamic_template_asset_mime.sql` menambahkan MIME media yang didukung analyzer ke bucket. Migrasi `20261111000200_dynamic_template_service_role_grants.sql` memberikan privilege `SELECT`, `INSERT`, `UPDATE`, dan `DELETE` pada tabel serta `USAGE` pada schema `public` ke `service_role`; RLS tetap aktif dan service-role hanya digunakan server. Semua migration tersebut harus diterapkan di Supabase sebelum API admin digunakan. Aplikasi tidak menjalankan migration otomatis.
 
 ## Pengujian
 

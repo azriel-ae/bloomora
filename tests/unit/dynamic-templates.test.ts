@@ -87,5 +87,7 @@ test('Supabase database errors give actionable migration, schema, duplicate, and
   assert.equal(classifyDynamicTemplateDatabaseError({ code: '42P01' }).code, 'dynamic_template_migration_required');
   assert.equal(classifyDynamicTemplateDatabaseError({ code: 'PGRST204' }).code, 'dynamic_template_migration_outdated');
   assert.equal(classifyDynamicTemplateDatabaseError({ code: '23505' }).code, 'duplicate_slug');
-  assert.equal(classifyDynamicTemplateDatabaseError({ code: '42501' }).code, 'dynamic_template_database_permission');
+  const permissionFailure = classifyDynamicTemplateDatabaseError({ code: '42501' });
+  assert.equal(permissionFailure.code, 'dynamic_template_database_permission');
+  assert.match(permissionFailure.message, /20261111000200_dynamic_template_service_role_grants\.sql/);
 });
