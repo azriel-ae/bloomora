@@ -77,7 +77,7 @@ test('MODEL B + engine: a gift keeps being editable/publishable against its pinn
 });
 
 test('a curated template is hidden for new gifts but existing gifts keep their public URL and pinned version', async () => {
-  const templateId = 'wedding-garden-vows';
+  const templateId = 'wedding-aksara-evening';
   const pinned = ALL_TEMPLATE_VERSIONS.find((template) => template.id === templateId && template.version === 2)!;
   assert.equal(pinned.status, 'inactive');
   const preRetirementVersions = ALL_TEMPLATE_VERSIONS.map((template) =>

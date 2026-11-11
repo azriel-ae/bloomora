@@ -179,7 +179,7 @@ test('publish completeness: drafts may be incomplete, publications may not', () 
 });
 
 test('catalog: six Indonesian-first categories filter the curated active set and search stays localized', () => {
-  const activeIds = ['anniversary-distance-letters', 'anniversary-miles-and-mornings', 'apology-friendship-repair', 'apology-sibling-open-door', 'apology-staying-present', 'baby-gender-reveal-garden', 'between-the-pages', 'birthday-first-light', 'birthday-mothers-sunday', 'birthday-paper-confetti', 'bridal-shower-gathering', 'chapter-of-us', 'christmas-window-light', 'eid-homeward-table', 'engagement-first-to-forever', 'family-table-stories', 'farewell-last-train', 'fathers-day-built-together', 'for-you-scrapbook', 'graduation-first-in-family', 'graduation-work-in-the-margins', 'interactive-flower-adventure', 'just-a-letter', 'letter-for-mother', 'lunar-new-year-open-table', 'moving-away-photo-route', 'new-chapter-announcement', 'new-year-room-to-begin', 'our-little-archive', 'pressed-garden', 'ramadan-lantern-letter', 'wedding-aksara-evening', 'wedding-blossom-parchment', 'wedding-city-hall-promise', 'wedding-coastal-letters', 'wedding-gold-editorial', 'wedding-intimate-afterglow', 'wedding-quiet-ivory'];
+  const activeIds = ['anniversary-distance-letters', 'apology-room-to-listen', 'between-the-pages', 'birthday-paper-confetti', 'chapter-of-us', 'family-table-stories', 'for-you-scrapbook', 'friendship-city-atlas', 'graduation-next-page', 'interactive-flower-adventure', 'just-a-letter', 'letter-for-mother', 'our-little-archive', 'pressed-garden', 'wedding-garden-vows'];
   assert.deepEqual(listCatalog().map((t) => t.id).sort(), activeIds.sort());
   assert.equal(CATEGORIES.length, 6);
   assert.deepEqual(CATEGORIES.map((category) => category.id), ['romantic-anniversary', 'birthday-celebration', 'family-friendship', 'appreciation-thanks', 'graduation-achievement', 'special-moments']);
@@ -188,25 +188,30 @@ test('catalog: six Indonesian-first categories filter the curated active set and
     assert.ok(matches.length > 0, `${category.id} has catalog entries`);
     assert.ok(matches.every((template) => template.category === category.id), `${category.id} returns only its assigned templates`);
   }
-  assert.deepEqual(searchCatalog('bab', 'id').map((t) => t.id), ['chapter-of-us', 'new-chapter-announcement', 'bridal-shower-gathering', 'farewell-last-train', 'baby-gender-reveal-garden', 'anniversary-miles-and-mornings']);
-  assert.deepEqual(searchCatalog('BOTANICAL', 'en').map((t) => t.id), ['pressed-garden', 'wedding-blossom-parchment']);
-  assert.deepEqual(searchCatalog('', 'en', 'family-friendship').map((t) => t.id), ['our-little-archive', 'family-table-stories', 'apology-staying-present', 'apology-friendship-repair', 'apology-sibling-open-door']);
-  assert.deepEqual(searchCatalog('', 'en', 'special-moments').map((t) => t.id).filter((id) => id.startsWith('wedding-')).sort(), ['wedding-aksara-evening', 'wedding-blossom-parchment', 'wedding-city-hall-promise', 'wedding-coastal-letters', 'wedding-gold-editorial', 'wedding-intimate-afterglow', 'wedding-quiet-ivory']);
-  assert.deepEqual(searchCatalog('room to listen', 'en'), []);
+  assert.deepEqual(searchCatalog('bab', 'id').map((t) => t.id), ['chapter-of-us', 'graduation-next-page']);
+  assert.deepEqual(searchCatalog('BOTANICAL', 'en').map((t) => t.id), ['pressed-garden', 'wedding-garden-vows']);
+  assert.deepEqual(searchCatalog('', 'en', 'family-friendship').map((t) => t.id), ['our-little-archive', 'apology-room-to-listen', 'family-table-stories', 'friendship-city-atlas']);
+  assert.deepEqual(searchCatalog('', 'en', 'special-moments').map((t) => t.id).filter((id) => id.startsWith('wedding-')).sort(), ['wedding-garden-vows']);
+  assert.deepEqual(searchCatalog('room to listen', 'en').map((template) => template.id), ['apology-room-to-listen']);
   assert.deepEqual(searchCatalog('zzzz', 'en'), []);
   assert.equal(getFeaturedDemo()?.id, 'chapter-of-us');
   assert.equal(listCatalog().filter((t) => t.featured && t.hasDemo).length, 1, 'exactly one featured demo');
 });
 
-test('curated templates are archived, not removed: pinned versions still render with unchanged structures', () => {
-  const archivedIds = ['wedding-garden-vows', 'apology-room-to-listen', 'birthday-midnight-table', 'friendship-city-atlas', 'friendship-voice-note-archive', 'anniversary-seasons-kept', 'love-letter-after-rain', 'graduation-next-page', 'valentines-postmark'];
-  for (const id of archivedIds) {
-    assert.equal(getActiveTemplate(id), null, `${id} is not available for new gifts`);
-    const before = ALL_TEMPLATE_VERSIONS.find((template) => template.id === id && template.version === 2);
-    const pinned = getTemplateForRender(id, 2);
-    assert.ok(before && pinned, `${id} version remains registered for existing gifts`);
-    assert.deepEqual(pinned.sections, before.sections);
-    assert.deepEqual(pinned.sample, before.sample);
+test('inactive native template versions are unavailable for new gifts but remain renderable when pinned', () => {
+  const latestById = new Map<string, (typeof ALL_TEMPLATE_VERSIONS)[number]>();
+  for (const template of ALL_TEMPLATE_VERSIONS) {
+    const current = latestById.get(template.id);
+    if (!current || current.version < template.version) latestById.set(template.id, template);
+  }
+  const inactive = [...latestById.values()].filter((template) => template.status !== 'active');
+  assert.ok(inactive.length > 0, 'the native catalog retains explicitly inactive templates');
+  for (const template of inactive) {
+    assert.equal(getActiveTemplate(template.id), null, `${template.id} is not available for new gifts`);
+    const pinned = getTemplateForRender(template.id, template.version);
+    assert.ok(pinned, `${template.id}@${template.version} remains registered for existing gifts`);
+    assert.deepEqual(pinned.sections, template.sections);
+    assert.deepEqual(pinned.sample, template.sample);
   }
 });
 
