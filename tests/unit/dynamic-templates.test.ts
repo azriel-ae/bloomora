@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { zipSync } from 'fflate';
+import { classifyDynamicTemplateDatabaseError } from '../../lib/server/dynamic-template-errors.ts';
 import { analyzeTemplateFiles, parseManifest, parseZip, validateFiles, validateManifestForAnalysis, type TemplateUploadFile } from '../../lib/server/dynamic-template-validation.ts';
 
 const file = (path: string, text: string, contentType = 'application/octet-stream'): TemplateUploadFile => ({ path, bytes: new TextEncoder().encode(text), contentType });
@@ -80,4 +81,11 @@ test('admin edits cannot change renderer or claim unobserved editor fields/featu
   assert.throws(() => validateManifestForAnalysis(invalidEditor, result.analysis, files), /unsupported_editor_field_claim/);
   const wrongRenderer = { ...result.manifest, renderer: 'custom-react' };
   assert.throws(() => validateManifestForAnalysis(wrongRenderer, result.analysis, files), /renderer_detection_mismatch/);
+});
+
+test('Supabase database errors give actionable migration, schema, duplicate, and permission diagnostics', () => {
+  assert.equal(classifyDynamicTemplateDatabaseError({ code: '42P01' }).code, 'dynamic_template_migration_required');
+  assert.equal(classifyDynamicTemplateDatabaseError({ code: 'PGRST204' }).code, 'dynamic_template_migration_outdated');
+  assert.equal(classifyDynamicTemplateDatabaseError({ code: '23505' }).code, 'duplicate_slug');
+  assert.equal(classifyDynamicTemplateDatabaseError({ code: '42501' }).code, 'dynamic_template_database_permission');
 });

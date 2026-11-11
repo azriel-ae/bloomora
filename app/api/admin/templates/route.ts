@@ -1,6 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/session';
+import { classifyDynamicTemplateDatabaseError } from '@/lib/server/dynamic-template-errors';
 import {
   analyzeTemplateFiles,
   parseZip,
@@ -33,7 +34,6 @@ function cleanErrorCode(error: unknown) {
 }
 function publicErrorMessage(code: string, raw: string) {
   if (code === 'storage_upload') return 'File gagal disimpan ke Storage. Periksa konfigurasi Storage dan coba lagi.';
-  if (code === 'database_insert') return /duplicate|unique/i.test(raw) ? 'Slug sudah digunakan. Ubah slug pada manifest lalu coba lagi.' : 'Metadata tidak dapat disimpan. Periksa migrasi database dan konfigurasi server.';
   if (code === 'server_not_configured') return 'Storage server belum dikonfigurasi.';
   return raw.slice(0, 220);
 }
@@ -43,7 +43,10 @@ export async function GET() {
   if (!user?.admin) return json({ ok: false, code: 'admin_required' }, 403);
   const supabase = storageClient();
   const { data, error } = await supabase.from('dynamic_templates').select('id,slug,name,description,category,renderer,status,version,entry_point,manifest,validation_errors,created_at,updated_at,published_at').order('updated_at', { ascending: false });
-  if (error) return json({ ok: false, code: 'database_error' }, 500);
+  if (error) {
+    const failure = classifyDynamicTemplateDatabaseError(error);
+    return json({ ok: false, ...failure }, failure.status);
+  }
   return json({ ok: true, templates: data ?? [] });
 }
 
@@ -65,6 +68,11 @@ export async function POST(request: Request) {
     }
 
     const supabase = storageClient();
+    const { error: schemaError } = await supabase.from('dynamic_templates').select('id').limit(1);
+    if (schemaError) {
+      const failure = classifyDynamicTemplateDatabaseError(schemaError);
+      return json({ ok: false, ...failure }, failure.status);
+    }
     const root = uploadId(manifest.slug, 1);
     const uploadedPaths: string[] = [];
     try {
@@ -89,7 +97,11 @@ export async function POST(request: Request) {
         status: 'ready_for_preview',
         validation_errors: [],
       }).select('id,slug,name,status,renderer,version,entry_point,manifest').single();
-      if (error) throw new Error(`database_insert:${error.message}`);
+      if (error) {
+        if (uploadedPaths.length) await supabase.storage.from('dynamic-templates').remove(uploadedPaths);
+        const failure = classifyDynamicTemplateDatabaseError(error);
+        return json({ ok: false, ...failure }, failure.status);
+      }
       const isZip = (form.get('upload') as File).name.toLowerCase().endsWith('.zip');
       const pipeline = ['uploaded', ...(isZip ? ['extracting'] : []), 'analyzing', 'manifest_generation', 'validating', 'compatibility_check', 'preview_ready'];
       return json({ ok: true, template: data, analysis, pipeline });
@@ -100,7 +112,7 @@ export async function POST(request: Request) {
   } catch (error) {
     const raw = error instanceof Error ? error.message : 'validation_failed';
     const code = cleanErrorCode(error);
-    const status = code === 'storage_upload' || code === 'database_insert' || code === 'server_not_configured' ? 500 : 400;
+    const status = code === 'storage_upload' || code === 'server_not_configured' ? 500 : 400;
     return json({ ok: false, code, message: publicErrorMessage(code, raw) }, status);
   }
 }

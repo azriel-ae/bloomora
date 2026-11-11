@@ -20,7 +20,7 @@ type Usage = { gifts: number; activeGifts: number; drafts: number; publicGifts: 
 const statusLabel: Record<string, string> = { draft: 'Draft', processing: 'Sedang diproses', validation_failed: 'Validasi gagal', ready_for_preview: 'Siap dipreview', published: 'Dipublikasikan', archived: 'Diarsipkan' };
 const pipelineLabels: Record<string, string> = { uploaded: 'File diterima', extracting: 'Ekstraksi ZIP', analyzing: 'Analisis file dan dependensi', manifest_generation: 'Pembuatan manifest', validating: 'Validasi', compatibility_check: 'Cek kompatibilitas', preview_ready: 'Preview siap' };
 const errorCopy: Record<string, string> = {
-  admin_required: 'Akses admin diperlukan.', upload_required: 'Pilih satu file HTML atau ZIP terlebih dahulu.', upload_must_be_html_or_zip: 'Pilih satu file .html atau .zip.', html_entry_point_missing: 'ZIP tidak berisi file HTML sebagai entry point.', react_build_worker_unavailable: 'Paket React/TSX belum dapat diproses. Unggah hasil build HTML statis atau HTML dan asetnya.', unbundled_package_dependencies: 'HTML mengimpor package npm yang belum dibundle. Unggah hasil build statis beserta aset lokalnya.', unsupported_template_format: 'Format file ini belum didukung.', manifest_invalid_json: 'Manifest harus berupa JSON yang valid.', renderer_detection_mismatch: 'Renderer tidak dapat diubah dari hasil deteksi sistem.', unsupported_feature_claim: 'Hapus fitur yang tidak ditemukan oleh analisis otomatis.', unsupported_locale_claim: 'Hapus locale yang belum terdeteksi pada template.', unsupported_editor_field_claim: 'Hapus field editor yang tidak ditemukan di HTML.', local_assets_missing: 'Ada aset lokal yang belum disertakan.', external_resources_unverified: 'URL atau package dependency belum diverifikasi dan diblokir saat preview.',
+  admin_required: 'Akses admin diperlukan.', dynamic_template_migration_required: 'Tabel template belum tersedia. Di Supabase SQL Editor, jalankan berurutan migration 20261110000100_dynamic_templates.sql, 20261110000200_dynamic_template_lifecycle.sql, dan 20261111000100_dynamic_template_asset_mime.sql, lalu coba lagi.', dynamic_template_migration_outdated: 'Skema dynamic_templates belum sesuai. Pastikan migration dynamic-template sudah diterapkan di Supabase.', duplicate_slug: 'Slug template sudah digunakan. Ubah slug pada manifest lalu coba lagi.', admin_user_reference_invalid: 'Akun admin tidak cocok dengan pengguna Supabase. Muat ulang sesi admin atau periksa auth.users.', dynamic_template_metadata_invalid: 'Metadata ditolak oleh aturan tabel. Periksa nama, slug, kategori, renderer, versi, dan migration yang terpasang.', dynamic_template_database_permission: 'Supabase menolak akses database. Periksa service role pada deployment.', dynamic_template_database_error: 'Database gagal menyimpan metadata. Kode penyebab sudah tersedia pada respons/log server.', upload_required: 'Pilih satu file HTML atau ZIP terlebih dahulu.', upload_must_be_html_or_zip: 'Pilih satu file .html atau .zip.', html_entry_point_missing: 'ZIP tidak berisi file HTML sebagai entry point.', react_build_worker_unavailable: 'Paket React/TSX belum dapat diproses. Unggah hasil build HTML statis atau HTML dan asetnya.', unbundled_package_dependencies: 'HTML mengimpor package npm yang belum dibundle. Unggah hasil build statis beserta aset lokalnya.', unsupported_template_format: 'Format file ini belum didukung.', manifest_invalid_json: 'Manifest harus berupa JSON yang valid.', renderer_detection_mismatch: 'Renderer tidak dapat diubah dari hasil deteksi sistem.', unsupported_feature_claim: 'Hapus fitur yang tidak ditemukan oleh analisis otomatis.', unsupported_locale_claim: 'Hapus locale yang belum terdeteksi pada template.', unsupported_editor_field_claim: 'Hapus field editor yang tidak ditemukan di HTML.', local_assets_missing: 'Ada aset lokal yang belum disertakan.', external_resources_unverified: 'URL atau package dependency belum diverifikasi dan diblokir saat preview.',
 };
 const statusMessage = (code: string, message?: string) => errorCopy[code] ?? message ?? 'Proses gagal. Periksa format file dan coba lagi.';
 
@@ -36,9 +36,12 @@ export function TemplatesManager() {
   const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
 
   async function load() {
-    const response = await fetch('/api/admin/templates', { cache: 'no-store' });
-    const data = await response.json();
-    if (response.ok) setTemplates(data.templates ?? []);
+    try {
+      const response = await fetch('/api/admin/templates', { cache: 'no-store' });
+      const data = await response.json();
+      if (response.ok) setTemplates(data.templates ?? []);
+      else setMessage(statusMessage(data.code, data.message));
+    } catch { setMessage('Tidak dapat memuat template dari server. Periksa koneksi dan konfigurasi Supabase.'); }
   }
   useEffect(() => { void load(); }, []);
 
