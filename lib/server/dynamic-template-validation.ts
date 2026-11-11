@@ -49,6 +49,7 @@ const fileContentType = (path: string) => {
   const ext = path.split('.').pop()?.toLowerCase();
   return ({ html: 'text/html', htm: 'text/html', css: 'text/css', js: 'text/javascript', mjs: 'text/javascript', cjs: 'text/javascript', json: 'application/json', tsx: 'application/typescript', ts: 'application/typescript', jsx: 'text/javascript', svg: 'image/svg+xml', png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif', avif: 'image/avif', ico: 'image/x-icon', woff: 'font/woff', woff2: 'font/woff2', ttf: 'font/ttf', otf: 'font/otf', mp3: 'audio/mpeg', m4a: 'audio/mp4', wav: 'audio/wav', ogg: 'audio/ogg', mp4: 'video/mp4', webm: 'video/webm' } as Record<string, string>)[ext ?? ''] ?? 'application/octet-stream';
 };
+export const templateContentTypeForPath = fileContentType;
 
 export function safeTemplatePath(path: string) {
   const normalized = path.replaceAll('\\', '/').replace(/^\/+/, '');
