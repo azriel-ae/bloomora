@@ -7,6 +7,8 @@ import { createRegistry, ALL_TEMPLATE_VERSIONS } from '../../lib/engine/registry
 import { blankContent, sampleContent } from '../../lib/engine/resolve.ts';
 import { chapterOfUs } from '../../lib/engine/templates/chapter-of-us.ts';
 import { contrastRatio } from '../../lib/engine/color.ts';
+import { analyzeTemplateFiles, type TemplateUploadFile } from '../../lib/server/dynamic-template-validation.ts';
+import { createDynamicTemplateVersionSnapshot, dynamicVersionToTemplateInfo } from '../../lib/server/dynamic-template-contract.ts';
 
 const T0 = Date.UTC(2026, 10, 1);
 const alice: S.Actor = { uid: 'alice', admin: false };
@@ -129,4 +131,55 @@ test('private draft read is owner-only and still returns read-only content after
 
   const stranger = await S.getGiftDraft(h.env, { uid: 'mallory', admin: false }, created.giftId);
   assert.ok(!stranger.ok && stranger.code === 'not_owner');
+});
+
+test('dynamic version adapter reuses Model B services and keeps each gift revision pinned', async () => {
+  const raw = '<textarea data-bloomora-field="message">A note</textarea>';
+  const files: TemplateUploadFile[] = [{ path: 'index.html', bytes: new TextEncoder().encode(raw), contentType: 'text/html' }];
+  const base = analyzeTemplateFiles(files).manifest;
+  const makeInfo = (version: number) => {
+    const manifest = { ...base, version, configurationSchema: { fields: base.configurationSchema.fields.map((field) => ({ ...field, required: true })) } };
+    const snapshot = createDynamicTemplateVersionSnapshot({ manifest, files, sourcePath: `notes/v${version}/source`, publishedAt: `2026-01-0${version}T00:00:00Z` });
+    return dynamicVersionToTemplateInfo(snapshot);
+  };
+  const version1 = makeInfo(1);
+  const version2 = makeInfo(2);
+  const versions = new Map([[1, version1], [2, version2]]);
+  let activeVersion = 1;
+  const lookup = (id: string, pinnedVersion?: number) => id === version1.id ? versions.get(pinnedVersion ?? activeVersion) ?? null : null;
+  const templateId = version1.id;
+  const empty = { fields: { message: '' }, sections: [] as string[], data: {}, media: [] as { id: string; kind: 'image' | 'audio'; path: string }[] };
+  const complete = { ...empty, fields: { message: 'A note for you' } };
+  const h = makeEnv(T0); await buy(h, 'basic');
+
+  const created = await S.createGift(h.env, alice, { templateId, content: empty }, lookup);
+  assert.ok(created.ok);
+  if (!created.ok) return;
+  const blocked = await S.publishGift(h.env, alice, created.giftId, { expectedVersion: 1 }, lookup);
+  assert.ok(!blocked.ok && blocked.code === 'incomplete_content');
+  assert.ok((await S.saveDraft(h.env, alice, created.giftId, { expectedVersion: 1, content: complete }, lookup)).ok);
+  assert.ok((await S.publishGift(h.env, alice, created.giftId, { expectedVersion: 2 }, lookup)).ok);
+  const firstRevision = h.store.docs.get(`gifts/${created.giftId}/revisions/1`)!;
+  assert.equal(firstRevision.templateId, templateId);
+  assert.equal(firstRevision.templateVersion, 1);
+
+  activeVersion = 2;
+  const changedDraft = { ...complete, fields: { message: 'Edited on the pinned version' } };
+  assert.ok((await S.saveDraft(h.env, alice, created.giftId, { expectedVersion: 2, content: changedDraft }, lookup)).ok);
+  assert.ok((await S.publishGift(h.env, alice, created.giftId, { expectedVersion: 3 }, lookup)).ok);
+  const secondRevision = h.store.docs.get(`gifts/${created.giftId}/revisions/2`)!;
+  assert.equal(secondRevision.templateVersion, 1, 'republish does not drift to a newer template version');
+
+  await buy(h, 'basic'); // renewal stacks after the active subscription ends
+  h.advance(4 * 86_400_000); // the renewed subscription is now active and owns a fresh gift quota
+  const newGift = await S.createGift(h.env, alice, { templateId, content: complete }, lookup);
+  assert.ok(newGift.ok);
+  if (!newGift.ok) return;
+  assert.ok((await S.publishGift(h.env, alice, newGift.giftId, { expectedVersion: 1 }, lookup)).ok);
+  assert.equal(h.store.docs.get(`gifts/${newGift.giftId}/revisions/1`)!.templateVersion, 2, 'new gifts choose the current exact version');
+
+  h.advance(40 * 86_400_000);
+  assert.equal((await S.getPublicGift(h.env, created.slug)).ok, true, 'published access survives entitlement expiry');
+  const expiredEdit = await S.saveDraft(h.env, alice, created.giftId, { expectedVersion: 4, content: changedDraft }, lookup);
+  assert.equal(code(expiredEdit), 'subscription_expired', 'editing remains entitlement-gated');
 });

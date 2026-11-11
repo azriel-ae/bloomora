@@ -4,11 +4,14 @@ export const MAX_ARCHIVE_BYTES = 50 * 1024 * 1024;
 export const MAX_UNPACKED_BYTES = 100 * 1024 * 1024;
 export const MAX_FILE_BYTES = 50 * 1024 * 1024;
 export const MAX_FILES = 500;
+export const DYNAMIC_TEMPLATE_MANIFEST_SCHEMA_VERSION = 1 as const;
+export const MAX_DYNAMIC_FIELD_LENGTH = 2000;
 const forbidden = /(^|\/)(?:\.{1,2}|node_modules|\.git)(?:\/|$)|\.(?:exe|dll|so|dylib|bat|cmd|sh|ps1)$/i;
 const allowed = /\.(?:html?|css|js|mjs|cjs|tsx?|jsx?|json|png|jpe?g|webp|gif|avif|svg|ico|woff2?|ttf|otf|mp3|m4a|wav|ogg|mp4|webm)$/i;
 const htmlExtensions = /\.(?:html?|xhtml)$/i;
 
 export type DynamicManifest = {
+  schemaVersion: typeof DYNAMIC_TEMPLATE_MANIFEST_SCHEMA_VERSION;
   id: string;
   name: { en: string; id: string };
   slug: string;
@@ -22,7 +25,7 @@ export type DynamicManifest = {
   assets: string[];
   supportedFeatures: string[];
   supportedLocales: string[];
-  configurationSchema: { fields: { key: string; label: string; type: 'text' | 'textarea' }[] };
+  configurationSchema: { fields: { key: string; label: string; type: 'text' | 'textarea'; maxLength: number; defaultValue: string; required: boolean }[] };
   requirements: string[];
   compatibility: { editorIntegration: boolean; customerReady: boolean; notes: string[] };
   rendererMetadata: { name: string; sandboxed: boolean; version: number };
@@ -224,6 +227,7 @@ export function analyzeTemplateFiles(inputFiles: TemplateUploadFile[]): { analys
   const slug = normalizeSlug(name);
   const assetPaths = files.map((file) => file.path).filter((path) => path !== 'manifest.json' && path !== 'template.json');
   const manifest: DynamicManifest = {
+    schemaVersion: DYNAMIC_TEMPLATE_MANIFEST_SCHEMA_VERSION,
     id: `dynamic-${slug}`,
     name: { en: name, id: name },
     slug,
@@ -237,7 +241,7 @@ export function analyzeTemplateFiles(inputFiles: TemplateUploadFile[]): { analys
     assets: assetPaths,
     supportedFeatures: [...features].sort(),
     supportedLocales: language === 'unknown' ? [] : [language],
-    configurationSchema: { fields: editableFields },
+    configurationSchema: { fields: editableFields.map((field) => ({ ...field, maxLength: field.type === 'textarea' ? MAX_DYNAMIC_FIELD_LENGTH : 200, defaultValue: '', required: false })) },
     requirements: [...external].sort(),
     compatibility: { editorIntegration: false, customerReady: false, notes: ['Belum terhubung ke renderer/editor customer Bloomora.'] },
     rendererMetadata: { name: format === 'html' ? 'isolated-html-preview' : renderer, sandboxed: format === 'html', version: 1 },
@@ -260,6 +264,8 @@ export function analyzeTemplateFiles(inputFiles: TemplateUploadFile[]): { analys
 export function validateManifestForAnalysis(value: unknown, analysis: TemplateAnalysis, files: TemplateUploadFile[]): DynamicManifest {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('manifest_invalid');
   const candidate = value as Partial<DynamicManifest>;
+  const schemaVersion = candidate.schemaVersion ?? DYNAMIC_TEMPLATE_MANIFEST_SCHEMA_VERSION;
+  if (schemaVersion !== DYNAMIC_TEMPLATE_MANIFEST_SCHEMA_VERSION) throw new Error('unsupported_manifest_schema_version');
   if (!candidate.name || typeof candidate.name.en !== 'string' || typeof candidate.name.id !== 'string') throw new Error('manifest_invalid_name');
   if (candidate.name.en.length < 1 || candidate.name.en.length > 120 || candidate.name.id.length < 1 || candidate.name.id.length > 120) throw new Error('manifest_invalid_name');
   if (typeof candidate.slug !== 'string' || !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(candidate.slug) || candidate.slug.length > 80) throw new Error('invalid_slug');
@@ -274,17 +280,29 @@ export function validateManifestForAnalysis(value: unknown, analysis: TemplateAn
   const requestedLocales = Array.isArray(candidate.supportedLocales) ? candidate.supportedLocales : [];
   if (requestedLocales.some((locale) => typeof locale !== 'string' || !detectedLocales.includes(locale))) throw new Error('unsupported_locale_claim');
   const detectedFields = new Set(analysis.editableFields.map((field) => field.key));
+  const detectedFieldByKey = new Map(analysis.editableFields.map((field) => [field.key, field]));
+  if (candidate.configurationSchema !== undefined && (!candidate.configurationSchema || typeof candidate.configurationSchema !== 'object' || Array.isArray(candidate.configurationSchema) || !Array.isArray(candidate.configurationSchema.fields))) throw new Error('unsupported_editor_field_claim');
   const fields = candidate.configurationSchema?.fields ?? [];
-  if (!Array.isArray(fields) || fields.some((field) => !field || typeof field.key !== 'string' || !detectedFields.has(field.key))) throw new Error('unsupported_editor_field_claim');
-  const version = Number(candidate.version ?? 1);
+  const suppliedFieldKeys = new Set<string>();
+  if (!Array.isArray(fields) || fields.length > 100 || fields.length > detectedFields.size || fields.some((field) => {
+    if (!field || typeof field.key !== 'string' || !detectedFields.has(field.key)) return true;
+    if (suppliedFieldKeys.has(field.key)) return true;
+    suppliedFieldKeys.add(field.key);
+    if (field.type !== undefined && field.type !== detectedFieldByKey.get(field.key)?.type) return true;
+    if (field.maxLength !== undefined && (!Number.isInteger(field.maxLength) || field.maxLength < 1 || field.maxLength > MAX_DYNAMIC_FIELD_LENGTH)) return true;
+    if (field.required !== undefined && typeof field.required !== 'boolean') return true;
+    return field.defaultValue !== undefined && (typeof field.defaultValue !== 'string' || field.defaultValue.length > (field.maxLength ?? (field.type === 'textarea' ? MAX_DYNAMIC_FIELD_LENGTH : 200)));
+  })) throw new Error('unsupported_editor_field_claim');
+  const version = candidate.version ?? 1;
   if (!Number.isInteger(version) || version !== 1) throw new Error('invalid_version');
   const base = analyzeTemplateFiles(files).manifest;
   const name = { en: candidate.name.en.trim(), id: candidate.name.id.trim() };
   const description = candidate.description && typeof candidate.description.en === 'string' && typeof candidate.description.id === 'string' ? { en: candidate.description.en.slice(0, 2000), id: candidate.description.id.slice(0, 2000) } : base.description;
   const filteredLocales = requestedLocales.filter((locale): locale is string => typeof locale === 'string' && detectedLocales.includes(locale));
-  const fieldsByKey = new Map(analysis.editableFields.map((field) => [field.key, field]));
+  const fieldsByKey = detectedFieldByKey;
   return {
     ...base,
+    schemaVersion: DYNAMIC_TEMPLATE_MANIFEST_SCHEMA_VERSION,
     id: `dynamic-${candidate.slug}`,
     name,
     slug: candidate.slug,
@@ -298,7 +316,11 @@ export function validateManifestForAnalysis(value: unknown, analysis: TemplateAn
     assets: base.assets,
     supportedFeatures: supportedFeatures as string[],
     supportedLocales: filteredLocales,
-    configurationSchema: { fields: fields.map((field) => fieldsByKey.get(field.key)!) },
+    configurationSchema: { fields: fields.map((field) => {
+      const detected = fieldsByKey.get(field.key)!;
+      const maxLength = field.maxLength ?? (detected.type === 'textarea' ? MAX_DYNAMIC_FIELD_LENGTH : 200);
+      return { ...detected, maxLength, defaultValue: typeof field.defaultValue === 'string' ? field.defaultValue : '', required: field.required === true };
+    }) },
     requirements: base.requirements,
     compatibility: base.compatibility,
     rendererMetadata: base.rendererMetadata,
@@ -313,6 +335,7 @@ export function parseManifest(files: TemplateUploadFile[]): DynamicManifest {
   try { raw = JSON.parse(readText(manifestFile)); } catch { throw new Error('manifest_invalid_json'); }
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) throw new Error('manifest_invalid');
   const candidate = raw as Partial<DynamicManifest> & { name?: unknown; category?: unknown; renderer?: unknown; entryPoint?: unknown };
+  if (candidate.schemaVersion !== undefined && candidate.schemaVersion !== DYNAMIC_TEMPLATE_MANIFEST_SCHEMA_VERSION) throw new Error('unsupported_manifest_schema_version');
   const entryPoint = typeof candidate.entryPoint === 'string' ? safeTemplatePath(candidate.entryPoint) : '';
   if (!entryPoint || !files.some((file) => file.path === entryPoint)) throw new Error('entry_point_missing');
   if (!candidate.name || typeof candidate.name !== 'object' || typeof (candidate.name as { en?: unknown }).en !== 'string' || typeof (candidate.name as { id?: unknown }).id !== 'string') throw new Error('manifest_invalid_name');
@@ -320,15 +343,24 @@ export function parseManifest(files: TemplateUploadFile[]): DynamicManifest {
   if ((candidate.renderer === 'custom-react' || candidate.renderer === 'native') && candidate.contract !== 'bloomora-template-v1') throw new Error('native_contract_missing');
   const title = (candidate.name as { en: string; id: string });
   const slug = typeof candidate.slug === 'string' && /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(candidate.slug) ? candidate.slug : normalizeSlug(title.en);
-  const renderer = candidate.renderer as DynamicManifest['renderer'];
-  const base: DynamicManifest = {
-    id: `dynamic-${slug}`, name: title, slug, version: Number(candidate.version ?? 1),
-    description: { en: '', id: '' }, author: '', category: candidate.category, tags: [], renderer,
-    entryPoint, assets: files.map((file) => file.path).filter((path) => path !== manifestFile.path),
-    supportedFeatures: [], supportedLocales: [], configurationSchema: { fields: [] }, requirements: [],
-    compatibility: { editorIntegration: false, customerReady: false, notes: ['Belum terhubung ke renderer/editor customer Bloomora.'] },
-    rendererMetadata: { name: renderer === 'custom-html' ? 'isolated-html-preview' : renderer, sandboxed: renderer === 'custom-html', version: 1 },
-    contract: candidate.contract,
+  const detected = analyzeTemplateFiles(files);
+  const description = candidate.description && typeof candidate.description.en === 'string' && typeof candidate.description.id === 'string'
+    ? candidate.description : detected.manifest.description;
+  const normalized = {
+    ...detected.manifest,
+    id: `dynamic-${slug}`,
+    name: { en: title.en, id: title.id },
+    slug,
+    version: candidate.version ?? 1,
+    description,
+    author: typeof candidate.author === 'string' ? candidate.author.slice(0, 120) : '',
+    category: candidate.category,
+    tags: Array.isArray(candidate.tags) ? candidate.tags : [],
+    renderer: candidate.renderer,
+    entryPoint,
+    supportedFeatures: Array.isArray(candidate.supportedFeatures) ? candidate.supportedFeatures : [],
+    supportedLocales: Array.isArray(candidate.supportedLocales) ? candidate.supportedLocales : [],
+    configurationSchema: candidate.configurationSchema ?? detected.manifest.configurationSchema,
   };
-  return { ...base, ...(candidate as Partial<DynamicManifest>), id: `dynamic-${slug}`, slug, renderer, entryPoint, assets: base.assets, compatibility: base.compatibility, rendererMetadata: base.rendererMetadata };
+  return validateManifestForAnalysis(normalized, detected.analysis, files);
 }

@@ -5,7 +5,7 @@ type SupabaseDbError = { code?: unknown; message?: unknown; details?: unknown; h
 export function classifyDynamicTemplateDatabaseError(error: SupabaseDbError): DynamicTemplateDbFailure {
   const postgresCode = typeof error?.code === 'string' ? error.code : '';
   if (postgresCode === '42P01' || postgresCode === 'PGRST205') {
-    return { code: 'dynamic_template_migration_required', message: 'Tabel dynamic_templates belum tersedia. Jalankan berurutan migration 20261110000100_dynamic_templates.sql, 20261110000200_dynamic_template_lifecycle.sql, dan 20261111000100_dynamic_template_asset_mime.sql di Supabase.', status: 503 };
+    return { code: 'dynamic_template_migration_required', message: 'Tabel dynamic template belum tersedia. Jalankan berurutan seluruh migration dynamic template hingga 20261111000300_dynamic_template_versions.sql di Supabase.', status: 503 };
   }
   if (postgresCode === '42703' || postgresCode === 'PGRST204') {
     return { code: 'dynamic_template_migration_outdated', message: 'Skema tabel dynamic_templates belum sesuai versi aplikasi. Periksa dan terapkan seluruh migration dynamic-template di Supabase.', status: 503 };
