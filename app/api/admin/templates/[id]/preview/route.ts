@@ -23,12 +23,13 @@ export async function GET(request: Request, { params }: { params: Promise<{ id: 
   const previewRoot = `/api/admin/templates/${encodeURIComponent(id)}/preview/${token}/`;
   const parentPath = template.entry_point.includes('/') ? `${template.entry_point.slice(0, template.entry_point.lastIndexOf('/') + 1)}` : '';
   const parentBase = `${previewRoot}${parentPath}`;
-  html = html.replace(/<base\b[^>]*>/gi, '').replace(/<meta\b[^>]*http-equiv\s*=\s*(["'])refresh\1[^>]*>/gi, '');
+  html = html.replace(/<base\b[^>]*>/gi, '').replace(/<meta\b[^>]*http-equiv\s*=\s*(["'])refresh\1[^>]*>/gi, '').replace(/<meta\b[^>]*\bname\s*=\s*(["'])viewport\1[^>]*>/gi, '');
   html = html.replace(/(<(?:img|script|link|source|video|audio|track|input)\b[^>]*?\b(?:src|href|poster)\s*=\s*)(["'])\/(?!\/)([^"']*)/gi, (_match, before: string, quote: string, path: string) => `${before}${quote}${previewRoot}${path}${quote}`);
   const origin = new URL(request.url).origin;
   const baseTag = `<base href="${parentBase}">`;
-  if (/<head\b[^>]*>/i.test(html)) html = html.replace(/<head\b[^>]*>/i, (head) => `${head}${baseTag}`);
-  else html = `<!doctype html><html><head>${baseTag}<meta charset="utf-8"></head><body>${html}</body></html>`;
+  const viewportTag = '<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">';
+  if (/<head\b[^>]*>/i.test(html)) html = html.replace(/<head\b[^>]*>/i, (head) => `${head}${baseTag}${viewportTag}`);
+  else html = `<!doctype html><html><head>${baseTag}${viewportTag}<meta charset="utf-8"></head><body>${html}</body></html>`;
   return new NextResponse(html, { headers: {
     'Content-Type': 'text/html; charset=utf-8',
     'Content-Security-Policy': `default-src 'none'; base-uri ${origin}; style-src 'self' ${origin} 'unsafe-inline'; script-src 'self' ${origin} 'unsafe-inline'; img-src 'self' ${origin} data: blob:; font-src 'self' ${origin} data:; media-src 'self' ${origin} data: blob:; connect-src 'none'; form-action 'none'; frame-ancestors 'self'; object-src 'none';`,
