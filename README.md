@@ -39,3 +39,4 @@ pnpm build
 ```
 
 The QRIS payment flow is intentionally manual: the owner supplies the active QRIS instructions, package pricing, proof review, and publication entitlement policy. Supabase remains the only application backend; no alternate database provider or local file database is used.
+testtt
